@@ -19,6 +19,7 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 - Python 3.12+
 - PostgreSQL 14+
 - `pip` e `venv`
+- Docker e Docker Compose, para execução em containers
 
 ## Instalação
 
@@ -70,6 +71,43 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
    ```
 
 8. Acesse a aplicação em <http://127.0.0.1:8000/>.
+
+
+## Executando com Docker
+
+1. Crie o arquivo de variáveis de ambiente, se ainda não existir:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Suba os serviços `web` e `db` com Docker Compose:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   O serviço `db` usa a imagem oficial `postgres:16-alpine` e o serviço `web` aplica as migrações antes de iniciar o servidor Django. No Docker Compose, o Django se conecta ao PostgreSQL usando `POSTGRES_HOST=db`.
+
+3. Acesse a aplicação em <http://localhost:8000/>.
+
+4. Para executar comandos Django dentro do container:
+
+   ```bash
+   docker compose exec web python manage.py createsuperuser
+   ```
+
+5. Para parar os containers:
+
+   ```bash
+   docker compose down
+   ```
+
+6. Para remover também o volume do banco de dados local:
+
+   ```bash
+   docker compose down -v
+   ```
 
 ## Estrutura inicial
 
