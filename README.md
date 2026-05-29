@@ -73,6 +73,24 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 8. Acesse a aplicação em <http://127.0.0.1:8000/>.
 
 
+
+## Autenticação e perfis de acesso
+
+O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
+
+- Administrador
+- Gerente
+- Vendedor
+- Estoquista
+
+Após executar as migrações, crie um superusuário e atribua usuários aos grupos pelo Django Admin:
+
+```bash
+python manage.py createsuperuser
+```
+
+As páginas internas começam em `/dashboard/`, exigem login e exibem o nome do usuário autenticado no topo.
+
 ## Executando com Docker
 
 1. Crie o arquivo de variáveis de ambiente, se ainda não existir:

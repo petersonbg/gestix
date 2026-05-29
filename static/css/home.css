@@ -5,3 +5,11 @@ body {
 main {
     background: radial-gradient(circle at top left, rgba(13, 110, 253, 0.12), transparent 30%), #f8f9fa;
 }
+
+.nav-pills .nav-link.disabled {
+    color: #adb5bd;
+}
+
+.offcanvas .nav-link {
+    padding-block: 0.65rem;
+}
