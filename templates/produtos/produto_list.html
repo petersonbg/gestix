@@ -1,0 +1,89 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Produtos | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Produtos</h1>
+        <p class="text-secondary mb-0">Gerencie o cadastro de produtos do GESTIX.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'produtos:create' %}">Novo produto</a>
+</div>
+
+<form method="get" class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <label for="search" class="form-label">Buscar produtos</label>
+        <div class="input-group">
+            <input type="search" id="search" name="q" value="{{ query }}" class="form-control" placeholder="Busque por nome, código interno ou código de barras">
+            <button class="btn btn-outline-primary" type="submit">Buscar</button>
+            {% if query %}
+                <a class="btn btn-outline-secondary" href="{% url 'produtos:list' %}">Limpar</a>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Nome</th>
+                    <th>Código interno</th>
+                    <th>Código de barras</th>
+                    <th>Categoria</th>
+                    <th>Preço venda</th>
+                    <th>Fornecedor</th>
+                    <th>Status</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produto in produtos %}
+                    <tr>
+                        <td class="fw-semibold">{{ produto.nome }}</td>
+                        <td>{{ produto.codigo_interno }}</td>
+                        <td>{{ produto.codigo_barras|default:'-' }}</td>
+                        <td>{{ produto.categoria|default:'-' }}</td>
+                        <td>R$ {{ produto.preco_venda }}</td>
+                        <td>{{ produto.fornecedor|default:'-' }}</td>
+                        <td>
+                            {% if produto.ativo %}
+                                <span class="badge text-bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Ações do produto">
+                                <a class="btn btn-outline-primary" href="{% url 'produtos:detail' produto.pk %}">Ver</a>
+                                <a class="btn btn-outline-secondary" href="{% url 'produtos:update' produto.pk %}">Editar</a>
+                                <a class="btn btn-outline-danger" href="{% url 'produtos:delete' produto.pk %}">Excluir</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-secondary py-4">Nenhum produto encontrado.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+    <nav class="mt-4" aria-label="Paginação de produtos">
+        <ul class="pagination justify-content-end">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active" aria-current="page"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
