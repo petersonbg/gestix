@@ -13,5 +13,6 @@ urlpatterns = [
     path('dashboard/', DashboardHomeView.as_view(), name='dashboard'),
     path('clientes/', include('clientes.urls')),
     path('fornecedores/', include('fornecedores.urls')),
+    path('produtos/', include('produtos.urls')),
     path('admin/', admin.site.urls),
 ]

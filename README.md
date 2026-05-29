@@ -96,6 +96,19 @@ Campos disponíveis no cadastro:
 - telefone, email, endereço, cidade, estado, observações
 - status ativo, data de criação e data de atualização
 
+
+## Módulo produtos
+
+O módulo `produtos` possui CRUD completo protegido por login em `/produtos/`. A listagem permite buscar por nome, código interno ou código de barras.
+
+Campos disponíveis no cadastro:
+
+- nome, descrição, código interno, código de barras, categoria e unidade de medida
+- preço de custo, preço de venda, estoque mínimo, fornecedor e NCM
+- status ativo, data de criação e data de atualização
+
+O preço de custo e o preço de venda não podem ser negativos, e o preço de venda deve ser maior ou igual ao preço de custo.
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
