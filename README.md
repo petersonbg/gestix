@@ -85,6 +85,17 @@ Campos disponíveis no cadastro:
 - endereço, cidade, estado, observações
 - status ativo, data de criação e data de atualização
 
+
+## Módulo fornecedores
+
+O módulo `fornecedores` possui CRUD completo protegido por login em `/fornecedores/`. A listagem permite buscar por razão social, nome fantasia ou CNPJ.
+
+Campos disponíveis no cadastro:
+
+- razão social, nome fantasia, CNPJ, inscrição estadual
+- telefone, email, endereço, cidade, estado, observações
+- status ativo, data de criação e data de atualização
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
