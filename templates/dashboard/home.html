@@ -1,0 +1,51 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Dashboard | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Dashboard</h1>
+        <p class="text-secondary mb-0">Bem-vindo ao ambiente interno do GESTIX.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <span class="text-secondary small">Perfil</span>
+                <h2 class="h5 mt-2 mb-0">
+                    {% with request.user.groups.first as group %}
+                        {{ group.name|default:'Sem perfil definido' }}
+                    {% endwith %}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <span class="text-secondary small">Clientes</span>
+                <h2 class="h5 mt-2 mb-0"><a class="stretched-link text-decoration-none" href="{% url 'clientes:list' %}">Gerenciar</a></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <span class="text-secondary small">Fornecedores</span>
+                <h2 class="h5 mt-2 mb-0"><a class="stretched-link text-decoration-none" href="{% url 'fornecedores:list' %}">Gerenciar</a></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <span class="text-secondary small">Estoque</span>
+                <h2 class="h5 mt-2 mb-0">Em breve</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
