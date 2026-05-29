@@ -1,6 +1,6 @@
 """URL configuration for the GESTIX project."""
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.views.generic import TemplateView
 
 from accounts.views import GestixLoginView, GestixLogoutView
@@ -11,5 +11,6 @@ urlpatterns = [
     path('accounts/login/', GestixLoginView.as_view(), name='login'),
     path('accounts/logout/', GestixLogoutView.as_view(), name='logout'),
     path('dashboard/', DashboardHomeView.as_view(), name='dashboard'),
+    path('clientes/', include('clientes.urls')),
     path('admin/', admin.site.urls),
 ]

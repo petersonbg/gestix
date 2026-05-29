@@ -74,6 +74,17 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 
 
 
+
+## Módulo clientes
+
+O módulo `clientes` possui CRUD completo protegido por login em `/clientes/`. A listagem permite buscar por nome, CPF/CNPJ ou telefone.
+
+Campos disponíveis no cadastro:
+
+- nome, tipo de pessoa, CPF/CNPJ, telefone, email
+- endereço, cidade, estado, observações
+- status ativo, data de criação e data de atualização
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
