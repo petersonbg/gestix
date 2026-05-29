@@ -1,0 +1,81 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Nova venda | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Nova venda</h1>
+        <p class="text-secondary mb-0">Registre uma venda com múltiplos itens e finalize para baixar o estoque.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
+</div>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0">Itens da venda</h2>
+        </div>
+        <div class="card-body">
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger" role="alert">{{ formset.non_form_errors }}</div>
+            {% endif %}
+            {{ formset.management_form }}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th style="width: 160px;">Quantidade</th>
+                            <th style="width: 180px;">Valor unitário</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item_form in formset %}
+                            <tr>
+                                <td>
+                                    {{ item_form.id }}
+                                    {{ item_form.produto }}
+                                    {% for error in item_form.produto.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                </td>
+                                <td>
+                                    {{ item_form.quantidade }}
+                                    {% for error in item_form.quantidade.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                </td>
+                                <td>
+                                    {{ item_form.valor_unitario }}
+                                    {% for error in item_form.valor_unitario.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-secondary small mb-0">Preencha quantas linhas forem necessárias. Linhas vazias serão ignoradas.</p>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Salvar venda</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

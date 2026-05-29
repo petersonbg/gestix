@@ -123,6 +123,20 @@ Funcionalidades disponíveis:
 
 Em movimentações do tipo AJUSTE, a quantidade informada passa a ser o novo saldo atual do produto.
 
+
+## Módulo vendas
+
+O módulo `vendas` possui listagem em `/vendas/`, detalhe da venda e tela de cadastro em `/vendas/nova/` com múltiplos itens.
+
+Funcionalidades disponíveis:
+
+- venda com cliente, data, subtotal, desconto, total, status e usuário
+- itens com produto, quantidade, valor unitário e total do item
+- finalização de venda com baixa automática no estoque
+- bloqueio de finalização quando algum produto não possui estoque suficiente
+
+Vendas criadas como rascunho podem ser finalizadas pela tela de detalhes.
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
