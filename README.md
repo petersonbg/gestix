@@ -109,6 +109,20 @@ Campos disponíveis no cadastro:
 
 O preço de custo e o preço de venda não podem ser negativos, e o preço de venda deve ser maior ou igual ao preço de custo.
 
+
+## Módulo estoque
+
+O módulo `estoque` possui tela protegida por login em `/estoque/` para acompanhar saldos e acessar o histórico por produto. A movimentação manual fica em `/estoque/movimentar/`.
+
+Funcionalidades disponíveis:
+
+- movimentações de ENTRADA, SAIDA e AJUSTE
+- atualização automática do saldo atual do produto
+- histórico de movimentações por produto
+- bloqueio de saída com quantidade maior que o estoque disponível
+
+Em movimentações do tipo AJUSTE, a quantidade informada passa a ser o novo saldo atual do produto.
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:

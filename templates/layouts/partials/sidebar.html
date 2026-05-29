@@ -5,7 +5,7 @@
         <a class="nav-link {% if request.resolver_match.namespace == 'clientes' %}active{% endif %}" href="{% url 'clientes:list' %}">Clientes</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'fornecedores' %}active{% endif %}" href="{% url 'fornecedores:list' %}">Fornecedores</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'produtos' %}active{% endif %}" href="{% url 'produtos:list' %}">Produtos</a>
-        <a class="nav-link disabled" aria-disabled="true" href="#">Estoque</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'estoque' %}active{% endif %}" href="{% url 'estoque:list' %}">Estoque</a>
         <a class="nav-link disabled" aria-disabled="true" href="#">Vendas</a>
         <a class="nav-link disabled" aria-disabled="true" href="#">Orçamentos</a>
         <a class="nav-link disabled" aria-disabled="true" href="#">Fiscal</a>

@@ -26,6 +26,7 @@ class Produto(models.Model):
         validators=[MinValueValidator(Decimal('0.00'))],
     )
     estoque_minimo = models.PositiveIntegerField('estoque mínimo', default=0)
+    estoque_atual = models.PositiveIntegerField('estoque atual', default=0)
     fornecedor = models.ForeignKey(
         'fornecedores.Fornecedor',
         on_delete=models.PROTECT,

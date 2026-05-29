@@ -10,6 +10,7 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'produtos:list' %}">Voltar</a>
+        <a class="btn btn-outline-primary" href="{% url 'estoque:produto_historico' produto.pk %}">Histórico de estoque</a>
         <a class="btn btn-primary" href="{% url 'produtos:update' produto.pk %}">Editar</a>
     </div>
 </div>
@@ -26,6 +27,7 @@
             <div class="col-md-4"><span class="text-secondary small">NCM</span><div>{{ produto.ncm|default:'-' }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Preço de custo</span><div>R$ {{ produto.preco_custo }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Preço de venda</span><div>R$ {{ produto.preco_venda }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Estoque atual</span><div>{{ produto.estoque_atual }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Estoque mínimo</span><div>{{ produto.estoque_minimo }}</div></div>
             <div class="col-md-6"><span class="text-secondary small">Criado em</span><div>{{ produto.criado_em|date:'d/m/Y H:i' }}</div></div>
             <div class="col-md-6"><span class="text-secondary small">Atualizado em</span><div>{{ produto.atualizado_em|date:'d/m/Y H:i' }}</div></div>
