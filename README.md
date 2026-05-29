@@ -137,6 +137,19 @@ Funcionalidades disponíveis:
 
 Vendas criadas como rascunho podem ser finalizadas pela tela de detalhes.
 
+
+## Módulo orçamentos
+
+O módulo `orcamentos` possui listagem em `/orcamentos/`, detalhe, cadastro em `/orcamentos/novo/` com múltiplos produtos e template de impressão.
+
+Funcionalidades disponíveis:
+
+- orçamento com cliente, subtotal, desconto, total, status e usuário
+- itens com produto, quantidade, valor unitário e total do item
+- status Aberto, Aprovado, Rejeitado e Convertido
+- conversão de orçamento em venda finalizada com baixa automática no estoque
+- bloqueio da conversão quando algum produto não possui estoque suficiente
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
