@@ -150,6 +150,22 @@ Funcionalidades disponíveis:
 - conversão de orçamento em venda finalizada com baixa automática no estoque
 - bloqueio da conversão quando algum produto não possui estoque suficiente
 
+
+## Módulo fiscal
+
+O módulo `fiscal` possui importação de XML de NF-e em `/fiscal/upload/`, listagem em `/fiscal/` e confirmação de entrada no estoque.
+
+Funcionalidades disponíveis nesta etapa:
+
+- leitura da chave de acesso, número, série, data de emissão, emitente, valor total e itens da NF-e
+- verificação de duplicidade pela chave de acesso
+- cadastro automático do fornecedor quando o CNPJ do emitente ainda não existir
+- listagem dos produtos encontrados no XML
+- vínculo de item do XML a produto existente ou criação de produto novo
+- geração de entrada no estoque após confirmação
+
+A integração com a SEFAZ não foi implementada nesta etapa.
+
 ## Autenticação e perfis de acesso
 
 O módulo `accounts` usa a autenticação padrão do Django. A migração inicial do app cria os grupos de acesso:
