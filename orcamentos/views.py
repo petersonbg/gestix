@@ -73,7 +73,7 @@ class OrcamentoDetailView(LoginRequiredMixin, DetailView):
 
 class OrcamentoPrintView(LoginRequiredMixin, DetailView):
     model = Orcamento
-    template_name = 'orcamentos/orcamento_print.html'
+    template_name = 'orcamentos/imprimir_orcamento.html'
     context_object_name = 'orcamento'
 
     def get_queryset(self):

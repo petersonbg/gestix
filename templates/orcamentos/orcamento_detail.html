@@ -10,7 +10,13 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'orcamentos:list' %}">Voltar</a>
-        <a class="btn btn-outline-primary" href="{% url 'orcamentos:print' orcamento.pk %}" target="_blank">Imprimir</a>
+        <button
+            class="btn btn-outline-primary"
+            type="button"
+            onclick="window.open('{% url 'orcamentos:imprimir_orcamento' orcamento.pk %}', 'orcamentoPrint', 'width=900,height=700');"
+        >
+            Imprimir Orçamento
+        </button>
         {% if orcamento.status != 'CONVERTIDO' and orcamento.status != 'REJEITADO' %}
             <form method="post" action="{% url 'orcamentos:converter' orcamento.pk %}">
                 {% csrf_token %}
