@@ -1,6 +1,8 @@
+import os
+
 from django.contrib import messages
-from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -124,3 +126,18 @@ class VendaFinalizarView(LoginRequiredMixin, View):
         else:
             messages.success(request, 'Venda finalizada e estoque atualizado com sucesso.')
         return redirect(venda.get_absolute_url())
+
+
+
+class VendaPrintView(LoginRequiredMixin, DetailView):
+    model = Venda
+    template_name = 'vendas/imprimir_recibo.html'
+    context_object_name = 'venda'
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('cliente', 'usuario').prefetch_related('itens__produto')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['logo_url'] = os.getenv('GESTIX_LOGO_URL', '').strip()
+        return context

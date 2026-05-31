@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import ProdutoBuscaView, VendaCreateView, VendaDetailView, VendaFinalizarView, VendaListView
+from .views import ProdutoBuscaView, VendaCreateView, VendaDetailView, VendaFinalizarView, VendaListView, VendaPrintView
 
 app_name = 'vendas'
 
@@ -10,4 +10,5 @@ urlpatterns = [
     path('buscar-produtos/', ProdutoBuscaView.as_view(), name='buscar_produtos'),
     path('<int:pk>/', VendaDetailView.as_view(), name='detail'),
     path('<int:pk>/finalizar/', VendaFinalizarView.as_view(), name='finalizar'),
+    path('<int:pk>/imprimir/', VendaPrintView.as_view(), name='imprimir'),
 ]

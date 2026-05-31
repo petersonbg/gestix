@@ -10,6 +10,9 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
+        {% if venda.status == 'FINALIZADA' %}
+            <a class="btn btn-primary" href="{% url 'vendas:imprimir' venda.pk %}" target="_blank">Imprimir Recibo</a>
+        {% endif %}
         {% if venda.status == 'RASCUNHO' %}
             <form method="post" action="{% url 'vendas:finalizar' venda.pk %}">
                 {% csrf_token %}
