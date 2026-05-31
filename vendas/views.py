@@ -16,6 +16,18 @@ from .forms import ItemVendaFormSet, VendaForm
 from .models import Venda
 
 
+def formatar_nome_vendedor(usuario):
+    if not usuario:
+        return '-'
+
+    nomes = [parte for parte in usuario.get_full_name().split() if parte]
+    if len(nomes) >= 2:
+        return f'{nomes[0]} {nomes[-1]}'
+    if len(nomes) == 1:
+        return nomes[0]
+    return usuario.get_username() or '-'
+
+
 class ProdutoBuscaView(LoginRequiredMixin, View):
     def get(self, request):
         query = request.GET.get('q', '').strip()
@@ -128,7 +140,6 @@ class VendaFinalizarView(LoginRequiredMixin, View):
         return redirect(venda.get_absolute_url())
 
 
-
 class VendaPrintView(LoginRequiredMixin, DetailView):
     model = Venda
     template_name = 'vendas/imprimir_recibo.html'
@@ -140,4 +151,5 @@ class VendaPrintView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['logo_url'] = os.getenv('GESTIX_LOGO_URL', '').strip()
+        context['vendedor_nome'] = formatar_nome_vendedor(self.object.usuario)
         return context

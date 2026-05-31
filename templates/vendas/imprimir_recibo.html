@@ -70,12 +70,6 @@
             font-size: 0.75rem;
         }
 
-        .seller-name {
-            font-weight: 400;
-            font-size: 0.72rem;
-            margin-top: 0.15rem;
-        }
-
         .generated-footer {
             border-top: 1px solid #dee2e6;
             margin-top: 0.7rem;
@@ -106,9 +100,8 @@
 </head>
 <body>
     <div class="container-fluid py-3 no-print">
-        <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-primary" type="button" onclick="window.print()">Imprimir Recibo</button>
-            <a class="btn btn-outline-secondary" href="{% url 'vendas:detail' venda.pk %}">Voltar</a>
+        <div class="d-flex justify-content-center">
+            <button class="btn btn-primary" type="button" onclick="window.print()">Imprimir</button>
         </div>
     </div>
 
@@ -144,7 +137,7 @@
             <div class="col-5">
                 <div class="border rounded p-2 h-100">
                     <div class="text-uppercase text-secondary small fw-semibold">Venda</div>
-                    <div>Vendedor: {{ venda.usuario.get_full_name|default:venda.usuario.username|default:'-' }}</div>
+                    <div>Vendedor: {{ vendedor_nome }}</div>
                     {% if venda.forma_pagamento %}<div>Forma de pagamento: {{ venda.forma_pagamento }}</div>{% endif %}
                     {% if venda.observacoes %}<div>Observações: {{ venda.observacoes }}</div>{% endif %}
                 </div>
@@ -202,17 +195,9 @@
         </section>
 
         <footer>
-            <div class="row text-center">
-                <div class="col-6">
-                    <div class="signature-line">
-                        ASSINATURA DO CLIENTE
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="signature-line">
-                        ASSINATURA DO VENDEDOR
-                        <div class="seller-name">{{ venda.usuario.get_full_name|default:venda.usuario.username|default:'' }}</div>
-                    </div>
+            <div class="text-center">
+                <div class="signature-line">
+                    ASSINATURA DO CLIENTE
                 </div>
             </div>
             <div class="generated-footer text-center text-secondary">

@@ -142,9 +142,9 @@ Vendas criadas como rascunho podem ser finalizadas pela tela de detalhes.
 
 ### Imprimindo recibo de venda
 
-Após finalizar uma venda, acesse a tela de detalhes da venda e clique em **Imprimir Recibo**. O recibo usa a URL `/vendas/<id>/imprimir/`, não altera dados da venda e não gera nova movimentação de estoque.
+Após finalizar uma venda, acesse a tela de detalhes da venda e clique em **Imprimir Recibo**. O botão abre a URL `/vendas/<id>/imprimir/` em uma janela pop-up dedicada, sem menu lateral ou elementos administrativos; essa página é somente leitura, não altera dados da venda e não gera nova movimentação de estoque.
 
-O layout de impressão foi otimizado para papel A5 em orientação paisagem, com dados da venda, cliente, vendedor, itens, resumo financeiro e campos para assinatura do cliente e do vendedor.
+O layout de impressão foi otimizado para papel A5 em orientação paisagem, com dados da venda, cliente, vendedor, itens, resumo financeiro, botão **Imprimir** no pop-up e campo centralizado apenas para assinatura do cliente.
 
 ### Testando a venda dinâmica
 

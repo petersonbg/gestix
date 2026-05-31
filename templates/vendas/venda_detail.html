@@ -11,7 +11,13 @@
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
         {% if venda.status == 'FINALIZADA' %}
-            <a class="btn btn-primary" href="{% url 'vendas:imprimir' venda.pk %}" target="_blank">Imprimir Recibo</a>
+            <button
+                class="btn btn-primary"
+                type="button"
+                onclick="window.open('{% url 'vendas:imprimir' venda.pk %}', 'reciboVenda', 'width=900,height=650');"
+            >
+                Imprimir Recibo
+            </button>
         {% endif %}
         {% if venda.status == 'RASCUNHO' %}
             <form method="post" action="{% url 'vendas:finalizar' venda.pk %}">
