@@ -138,6 +138,19 @@ Funcionalidades disponíveis:
 Vendas criadas como rascunho podem ser finalizadas pela tela de detalhes.
 
 
+
+### Testando a venda dinâmica
+
+Para testar a tela dinâmica de vendas:
+
+1. Cadastre ou importe produtos com estoque disponível.
+2. Acesse `/vendas/nova/`.
+3. Digite no campo de pesquisa o nome, código interno ou código de barras do produto.
+4. Clique em **Adicionar** para inserir o produto na tabela de itens.
+5. Altere a quantidade e confira o recálculo automático de subtotal e total.
+6. Tente adicionar produto sem estoque ou quantidade acima do saldo para validar os bloqueios.
+7. Salve a venda como `Finalizada` para baixar o estoque automaticamente.
+
 ## Módulo orçamentos
 
 O módulo `orcamentos` possui listagem em `/orcamentos/`, detalhe, cadastro em `/orcamentos/novo/` com múltiplos produtos e template de impressão.

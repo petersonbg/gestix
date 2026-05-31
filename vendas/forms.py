@@ -53,23 +53,22 @@ class BaseItemVendaFormSet(BaseInlineFormSet):
         if desconto > subtotal:
             raise forms.ValidationError('O desconto não pode ser maior que o subtotal dos itens.')
 
-        if self.instance.status == Venda.Status.FINALIZADA:
-            quantidades_por_produto = {}
-            formularios_por_produto = {}
-            for form in itens_validos:
-                produto = form.cleaned_data['produto']
-                quantidade = form.cleaned_data['quantidade']
-                quantidades_por_produto[produto.pk] = quantidades_por_produto.get(produto.pk, 0) + quantidade
-                formularios_por_produto.setdefault(produto.pk, []).append(form)
+        quantidades_por_produto = {}
+        formularios_por_produto = {}
+        for form in itens_validos:
+            produto = form.cleaned_data['produto']
+            quantidade = form.cleaned_data['quantidade']
+            quantidades_por_produto[produto.pk] = quantidades_por_produto.get(produto.pk, 0) + quantidade
+            formularios_por_produto.setdefault(produto.pk, []).append(form)
 
-            for produto_id, quantidade_total in quantidades_por_produto.items():
-                produto = formularios_por_produto[produto_id][0].cleaned_data['produto']
-                if quantidade_total > produto.estoque_atual:
-                    for form in formularios_por_produto[produto_id]:
-                        form.add_error(
-                            'quantidade',
-                            f'Estoque insuficiente. Disponível: {produto.estoque_atual}.',
-                        )
+        for produto_id, quantidade_total in quantidades_por_produto.items():
+            produto = formularios_por_produto[produto_id][0].cleaned_data['produto']
+            if quantidade_total > produto.estoque_atual:
+                for form in formularios_por_produto[produto_id]:
+                    form.add_error(
+                        'quantidade',
+                        f'Estoque insuficiente. Disponível: {produto.estoque_atual}.',
+                    )
 
 
 ItemVendaFormSet = inlineformset_factory(
