@@ -273,7 +273,7 @@ O GESTIX possui uma camada inicial de segurança para reduzir uso indevido das t
 - cookies de sessão e CSRF são `HttpOnly` e `SameSite=Lax`; em produção (`DEBUG=False`) ficam preparados para `Secure=True`;
 - `X_FRAME_OPTIONS = "DENY"`, proteção contra MIME sniffing, política de referer `same-origin` e HSTS em produção estão configurados;
 - páginas internas autenticadas recebem cabeçalhos `Cache-Control`, `Pragma` e `Expires` para evitar cache e impedir visualização indevida após logout;
-- telas internas comuns devem ser abertas pelo fluxo principal do sistema. A abertura direta em nova aba/janela redireciona para o dashboard com aviso;
+- telas internas comuns devem ser abertas pelo fluxo principal do sistema. O JavaScript global `static/js/security-navigation.js` bloqueia botão direito, Ctrl/Cmd+clique, Shift+clique e botão do meio em links internos; aberturas diretas indevidas redirecionam para o dashboard com aviso;
 - as exceções autorizadas para pop-up são a impressão de recibo de venda e a impressão de orçamento;
 - o controle por perfil segue os grupos `Administrador`, `Gerente`, `Vendedor` e `Estoquista` criados pela migration de `accounts`;
 - usuários sem perfil definido são redirecionados ao dashboard ao tentar acessar módulos operacionais;
