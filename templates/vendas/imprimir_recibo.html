@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recibo Venda #{{ venda.pk }} | GESTIX</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @page {
+            size: A5 landscape;
+            margin: 10mm;
+        }
+
+        body {
+            background: #f4f6f8;
+            color: #212529;
+            font-size: 0.82rem;
+        }
+
+        .receipt-page {
+            max-width: 198mm;
+            min-height: 128mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 8mm;
+        }
+
+        .receipt-header {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 0.45rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .brand-logo {
+            max-height: 42px;
+            max-width: 150px;
+            object-fit: contain;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: #0d6efd;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .table-receipt th,
+        .table-receipt td {
+            padding: 0.32rem 0.45rem;
+            vertical-align: middle;
+        }
+
+        .summary-table td {
+            padding: 0.15rem 0;
+        }
+
+        .signature-line {
+            border-top: 1px solid #212529;
+            width: 78mm;
+            margin: 16mm auto 0;
+            padding-top: 0.25rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .seller-name {
+            font-weight: 400;
+            font-size: 0.72rem;
+            margin-top: 0.15rem;
+        }
+
+        .generated-footer {
+            border-top: 1px solid #dee2e6;
+            margin-top: 0.7rem;
+            padding-top: 0.35rem;
+            font-size: 0.72rem;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .receipt-page {
+                box-shadow: none !important;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-3 no-print">
+        <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-primary" type="button" onclick="window.print()">Imprimir Recibo</button>
+            <a class="btn btn-outline-secondary" href="{% url 'vendas:detail' venda.pk %}">Voltar</a>
+        </div>
+    </div>
+
+    <main class="receipt-page shadow-sm">
+        <header class="receipt-header d-flex justify-content-between align-items-start gap-3">
+            <div class="d-flex align-items-center gap-3">
+                {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="Logo GESTIX" class="brand-logo">
+                {% else %}
+                    <span class="brand-mark">GX</span>
+                {% endif %}
+                <div>
+                    <h1 class="h4 fw-bold mb-0">GESTIX</h1>
+                    <div class="text-secondary">Recibo / Comprovante de venda</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold">Venda #{{ venda.pk }}</div>
+                <div>Data: {{ venda.data|date:'d/m/Y' }}</div>
+                <div>Hora: {{ venda.data|date:'H:i' }}</div>
+            </div>
+        </header>
+
+        <section class="row g-2 mb-2">
+            <div class="col-7">
+                <div class="border rounded p-2 h-100">
+                    <div class="text-uppercase text-secondary small fw-semibold">Cliente</div>
+                    <div class="fw-bold">{{ venda.cliente.nome }}</div>
+                    {% if venda.cliente.cpf_cnpj %}<div>CPF/CNPJ: {{ venda.cliente.cpf_cnpj }}</div>{% endif %}
+                    {% if venda.cliente.telefone %}<div>Telefone: {{ venda.cliente.telefone }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="col-5">
+                <div class="border rounded p-2 h-100">
+                    <div class="text-uppercase text-secondary small fw-semibold">Venda</div>
+                    <div>Vendedor: {{ venda.usuario.get_full_name|default:venda.usuario.username|default:'-' }}</div>
+                    {% if venda.forma_pagamento %}<div>Forma de pagamento: {{ venda.forma_pagamento }}</div>{% endif %}
+                    {% if venda.observacoes %}<div>Observações: {{ venda.observacoes }}</div>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-2">
+            <table class="table table-bordered table-sm table-receipt mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 18%;">Código</th>
+                        <th>Descrição</th>
+                        <th class="text-end" style="width: 12%;">Qtd.</th>
+                        <th class="text-end" style="width: 16%;">Valor unit.</th>
+                        <th class="text-end" style="width: 16%;">Total item</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in venda.itens.all %}
+                        <tr>
+                            <td>{{ item.produto.codigo_interno }}</td>
+                            <td>{{ item.produto.nome }}</td>
+                            <td class="text-end">{{ item.quantidade }}</td>
+                            <td class="text-end">R$ {{ item.valor_unitario }}</td>
+                            <td class="text-end">R$ {{ item.total_item }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="row justify-content-end mb-2">
+            <div class="col-5">
+                <table class="summary-table w-100">
+                    <tr>
+                        <td>Subtotal</td>
+                        <td class="text-end">R$ {{ venda.subtotal }}</td>
+                    </tr>
+                    <tr>
+                        <td>Desconto</td>
+                        <td class="text-end">R$ {{ venda.desconto }}</td>
+                    </tr>
+                    {% if venda.acrescimo %}
+                        <tr>
+                            <td>Acréscimo</td>
+                            <td class="text-end">R$ {{ venda.acrescimo }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr class="fw-bold border-top">
+                        <td>Valor total da venda</td>
+                        <td class="text-end">R$ {{ venda.total }}</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="signature-line">
+                        ASSINATURA DO CLIENTE
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="signature-line">
+                        ASSINATURA DO VENDEDOR
+                        <div class="seller-name">{{ venda.usuario.get_full_name|default:venda.usuario.username|default:'' }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="generated-footer text-center text-secondary">
+                Documento gerado pelo sistema GESTIX em {% now "d/m/Y H:i" %}
+            </div>
+        </footer>
+    </main>
+</body>
+</html>
