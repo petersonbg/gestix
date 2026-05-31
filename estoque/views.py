@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView
 
+from accounts.utils import registrar_log
 from produtos.models import Produto
 
 from .forms import MovimentacaoEstoqueForm
@@ -55,6 +56,13 @@ class MovimentacaoEstoqueCreateView(LoginRequiredMixin, FormView):
             return self.form_invalid(form)
 
         messages.success(self.request, 'Movimentação registrada e saldo atualizado com sucesso.')
+        registrar_log(
+            self.request.user,
+            'movimentação manual de estoque',
+            'estoque',
+            f'Movimentação #{movimentacao.pk} registrada para o produto {movimentacao.produto}.',
+            request=self.request,
+        )
         return redirect('estoque:produto_historico', produto_pk=movimentacao.produto_id)
 
 

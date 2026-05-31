@@ -17,7 +17,7 @@
             <a class="navbar-brand fw-bold text-primary" href="{% url 'dashboard' %}">GESTIX</a>
             <div class="ms-auto d-flex align-items-center gap-3">
                 <span class="text-secondary small d-none d-sm-inline">Olá, {{ request.user.get_full_name|default:request.user.username }}</span>
-                <form method="post" action="{% url 'logout' %}" class="m-0">
+                <form method="post" action="{% url 'logout' %}" class="m-0" id="logout-form">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-secondary btn-sm">Sair</button>
                 </form>
@@ -57,7 +57,68 @@
         </div>
     </div>
 
+    <div class="position-fixed bottom-0 end-0 p-3 no-print" style="z-index: 1080;">
+        <div class="toast align-items-center text-bg-warning border-0" id="session-timeout-warning" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">Sua sessão será encerrada por inatividade.</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (() => {
+        const dashboardPath = '{% url "dashboard" %}';
+        const loginPath = '{% url "login" %}';
+        const logoutForm = document.getElementById('logout-form');
+        const currentPath = window.location.pathname;
+        const mainWindowKey = 'gestixMainWindow';
+
+        if (currentPath === dashboardPath) {
+            sessionStorage.setItem(mainWindowKey, '1');
+        } else if (!sessionStorage.getItem(mainWindowKey)) {
+            window.location.replace(`${dashboardPath}?acesso=janela-invalida`);
+            return;
+        }
+
+        const timeoutMs = 15 * 60 * 1000;
+        const warningMs = 60 * 1000;
+        let logoutTimer;
+        let warningTimer;
+        let warningToast;
+
+        function showWarning() {
+            const warningElement = document.getElementById('session-timeout-warning');
+            if (warningElement && window.bootstrap) {
+                warningToast = warningToast || new bootstrap.Toast(warningElement, {autohide: false});
+                warningToast.show();
+            }
+        }
+
+        function logoutByInactivity() {
+            sessionStorage.removeItem(mainWindowKey);
+            if (logoutForm) {
+                logoutForm.submit();
+                return;
+            }
+            window.location.href = loginPath;
+        }
+
+        function resetInactivityTimers() {
+            clearTimeout(logoutTimer);
+            clearTimeout(warningTimer);
+            warningToast?.hide();
+            warningTimer = setTimeout(showWarning, timeoutMs - warningMs);
+            logoutTimer = setTimeout(logoutByInactivity, timeoutMs);
+        }
+
+        ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach((eventName) => {
+            document.addEventListener(eventName, resetInactivityTimers, {passive: true});
+        });
+        resetInactivityTimers();
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

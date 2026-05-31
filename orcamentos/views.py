@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from accounts.utils import registrar_log
 from produtos.models import Produto
 
 from .forms import ItemOrcamentoFormSet, OrcamentoForm
@@ -100,6 +101,7 @@ class OrcamentoCreateView(LoginRequiredMixin, View):
             formset.save()
             orcamento.recalcular_totais()
             messages.success(request, 'Orçamento registrado com sucesso.')
+            registrar_log(request.user, 'criação de orçamento', 'orcamentos', f'Orçamento #{orcamento.pk} criado.', request=request)
             return redirect(orcamento.get_absolute_url())
 
         return render(request, self.template_name, {'form': form, 'formset': formset})
@@ -116,4 +118,5 @@ class OrcamentoConverterView(LoginRequiredMixin, View):
             return redirect(orcamento.get_absolute_url())
 
         messages.success(request, f'Orçamento convertido na venda #{venda.pk} e estoque atualizado com sucesso.')
+        registrar_log(request.user, 'conversão de orçamento em venda', 'orcamentos', f'Orçamento #{orcamento.pk} convertido na venda #{venda.pk}.', request=request)
         return redirect(venda.get_absolute_url())

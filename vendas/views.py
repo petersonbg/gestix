@@ -10,6 +10,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from accounts.utils import registrar_log
 from produtos.models import Produto
 
 from .forms import ItemVendaFormSet, VendaForm
@@ -116,10 +117,12 @@ class VendaCreateView(LoginRequiredMixin, View):
                     form.add_error(None, exc)
                     return render(request, self.template_name, {'form': form, 'formset': formset})
                 messages.success(request, 'Venda registrada, finalizada e estoque atualizado com sucesso.')
+                registrar_log(request.user, 'criação de venda', 'vendas', f'Venda #{venda.pk} criada e finalizada.', request=request)
             else:
                 venda.status = status_solicitado
                 venda.save(update_fields=['status'])
                 messages.success(request, 'Venda registrada com sucesso.')
+                registrar_log(request.user, 'criação de venda', 'vendas', f'Venda #{venda.pk} criada como {venda.get_status_display()}.', request=request)
 
             return redirect(venda.get_absolute_url())
 
@@ -137,6 +140,7 @@ class VendaFinalizarView(LoginRequiredMixin, View):
             messages.error(request, exc.message if hasattr(exc, 'message') else exc.messages[0])
         else:
             messages.success(request, 'Venda finalizada e estoque atualizado com sucesso.')
+            registrar_log(request.user, 'finalização de venda', 'vendas', f'Venda #{venda.pk} finalizada com baixa de estoque.', request=request)
         return redirect(venda.get_absolute_url())
 
 

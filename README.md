@@ -261,3 +261,29 @@ As páginas internas começam em `/dashboard/`, exigem login e exibem o nome do 
 ## Observações
 
 Esta etapa cria apenas a base do projeto. Regras de negócio, modelos completos, APIs específicas e telas internas serão implementados nas próximas fases.
+
+## Segurança da aplicação
+
+O GESTIX possui uma camada inicial de segurança para reduzir uso indevido das telas internas:
+
+- todas as páginas internas usam autenticação do Django com `LoginRequiredMixin` ou views protegidas;
+- APIs internas do Django REST Framework exigem usuário autenticado por padrão;
+- sessões expiram após 15 minutos (`SESSION_COOKIE_AGE = 900`), são salvas a cada requisição e encerram ao fechar o navegador;
+- a interface monitora clique, digitação, rolagem, toque e movimento do mouse, exibindo aviso no último minuto antes do logout automático por inatividade;
+- cookies de sessão e CSRF são `HttpOnly` e `SameSite=Lax`; em produção (`DEBUG=False`) ficam preparados para `Secure=True`;
+- `X_FRAME_OPTIONS = "DENY"`, proteção contra MIME sniffing, política de referer `same-origin` e HSTS em produção estão configurados;
+- páginas internas autenticadas recebem cabeçalhos `Cache-Control`, `Pragma` e `Expires` para evitar cache e impedir visualização indevida após logout;
+- telas internas comuns devem ser abertas pelo fluxo principal do sistema. A abertura direta em nova aba/janela redireciona para o dashboard com aviso;
+- as exceções autorizadas para pop-up são a impressão de recibo de venda e a impressão de orçamento;
+- o controle por perfil segue os grupos `Administrador`, `Gerente`, `Vendedor` e `Estoquista` criados pela migration de `accounts`;
+- usuários sem perfil definido são redirecionados ao dashboard ao tentar acessar módulos operacionais;
+- ações relevantes são registradas no modelo `LogAtividade`, incluindo login, logout, criação/finalização de venda, criação/conversão de orçamento, movimentação manual de estoque e exclusões básicas de cadastros.
+
+Perfis de acesso previstos:
+
+- **Administrador**: acesso total.
+- **Gerente**: dashboard, vendas, clientes, produtos, estoque e orçamentos.
+- **Vendedor**: dashboard, clientes, vendas e orçamentos.
+- **Estoquista**: dashboard, produtos, fornecedores e estoque.
+
+> Observação: regras críticas continuam validadas no backend. A finalização de vendas e a conversão de orçamentos em vendas revalidam estoque antes de movimentar saldo.
