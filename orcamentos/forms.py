@@ -35,6 +35,7 @@ class BaseItemOrcamentoFormSet(BaseInlineFormSet):
             return
 
         itens_validos = []
+        produtos_informados = set()
         subtotal = Decimal('0.00')
         for form in self.forms:
             if not form.cleaned_data or form.cleaned_data.get('DELETE'):
@@ -43,6 +44,9 @@ class BaseItemOrcamentoFormSet(BaseInlineFormSet):
             quantidade = form.cleaned_data.get('quantidade')
             valor_unitario = form.cleaned_data.get('valor_unitario')
             if produto and quantidade and valor_unitario is not None:
+                if produto.pk in produtos_informados:
+                    raise forms.ValidationError('Não duplique produtos no orçamento; ajuste a quantidade do item existente.')
+                produtos_informados.add(produto.pk)
                 itens_validos.append(form)
                 subtotal += quantidade * valor_unitario
 

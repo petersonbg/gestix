@@ -2,12 +2,42 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from produtos.models import Produto
+
 from .forms import ItemOrcamentoFormSet, OrcamentoForm
 from .models import Orcamento
+
+
+class ProdutoBuscaView(LoginRequiredMixin, View):
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+        produtos = Produto.objects.filter(ativo=True)
+        if query:
+            produtos = produtos.filter(
+                Q(nome__icontains=query)
+                | Q(codigo_interno__icontains=query)
+                | Q(codigo_barras__icontains=query)
+            )
+        else:
+            produtos = produtos.none()
+
+        data = [
+            {
+                'id': produto.pk,
+                'nome': produto.nome,
+                'codigo_interno': produto.codigo_interno,
+                'codigo_barras': produto.codigo_barras or '',
+                'preco_venda': str(produto.preco_venda),
+                'estoque_atual': produto.estoque_atual,
+            }
+            for produto in produtos.order_by('nome')[:10]
+        ]
+        return JsonResponse({'results': data})
 
 
 class OrcamentoListView(LoginRequiredMixin, ListView):

@@ -170,6 +170,17 @@ Funcionalidades disponíveis:
 - conversão de orçamento em venda finalizada com baixa automática no estoque
 - bloqueio da conversão quando algum produto não possui estoque suficiente
 
+### Testando a tela dinâmica de orçamentos
+
+Para testar o cadastro dinâmico de orçamentos:
+
+1. Cadastre clientes e produtos ativos em `/clientes/` e `/produtos/`.
+2. Acesse `/orcamentos/novo/`.
+3. Pesquise produtos por nome, código interno ou código de barras.
+4. Clique em **Adicionar** para inserir itens na tabela sem recarregar a página.
+5. Altere quantidade e valor unitário para simular condições comerciais especiais; os subtotais, desconto e total final serão recalculados automaticamente.
+6. Salve o orçamento e confira o detalhe em `/orcamentos/<id>/`.
+7. Converta em venda quando necessário; a baixa de estoque acontece apenas nessa conversão e valida a disponibilidade atual dos produtos.
 
 ## Módulo fiscal
 
