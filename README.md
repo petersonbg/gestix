@@ -182,6 +182,25 @@ Para testar o cadastro dinâmico de orçamentos:
 6. Salve o orçamento e confira o detalhe em `/orcamentos/<id>/`.
 7. Converta em venda quando necessário; a baixa de estoque acontece apenas nessa conversão e valida a disponibilidade atual dos produtos.
 
+
+## Notificações de aniversário de clientes
+
+O dashboard pode exibir aniversariantes usando o campo `data_nascimento` do cadastro de clientes. Clientes inativos ou sem data de nascimento não geram notificações.
+
+Para configurar:
+
+1. Acesse **Configurações** no menu lateral ou `/configuracoes/`.
+2. Marque ou desmarque **Ativar notificações de aniversário**.
+3. Informe **Dias de antecedência para aviso**:
+   - `0`: mostra apenas aniversários do dia.
+   - `1`: mostra aniversários de hoje e amanhã.
+   - `7`: mostra aniversários da semana.
+4. Salve as configurações.
+
+Apenas usuários do perfil **Administrador** podem alterar essas opções. Usuários **Gerente** podem visualizar a tela de configurações, enquanto **Vendedor** e **Estoquista** não possuem acesso.
+
+A regra para clientes nascidos em 29/02 considera 28/02 em anos não bissextos.
+
 ## Módulo fiscal
 
 O módulo `fiscal` possui importação de XML de NF-e em `/fiscal/upload/`, listagem em `/fiscal/` e confirmação de entrada no estoque.

@@ -12,6 +12,7 @@ INTERNAL_PREFIXES = (
     '/vendas/',
     '/orcamentos/',
     '/fiscal/',
+    '/configuracoes/',
 )
 
 PRINT_EXCEPTIONS = (
@@ -21,7 +22,7 @@ PRINT_EXCEPTIONS = (
 
 ROLE_PERMISSIONS = {
     'Administrador': {'*'},
-    'Gerente': {'dashboard', 'vendas', 'clientes', 'produtos', 'estoque', 'orcamentos'},
+    'Gerente': {'dashboard', 'vendas', 'clientes', 'produtos', 'estoque', 'orcamentos', 'configuracoes'},
     'Vendedor': {'dashboard', 'clientes', 'vendas', 'orcamentos'},
     'Estoquista': {'dashboard', 'produtos', 'fornecedores', 'estoque'},
 }
