@@ -19,6 +19,8 @@
         <div class="row g-4">
             <div class="col-md-6"><span class="text-secondary small">Tipo de pessoa</span><div class="fw-semibold">{{ cliente.get_tipo_pessoa_display }}</div></div>
             <div class="col-md-6"><span class="text-secondary small">CPF/CNPJ</span><div class="fw-semibold">{{ cliente.cpf_cnpj }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Inscrição Estadual</span><div>{{ cliente.inscricao_estadual|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Data de nascimento</span><div>{{ cliente.data_nascimento|date:'d/m/Y'|default:'-' }}</div></div>
             <div class="col-md-6"><span class="text-secondary small">Telefone</span><div>{{ cliente.telefone|default:'-' }}</div></div>
             <div class="col-md-6"><span class="text-secondary small">Email</span><div>{{ cliente.email|default:'-' }}</div></div>
             <div class="col-md-6"><span class="text-secondary small">Endereço</span><div>{{ cliente.endereco|default:'-' }}</div></div>

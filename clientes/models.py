@@ -1,5 +1,9 @@
+import re
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Cliente(models.Model):
@@ -10,6 +14,8 @@ class Cliente(models.Model):
     nome = models.CharField(max_length=150)
     tipo_pessoa = models.CharField(max_length=10, choices=TipoPessoa.choices)
     cpf_cnpj = models.CharField('CPF/CNPJ', max_length=20, unique=True)
+    inscricao_estadual = models.CharField('inscrição estadual', max_length=30, blank=True, null=True)
+    data_nascimento = models.DateField('data de nascimento', blank=True, null=True)
     telefone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     endereco = models.CharField('endereço', max_length=255, blank=True)
@@ -27,6 +33,18 @@ class Cliente(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def clean(self):
+        super().clean()
+        if self.data_nascimento and self.data_nascimento > timezone.localdate():
+            raise ValidationError({'data_nascimento': 'A data de nascimento não pode ser futura.'})
+
+        if self.inscricao_estadual:
+            inscricao = self.inscricao_estadual.strip()
+            if inscricao.upper() != 'ISENTO' and not re.fullmatch(r'[0-9./-]+', inscricao):
+                raise ValidationError({
+                    'inscricao_estadual': 'Informe números, pontos, barras, hífens ou o texto ISENTO.'
+                })
 
     def get_absolute_url(self):
         return reverse('clientes:detail', kwargs={'pk': self.pk})

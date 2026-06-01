@@ -15,7 +15,7 @@
     <div class="card-body">
         <label for="search" class="form-label">Buscar clientes</label>
         <div class="input-group">
-            <input type="search" id="search" name="q" value="{{ query }}" class="form-control" placeholder="Busque por nome, CPF/CNPJ ou telefone">
+            <input type="search" id="search" name="q" value="{{ query }}" class="form-control" placeholder="Busque por nome, CPF/CNPJ, inscrição estadual ou telefone">
             <button class="btn btn-outline-primary" type="submit">Buscar</button>
             {% if query %}
                 <a class="btn btn-outline-secondary" href="{% url 'clientes:list' %}">Limpar</a>
@@ -32,6 +32,7 @@
                     <th>Nome</th>
                     <th>Tipo</th>
                     <th>CPF/CNPJ</th>
+                    <th>Inscrição Estadual</th>
                     <th>Telefone</th>
                     <th>Email</th>
                     <th>Status</th>
@@ -44,6 +45,7 @@
                         <td class="fw-semibold">{{ cliente.nome }}</td>
                         <td>{{ cliente.get_tipo_pessoa_display }}</td>
                         <td>{{ cliente.cpf_cnpj }}</td>
+                        <td>{{ cliente.inscricao_estadual|default:'-' }}</td>
                         <td>{{ cliente.telefone|default:'-' }}</td>
                         <td>{{ cliente.email|default:'-' }}</td>
                         <td>
@@ -63,7 +65,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center text-secondary py-4">Nenhum cliente encontrado.</td>
+                        <td colspan="8" class="text-center text-secondary py-4">Nenhum cliente encontrado.</td>
                     </tr>
                 {% endfor %}
             </tbody>

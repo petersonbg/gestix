@@ -20,6 +20,7 @@ class ClienteListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(
                 Q(nome__icontains=query)
                 | Q(cpf_cnpj__icontains=query)
+                | Q(inscricao_estadual__icontains=query)
                 | Q(telefone__icontains=query)
             )
         return queryset
