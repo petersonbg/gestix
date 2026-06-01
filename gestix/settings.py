@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me-in-production')
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in {'1', 'true', 'yes', 'on'}
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY', 'change-me-in-production')
+DEBUG = (os.getenv('DJANGO_DEBUG') or os.getenv('DEBUG', 'True')).lower() in {'1', 'true', 'yes', 'on'}
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    for host in (os.getenv('DJANGO_ALLOWED_HOSTS') or os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')).split(',')
     if host.strip()
 ]
 
@@ -68,11 +68,11 @@ WSGI_APPLICATION = 'gestix.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'gestix'),
-        'USER': os.getenv('POSTGRES_USER', 'gestix'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'gestix'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'NAME': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME', 'gestix'),
+        'USER': os.getenv('POSTGRES_USER') or os.getenv('DB_USER', 'gestix'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', 'gestix'),
+        'HOST': os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'),
     }
 }
 

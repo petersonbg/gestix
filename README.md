@@ -254,17 +254,43 @@ As páginas internas começam em `/dashboard/`, exigem login e exibem o nome do 
 
 A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do GESTIX no Windows com Docker Desktop:
 
-- `scripts/windows/Iniciar_GESTIX.bat`: acessa automaticamente a pasta raiz do projeto, verifica se o Docker Desktop está pronto, executa `docker compose up -d`, aguarda alguns segundos e abre <http://localhost:8000/> no navegador padrão.
-- `scripts/windows/Parar_GESTIX.bat`: acessa automaticamente a pasta raiz do projeto, executa `docker compose down` e informa que o sistema foi encerrado.
+- `scripts/windows/iniciar_gestix.bat`: acessa automaticamente a pasta raiz do projeto, executa `docker compose up -d`, aguarda alguns segundos e abre <http://localhost:8000/> no navegador padrão.
+- `scripts/windows/parar_gestix.bat`: acessa automaticamente a pasta raiz do projeto, executa `docker compose down` e informa que o sistema foi encerrado.
+- `scripts/windows/backup_banco.bat`: cria backups PostgreSQL na pasta `backups/`.
+- `scripts/windows/restaurar_banco.bat`: restaura um backup `.sql` informado pelo usuário.
+- `scripts/windows/resetar_banco.bat`: recria o banco local após confirmação explícita.
+
+Os arquivos `Iniciar_GESTIX.bat` e `Parar_GESTIX.bat` continuam disponíveis como atalhos compatíveis com a primeira rotina de Docker no Windows.
 
 Como usar:
 
 1. Instale e abra o Docker Desktop.
 2. Aguarde o Docker Desktop finalizar a inicialização.
-3. Dê duplo clique em `scripts/windows/Iniciar_GESTIX.bat` para subir o sistema.
-4. Dê duplo clique em `scripts/windows/Parar_GESTIX.bat` quando quiser encerrar os containers.
+3. Dê duplo clique em `scripts/windows/iniciar_gestix.bat` para subir o sistema.
+4. Dê duplo clique em `scripts/windows/parar_gestix.bat` quando quiser encerrar os containers.
 
 Se o Docker Desktop não estiver aberto, o script de inicialização exibirá uma mensagem amigável solicitando que ele seja iniciado antes de tentar novamente.
+
+
+## Empacotamento e instalação no Windows
+
+O projeto possui uma estrutura para distribuição em máquinas Windows usando PyInstaller e Inno Setup:
+
+- `launcher/gestix_launcher.py`: launcher gráfico que valida o Docker Desktop, executa `docker compose up -d`, aguarda a inicialização e abre <http://localhost:8000>.
+- `launcher/build_launcher.bat`: gera `launcher/dist/GESTIX.exe` com PyInstaller usando `--onefile --noconsole`; se existir `launcher/gestix.ico`, o ícone será aplicado ao executável.
+- `installer/gestix_installer.iss`: script do Inno Setup para gerar o instalador `.exe` com diretório padrão `C:\GESTIX`, atalhos no desktop/menu iniciar e verificação de Docker Desktop instalado.
+- `scripts/windows/`: scripts para iniciar, parar, resetar banco, gerar backup e restaurar backup.
+- `docs/INSTALACAO_WINDOWS.md`: guia operacional para instalação, abertura, parada, backup, restauração e desinstalação no Windows.
+
+Fluxo recomendado para gerar o instalador:
+
+1. Em uma máquina Windows com Python, execute `launcher/build_launcher.bat` para gerar `launcher/dist/GESTIX.exe`.
+2. Instale o Inno Setup.
+3. Abra `installer/gestix_installer.iss` no Inno Setup Compiler.
+4. Compile o instalador.
+5. Distribua o `.exe` gerado para instalação no Windows.
+
+Após instalado, o usuário final deve abrir o Docker Desktop e clicar no atalho **GESTIX** na área de trabalho. O sistema será iniciado sem necessidade de digitar comandos no terminal.
 
 ## Estrutura inicial
 
