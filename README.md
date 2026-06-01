@@ -250,6 +250,22 @@ As páginas internas começam em `/dashboard/`, exigem login e exibem o nome do 
    docker compose down -v
    ```
 
+### Atalhos para Windows
+
+A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do GESTIX no Windows com Docker Desktop:
+
+- `scripts/windows/Iniciar_GESTIX.bat`: acessa automaticamente a pasta raiz do projeto, verifica se o Docker Desktop está pronto, executa `docker compose up -d`, aguarda alguns segundos e abre <http://localhost:8000/> no navegador padrão.
+- `scripts/windows/Parar_GESTIX.bat`: acessa automaticamente a pasta raiz do projeto, executa `docker compose down` e informa que o sistema foi encerrado.
+
+Como usar:
+
+1. Instale e abra o Docker Desktop.
+2. Aguarde o Docker Desktop finalizar a inicialização.
+3. Dê duplo clique em `scripts/windows/Iniciar_GESTIX.bat` para subir o sistema.
+4. Dê duplo clique em `scripts/windows/Parar_GESTIX.bat` quando quiser encerrar os containers.
+
+Se o Docker Desktop não estiver aberto, o script de inicialização exibirá uma mensagem amigável solicitando que ele seja iniciado antes de tentar novamente.
+
 ## Estrutura inicial
 
 - Configurações do projeto em `gestix/settings.py`.
