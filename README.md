@@ -176,11 +176,14 @@ Para testar o cadastro dinâmico de orçamentos:
 
 1. Cadastre clientes e produtos ativos em `/clientes/` e `/produtos/`.
 2. Acesse `/orcamentos/novo/`.
-3. Pesquise produtos por nome, código interno ou código de barras.
-4. Clique em **Adicionar** para inserir itens na tabela sem recarregar a página.
-5. Altere quantidade e valor unitário para simular condições comerciais especiais; os subtotais, desconto e total final serão recalculados automaticamente.
-6. Salve o orçamento e confira o detalhe em `/orcamentos/<id>/`.
-7. Converta em venda quando necessário; a baixa de estoque acontece apenas nessa conversão e valida a disponibilidade atual dos produtos.
+3. No bloco **Cliente do orçamento**, pesquise clientes por nome, CPF/CNPJ ou telefone. A busca usa o endpoint interno `/orcamentos/clientes/buscar/`, exige login, retorna somente clientes ativos e limita os resultados a 10 registros.
+4. Clique em **Selecionar** para preencher o cliente no orçamento. O sistema grava o ID do cliente em um campo oculto, exibe o cliente selecionado e permite trocar/limpar a seleção antes de salvar.
+5. Pesquise produtos por nome, código interno ou código de barras.
+6. Clique em **Adicionar** para inserir itens na tabela sem recarregar a página.
+7. Altere quantidade e valor unitário para simular condições comerciais especiais; os subtotais, desconto e total final serão recalculados automaticamente.
+8. Salve o orçamento e confira o detalhe em `/orcamentos/<id>/`.
+9. Clique em **Imprimir Orçamento** para abrir o pop-up em `/orcamentos/<id>/imprimir/`; a impressão exibe a seção **Dados do Cliente** com nome, CPF/CNPJ, endereço, telefone, e-mail e inscrição estadual, além da validade de 30 dias.
+10. Converta em venda quando necessário; a baixa de estoque acontece apenas nessa conversão e valida a disponibilidade atual dos produtos.
 
 
 ## Notificações de aniversário de clientes

@@ -3,15 +3,22 @@ from decimal import Decimal
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
+from clientes.models import Cliente
+
 from .models import ItemOrcamento, Orcamento
 
 
 class OrcamentoForm(forms.ModelForm):
+    cliente = forms.ModelChoiceField(
+        queryset=Cliente.objects.filter(ativo=True),
+        error_messages={'required': 'Selecione um cliente antes de salvar o orçamento.'},
+        widget=forms.HiddenInput(),
+    )
+
     class Meta:
         model = Orcamento
         fields = ['cliente', 'desconto', 'status']
         widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-select'}),
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }

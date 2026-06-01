@@ -129,18 +129,23 @@
         <div class="validity-box">Orçamento válido por 30 dias</div>
 
         <section class="row g-3 mb-4">
-            <div class="col-7">
+            <div class="col-8">
                 <div class="border rounded-3 p-3 h-100">
-                    <div class="section-title">Cliente</div>
-                    <div class="fw-bold fs-6">{{ orcamento.cliente.nome }}</div>
-                    {% if orcamento.cliente.cpf_cnpj %}<div>CPF/CNPJ: {{ orcamento.cliente.cpf_cnpj }}</div>{% endif %}
-                    {% if orcamento.cliente.telefone %}<div>Telefone: {{ orcamento.cliente.telefone }}</div>{% endif %}
+                    <div class="section-title">Dados do Cliente</div>
+                    <div class="row g-2">
+                        <div class="col-12"><strong>Nome:</strong> {{ orcamento.cliente.nome|default:'Não informado' }}</div>
+                        <div class="col-6"><strong>CPF/CNPJ:</strong> {{ orcamento.cliente.cpf_cnpj|default:'Não informado' }}</div>
+                        <div class="col-6"><strong>Telefone:</strong> {{ orcamento.cliente.telefone|default:'Não informado' }}</div>
+                        <div class="col-12"><strong>Endereço:</strong> {{ orcamento.cliente.endereco|default:'Não informado' }}</div>
+                        <div class="col-6"><strong>E-mail:</strong> {{ orcamento.cliente.email|default:'Não informado' }}</div>
+                        <div class="col-6"><strong>Inscrição Estadual:</strong> {{ orcamento.cliente.inscricao_estadual|default:'Não informado' }}</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-5">
+            <div class="col-4">
                 <div class="border rounded-3 p-3 h-100">
                     <div class="section-title">Responsável</div>
-                    <div>{{ orcamento.usuario.get_full_name|default:orcamento.usuario.username|default:'-' }}</div>
+                    <div>{{ orcamento.usuario.get_full_name|default:orcamento.usuario.username|default:'Não informado' }}</div>
                     <div>Status do orçamento: <strong>{{ orcamento.get_status_display }}</strong></div>
                 </div>
             </div>

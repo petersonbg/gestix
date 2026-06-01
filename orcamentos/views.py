@@ -8,10 +8,39 @@ from django.views import View
 from django.views.generic import DetailView, ListView
 
 from accounts.utils import registrar_log
+from clientes.models import Cliente
 from produtos.models import Produto
 
 from .forms import ItemOrcamentoFormSet, OrcamentoForm
 from .models import Orcamento
+
+
+class ClienteBuscaView(LoginRequiredMixin, View):
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+        clientes = Cliente.objects.filter(ativo=True)
+        if len(query) >= 2:
+            clientes = clientes.filter(
+                Q(nome__icontains=query)
+                | Q(cpf_cnpj__icontains=query)
+                | Q(telefone__icontains=query)
+            )
+        else:
+            clientes = clientes.none()
+
+        data = [
+            {
+                'id': cliente.pk,
+                'nome': cliente.nome,
+                'cpf_cnpj': cliente.cpf_cnpj or '',
+                'telefone': cliente.telefone or '',
+                'email': cliente.email or '',
+                'endereco': cliente.endereco or '',
+                'inscricao_estadual': cliente.inscricao_estadual or '',
+            }
+            for cliente in clientes.order_by('nome')[:10]
+        ]
+        return JsonResponse({'results': data})
 
 
 class ProdutoBuscaView(LoginRequiredMixin, View):
@@ -84,18 +113,35 @@ class OrcamentoPrintView(LoginRequiredMixin, DetailView):
 class OrcamentoCreateView(LoginRequiredMixin, View):
     template_name = 'orcamentos/orcamento_form.html'
 
+    def get_selected_cliente(self, form):
+        cliente = form.cleaned_data.get('cliente') if form.is_valid() else None
+        if cliente:
+            return cliente
+        cliente_id = form.data.get('cliente') if form.is_bound else form.initial.get('cliente')
+        if cliente_id:
+            return Cliente.objects.filter(pk=cliente_id, ativo=True).first()
+        return None
+
+    def get_context_data(self, form, formset):
+        return {
+            'form': form,
+            'formset': formset,
+            'selected_cliente': self.get_selected_cliente(form),
+        }
+
     def get(self, request):
         form = OrcamentoForm(initial={'status': Orcamento.Status.ABERTO})
         formset = ItemOrcamentoFormSet()
-        return render(request, self.template_name, {'form': form, 'formset': formset})
+        return render(request, self.template_name, self.get_context_data(form, formset))
 
     def post(self, request):
         form = OrcamentoForm(request.POST)
-        orcamento = form.save(commit=False) if form.is_valid() else Orcamento()
+        form_is_valid = form.is_valid()
+        orcamento = form.save(commit=False) if form_is_valid else Orcamento()
         orcamento.usuario = request.user
         formset = ItemOrcamentoFormSet(request.POST, instance=orcamento)
 
-        if form.is_valid() and formset.is_valid():
+        if form_is_valid and formset.is_valid():
             orcamento.save()
             formset.instance = orcamento
             formset.save()
@@ -104,7 +150,7 @@ class OrcamentoCreateView(LoginRequiredMixin, View):
             registrar_log(request.user, 'criação de orçamento', 'orcamentos', f'Orçamento #{orcamento.pk} criado.', request=request)
             return redirect(orcamento.get_absolute_url())
 
-        return render(request, self.template_name, {'form': form, 'formset': formset})
+        return render(request, self.template_name, self.get_context_data(form, formset))
 
 
 class OrcamentoConverterView(LoginRequiredMixin, View):
