@@ -1,0 +1,14 @@
+<div class="p-3">
+    <div class="text-uppercase text-secondary small fw-semibold mb-2">Menu</div>
+    <nav class="nav nav-pills flex-column gap-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'clientes' %}active{% endif %}" href="{% url 'clientes:list' %}">Clientes</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'fornecedores' %}active{% endif %}" href="{% url 'fornecedores:list' %}">Fornecedores</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'produtos' %}active{% endif %}" href="{% url 'produtos:list' %}">Produtos</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'estoque' %}active{% endif %}" href="{% url 'estoque:list' %}">Estoque</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'vendas' %}active{% endif %}" href="{% url 'vendas:list' %}">Vendas</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'orcamentos' %}active{% endif %}" href="{% url 'orcamentos:list' %}">Orçamentos</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'fiscal' %}active{% endif %}" href="{% url 'fiscal:list' %}">Fiscal</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'configuracoes' %}active{% endif %}" href="{% url 'configuracoes:sistema' %}">Configurações</a>
+    </nav>
+</div>
