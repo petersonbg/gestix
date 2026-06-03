@@ -122,7 +122,7 @@ class Venda(models.Model):
             raise ValidationError('Venda cancelada não pode ser finalizada.')
 
         with transaction.atomic():
-            venda = Venda.objects.select_for_update().select_related('cliente', 'usuario').get(pk=self.pk)
+            venda = Venda.objects.select_for_update(of=('self',)).select_related('cliente').get(pk=self.pk)
             if venda.status == self.Status.FINALIZADA:
                 return
             if venda.status == self.Status.CANCELADA:

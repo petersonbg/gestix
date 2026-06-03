@@ -171,6 +171,30 @@ class VendaCrediarioTests(TestCase):
         venda.recalcular_totais()
         return venda
 
+    def test_finalizar_venda_com_usuario_nullable_na_venda(self):
+        venda = Venda.objects.create(
+            cliente=self.cliente,
+            usuario=None,
+            forma_pagamento=Venda.FormaPagamento.CREDIARIO,
+            quantidade_parcelas=1,
+            data_primeiro_vencimento=timezone.localdate(),
+            intervalo_parcelas=30,
+            valor_entrada=Decimal('0.00'),
+        )
+        ItemVenda.objects.create(
+            venda=venda,
+            produto=self.produto,
+            quantidade=1,
+            valor_unitario=Decimal('100.00'),
+        )
+        venda.recalcular_totais()
+
+        venda.finalizar(usuario=self.user)
+
+        venda.refresh_from_db()
+        self.assertEqual(venda.status, Venda.Status.FINALIZADA)
+        self.assertEqual(ContaReceber.objects.filter(venda=venda).count(), 1)
+
     def test_venda_crediario_com_cliente_valido_gera_parcelas_e_baixa_estoque(self):
         venda = self.criar_venda_crediario(parcelas=2)
 
