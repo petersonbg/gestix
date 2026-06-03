@@ -123,3 +123,145 @@ class ClienteBuscaVendaTests(TestCase):
         self.assertContains(response, 'cliente.recibo@example.com')
         self.assertContains(response, 'Rua das Vendas, 10')
         self.assertContains(response, 'ISENTO')
+
+from django.utils import timezone
+
+from caixa.models import Caixa, MovimentacaoCaixa
+from contas_receber.models import ContaReceber
+from produtos.models import Produto
+from .models import ItemVenda
+
+
+class VendaCrediarioTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username='vendedor-crediario', password='senha')
+        self.cliente = Cliente.objects.create(
+            nome='Cliente Crediario',
+            tipo_pessoa=Cliente.TipoPessoa.FISICA,
+            cpf_cnpj='32165498700',
+            telefone='27999990000',
+            email='crediario@example.com',
+        )
+        self.produto = Produto.objects.create(
+            nome='Produto Crediario',
+            codigo_interno='CR001',
+            unidade_medida='UN',
+            preco_custo=Decimal('10.00'),
+            preco_venda=Decimal('100.00'),
+            estoque_atual=20,
+        )
+
+    def criar_venda_crediario(self, *, total_unitario=Decimal('100.00'), quantidade=1, parcelas=2, entrada=Decimal('0.00')):
+        venda = Venda.objects.create(
+            cliente=self.cliente,
+            usuario=self.user,
+            forma_pagamento=Venda.FormaPagamento.CREDIARIO,
+            quantidade_parcelas=parcelas,
+            data_primeiro_vencimento=timezone.localdate(),
+            intervalo_parcelas=30,
+            valor_entrada=entrada,
+        )
+        ItemVenda.objects.create(
+            venda=venda,
+            produto=self.produto,
+            quantidade=quantidade,
+            valor_unitario=total_unitario,
+        )
+        venda.recalcular_totais()
+        return venda
+
+    def test_venda_crediario_com_cliente_valido_gera_parcelas_e_baixa_estoque(self):
+        venda = self.criar_venda_crediario(parcelas=2)
+
+        venda.finalizar(usuario=self.user)
+
+        self.assertEqual(venda.status, Venda.Status.FINALIZADA)
+        self.assertEqual(ContaReceber.objects.filter(venda=venda).count(), 2)
+        self.produto.refresh_from_db()
+        self.assertEqual(self.produto.estoque_atual, 19)
+
+    def test_venda_crediario_sem_cliente_eh_bloqueada(self):
+        venda = Venda(
+            usuario=self.user,
+            forma_pagamento=Venda.FormaPagamento.CREDIARIO,
+            quantidade_parcelas=1,
+            data_primeiro_vencimento=timezone.localdate(),
+        )
+
+        with self.assertRaises(ValidationError):
+            venda.full_clean()
+
+    def test_geracao_correta_de_parcelas_com_entrada(self):
+        venda = self.criar_venda_crediario(total_unitario=Decimal('1000.00'), parcelas=4, entrada=Decimal('200.00'))
+
+        parcelas = ContaReceber.gerar_para_venda(venda)
+
+        self.assertEqual([parcela.valor for parcela in parcelas], [Decimal('200.00')] * 4)
+        self.assertEqual(sum(parcela.valor for parcela in parcelas), Decimal('800.00'))
+
+    def test_arredondamento_de_parcelas_ajusta_ultima_parcela(self):
+        venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=3)
+
+        parcelas = ContaReceber.gerar_para_venda(venda)
+
+        self.assertEqual([parcela.valor for parcela in parcelas], [Decimal('33.33'), Decimal('33.33'), Decimal('33.34')])
+        self.assertEqual(sum(parcela.valor for parcela in parcelas), Decimal('100.00'))
+
+    def test_crediario_com_entrada_registra_apenas_entrada_no_caixa(self):
+        caixa = Caixa.abrir(usuario=self.user, valor_inicial=Decimal('50.00'))
+        venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=2, entrada=Decimal('20.00'))
+
+        venda.finalizar(usuario=self.user)
+
+        movimento = MovimentacaoCaixa.objects.get(venda=venda)
+        self.assertEqual(movimento.tipo, MovimentacaoCaixa.Tipo.ENTRADA)
+        self.assertEqual(movimento.valor, Decimal('20.00'))
+        self.assertEqual(caixa.saldo_calculado(), Decimal('70.00'))
+        self.assertEqual(sum(conta.valor for conta in ContaReceber.objects.filter(venda=venda)), Decimal('80.00'))
+
+    def test_crediario_sem_entrada_nao_exige_caixa_e_nao_movimenta_caixa(self):
+        venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=2, entrada=Decimal('0.00'))
+
+        venda.finalizar(usuario=self.user)
+
+        self.assertFalse(MovimentacaoCaixa.objects.filter(venda=venda).exists())
+        self.assertEqual(ContaReceber.objects.filter(venda=venda).count(), 2)
+
+    def test_recebimento_de_parcela_com_caixa_aberto(self):
+        Caixa.abrir(usuario=self.user, valor_inicial=Decimal('0.00'))
+        venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=1)
+        venda.finalizar(usuario=self.user)
+        conta = ContaReceber.objects.get(venda=venda)
+
+        conta.receber(
+            usuario=self.user,
+            valor_recebido=Decimal('100.00'),
+            forma_recebimento=ContaReceber.FormaRecebimento.PIX,
+            data_pagamento=timezone.localdate(),
+        )
+
+        conta.refresh_from_db()
+        self.assertEqual(conta.status, ContaReceber.Status.PAGA)
+        self.assertEqual(conta.valor_pago, Decimal('100.00'))
+        self.assertTrue(MovimentacaoCaixa.objects.filter(venda=venda, valor=Decimal('100.00')).exists())
+
+    def test_bloqueia_recebimento_sem_caixa_aberto(self):
+        venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=1)
+        venda.finalizar(usuario=self.user)
+        conta = ContaReceber.objects.get(venda=venda)
+
+        with self.assertRaisesMessage(ValidationError, 'É necessário abrir o caixa antes de receber parcelas.'):
+            conta.receber(
+                usuario=self.user,
+                valor_recebido=Decimal('100.00'),
+                forma_recebimento=ContaReceber.FormaRecebimento.DINHEIRO,
+            )
+
+    def test_cancelamento_de_venda_crediario_cancela_parcelas_abertas(self):
+        venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=2)
+        venda.finalizar(usuario=self.user)
+
+        venda.cancelar()
+
+        self.assertEqual(set(ContaReceber.objects.filter(venda=venda).values_list('status', flat=True)), {ContaReceber.Status.CANCELADA})

@@ -68,6 +68,42 @@
                     {% for error in form.status.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                 </div>
             </div>
+            <div class="border rounded bg-light p-3 mt-3 d-none" id="crediario-fields">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div>
+                        <h3 class="h6 mb-1">Condições do crediário</h3>
+                        <p class="text-secondary small mb-0">Informe entrada opcional e gere parcelas no contas a receber.</p>
+                    </div>
+                    <span class="badge text-bg-warning">Validação no backend</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.quantidade_parcelas.id_for_label }}">{{ form.quantidade_parcelas.label }}</label>
+                        {{ form.quantidade_parcelas }}
+                        {% for error in form.quantidade_parcelas.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.data_primeiro_vencimento.id_for_label }}">{{ form.data_primeiro_vencimento.label }}</label>
+                        {{ form.data_primeiro_vencimento }}
+                        {% for error in form.data_primeiro_vencimento.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.intervalo_parcelas.id_for_label }}">{{ form.intervalo_parcelas.label }}</label>
+                        {{ form.intervalo_parcelas }}
+                        {% for error in form.intervalo_parcelas.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.valor_entrada.id_for_label }}">{{ form.valor_entrada.label }}</label>
+                        {{ form.valor_entrada }}
+                        {% for error in form.valor_entrada.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.observacoes_crediario.id_for_label }}">{{ form.observacoes_crediario.label }}</label>
+                        {{ form.observacoes_crediario }}
+                        {% for error in form.observacoes_crediario.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -170,6 +206,9 @@
     const descontoInput = document.getElementById('id_desconto');
     const subtotalOutput = document.getElementById('venda-subtotal');
     const totalOutput = document.getElementById('venda-total');
+    const formaPagamentoInput = document.getElementById('id_forma_pagamento');
+    const crediarioFields = document.getElementById('crediario-fields');
+    const dataPrimeiroVencimentoInput = document.getElementById('id_data_primeiro_vencimento');
     const searchUrl = '{% url "vendas:buscar_produtos" %}';
     let debounceTimer = null;
     let clienteDebounceTimer = null;
@@ -224,6 +263,14 @@
         const desconto = Number(descontoInput?.value || 0);
         subtotalOutput.textContent = money(subtotal);
         totalOutput.textContent = money(Math.max(subtotal - desconto, 0));
+    }
+
+    function toggleCrediarioFields() {
+        const isCrediario = formaPagamentoInput?.value === 'CREDIARIO';
+        crediarioFields?.classList.toggle('d-none', !isCrediario);
+        if (dataPrimeiroVencimentoInput) {
+            dataPrimeiroVencimentoInput.required = isCrediario;
+        }
     }
 
     function addProduct(product) {
@@ -376,6 +423,7 @@
     });
 
     clienteClearButton.addEventListener('click', clearCliente);
+    formaPagamentoInput?.addEventListener('change', toggleCrediarioFields);
 
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
@@ -423,6 +471,7 @@
         }
     });
     reindexRows();
+    toggleCrediarioFields();
     recalculate();
 })();
 </script>

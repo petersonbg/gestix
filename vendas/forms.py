@@ -18,14 +18,50 @@ class VendaForm(forms.ModelForm):
         widget=forms.HiddenInput(),
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ['quantidade_parcelas', 'data_primeiro_vencimento', 'intervalo_parcelas', 'valor_entrada', 'observacoes_crediario']:
+            self.fields[field_name].required = False
+
     class Meta:
         model = Venda
-        fields = ['cliente', 'desconto', 'forma_pagamento', 'status']
+        fields = [
+            'cliente',
+            'desconto',
+            'forma_pagamento',
+            'quantidade_parcelas',
+            'data_primeiro_vencimento',
+            'intervalo_parcelas',
+            'valor_entrada',
+            'observacoes_crediario',
+            'status',
+        ]
         widgets = {
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'forma_pagamento': forms.Select(attrs={'class': 'form-select'}),
+            'quantidade_parcelas': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'data_primeiro_vencimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'intervalo_parcelas': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'valor_entrada': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'observacoes_crediario': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data['quantidade_parcelas'] = cleaned_data.get('quantidade_parcelas') or 1
+        cleaned_data['intervalo_parcelas'] = cleaned_data.get('intervalo_parcelas') or 30
+        cleaned_data['valor_entrada'] = cleaned_data.get('valor_entrada') or Decimal('0.00')
+        if cleaned_data.get('forma_pagamento') == Venda.FormaPagamento.CREDIARIO:
+            if not cleaned_data.get('cliente'):
+                self.add_error('cliente', 'Selecione um cliente válido para venda no crediário.')
+            if not cleaned_data.get('data_primeiro_vencimento'):
+                self.add_error('data_primeiro_vencimento', 'Informe a data do primeiro vencimento.')
+            if (cleaned_data.get('quantidade_parcelas') or 0) < 1:
+                self.add_error('quantidade_parcelas', 'Informe ao menos uma parcela.')
+            if (cleaned_data.get('intervalo_parcelas') or 0) < 1:
+                self.add_error('intervalo_parcelas', 'O intervalo entre parcelas deve ser maior que zero.')
+        return cleaned_data
 
 
 class ItemVendaForm(forms.ModelForm):

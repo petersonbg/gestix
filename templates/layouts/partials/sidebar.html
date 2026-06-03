@@ -8,6 +8,7 @@
         <a class="nav-link {% if request.resolver_match.namespace == 'estoque' %}active{% endif %}" href="{% url 'estoque:list' %}">Estoque</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'vendas' %}active{% endif %}" href="{% url 'vendas:list' %}">Vendas</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'caixa' %}active{% endif %}" href="{% url 'caixa:index' %}">Caixa</a>
+        <a class="nav-link {% if request.resolver_match.namespace == 'contas_receber' %}active{% endif %}" href="{% url 'contas_receber:list' %}">Contas a receber</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'orcamentos' %}active{% endif %}" href="{% url 'orcamentos:list' %}">Orçamentos</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'fiscal' %}active{% endif %}" href="{% url 'fiscal:list' %}">Fiscal</a>
         <a class="nav-link {% if request.resolver_match.namespace == 'configuracoes' %}active{% endif %}" href="{% url 'configuracoes:sistema' %}">Configurações</a>

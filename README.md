@@ -385,3 +385,40 @@ Perfis de acesso previstos:
 - **Estoquista**: dashboard, produtos, fornecedores e estoque.
 
 > Observação: regras críticas continuam validadas no backend. A finalização de vendas e a conversão de orçamentos em vendas revalidam estoque antes de movimentar saldo.
+
+## Vendas no crediário e contas a receber
+
+O módulo de vendas permite selecionar a forma de pagamento **Crediário** para finalizar a venda, baixar o estoque normalmente e gerar parcelas em **Contas a receber**.
+
+Fluxo de uso:
+
+1. Abra o caixa se houver entrada/sinal ou se for receber parcelas no momento.
+2. Acesse **Vendas > Nova venda**.
+3. Pesquise e selecione um cliente ativo. Vendas no crediário não devem ser feitas para cliente genérico/consumidor final.
+4. Adicione os produtos normalmente.
+5. Selecione a forma de pagamento **Crediário**.
+6. Informe:
+   - quantidade de parcelas;
+   - data do primeiro vencimento;
+   - intervalo entre parcelas, por padrão 30 dias;
+   - valor de entrada/sinal, se existir;
+   - observações do crediário, se necessário.
+7. Finalize a venda.
+
+Regras principais:
+
+- Sem entrada, a venda no crediário não lança valor no caixa no momento da finalização.
+- Com entrada, o caixa registra apenas o valor da entrada com a descrição da venda no crediário.
+- O restante é dividido automaticamente em parcelas no módulo **Contas a receber**.
+- Diferenças de centavos por arredondamento são ajustadas na última parcela.
+- Para receber uma parcela, acesse **Contas a receber**, clique em **Receber** e confirme o pagamento com caixa aberto.
+- Se não houver caixa aberto ao receber parcela, o sistema bloqueia o recebimento com a mensagem: “É necessário abrir o caixa antes de receber parcelas.”
+- Parcelas abertas vencidas aparecem como **Atrasada** na listagem.
+- Ao imprimir o recibo de uma venda no crediário, o documento exibe entrada, quantidade de parcelas e lista de vencimentos/valores.
+
+URLs úteis:
+
+- `/contas-receber/`: listagem e filtros de parcelas.
+- `/contas-receber/vencidas/`: parcelas abertas vencidas.
+- `/contas-receber/hoje/`: parcelas abertas que vencem no dia.
+- `/contas-receber/<id>/receber/`: recebimento de uma parcela.

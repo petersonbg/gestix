@@ -11,8 +11,8 @@ class ItemVendaInline(admin.TabularInline):
 
 @admin.register(Venda)
 class VendaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cliente', 'data', 'subtotal', 'desconto', 'total', 'status', 'usuario')
-    list_filter = ('status', 'data')
+    list_display = ('id', 'cliente', 'data', 'forma_pagamento', 'subtotal', 'desconto', 'total', 'status', 'usuario')
+    list_filter = ('status', 'forma_pagamento', 'data')
     search_fields = ('cliente__nome', 'id')
     readonly_fields = ('subtotal', 'total', 'data')
     inlines = [ItemVendaInline]

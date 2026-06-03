@@ -196,7 +196,7 @@ class VendaPrintView(LoginRequiredMixin, DetailView):
     context_object_name = 'venda'
 
     def get_queryset(self):
-        return super().get_queryset().select_related('cliente', 'usuario').prefetch_related('itens__produto')
+        return super().get_queryset().select_related('cliente', 'usuario').prefetch_related('itens__produto', 'contas_receber')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
