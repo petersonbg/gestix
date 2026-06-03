@@ -128,10 +128,13 @@
         <section class="row g-2 mb-2">
             <div class="col-7">
                 <div class="border rounded p-2 h-100">
-                    <div class="text-uppercase text-secondary small fw-semibold">Cliente</div>
-                    <div class="fw-bold">{{ venda.cliente.nome }}</div>
-                    {% if venda.cliente.cpf_cnpj %}<div>CPF/CNPJ: {{ venda.cliente.cpf_cnpj }}</div>{% endif %}
-                    {% if venda.cliente.telefone %}<div>Telefone: {{ venda.cliente.telefone }}</div>{% endif %}
+                    <div class="text-uppercase text-secondary small fw-semibold">Dados do Cliente</div>
+                    <div><strong>Nome:</strong> {{ venda.cliente.nome|default:'Não informado' }}</div>
+                    <div><strong>CPF/CNPJ:</strong> {{ venda.cliente.cpf_cnpj|default:'Não informado' }}</div>
+                    <div><strong>Telefone:</strong> {{ venda.cliente.telefone|default:'Não informado' }}</div>
+                    <div><strong>E-mail:</strong> {{ venda.cliente.email|default:'Não informado' }}</div>
+                    <div><strong>Endereço:</strong> {{ venda.cliente.endereco|default:'Não informado' }}</div>
+                    <div><strong>Inscrição Estadual:</strong> {{ venda.cliente.inscricao_estadual|default:'Não informado' }}</div>
                 </div>
             </div>
             <div class="col-5">

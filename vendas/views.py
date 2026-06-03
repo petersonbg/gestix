@@ -11,6 +11,7 @@ from django.views import View
 from django.views.generic import DetailView, ListView
 
 from accounts.utils import registrar_log
+from clientes.models import Cliente
 from produtos.models import Produto
 
 from .forms import ItemVendaFormSet, VendaForm
@@ -27,6 +28,34 @@ def formatar_nome_vendedor(usuario):
     if len(nomes) == 1:
         return nomes[0]
     return usuario.get_username() or '-'
+
+
+class ClienteBuscaView(LoginRequiredMixin, View):
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+        clientes = Cliente.objects.filter(ativo=True)
+        if len(query) >= 2:
+            clientes = clientes.filter(
+                Q(nome__icontains=query)
+                | Q(cpf_cnpj__icontains=query)
+                | Q(telefone__icontains=query)
+            )
+        else:
+            clientes = clientes.none()
+
+        data = [
+            {
+                'id': cliente.pk,
+                'nome': cliente.nome,
+                'cpf_cnpj': cliente.cpf_cnpj or '',
+                'telefone': cliente.telefone or '',
+                'email': cliente.email or '',
+                'endereco': cliente.endereco or '',
+                'inscricao_estadual': cliente.inscricao_estadual or '',
+            }
+            for cliente in clientes.order_by('nome')[:10]
+        ]
+        return JsonResponse({'results': data})
 
 
 class ProdutoBuscaView(LoginRequiredMixin, View):
@@ -90,18 +119,35 @@ class VendaDetailView(LoginRequiredMixin, DetailView):
 class VendaCreateView(LoginRequiredMixin, View):
     template_name = 'vendas/venda_form.html'
 
+    def get_selected_cliente(self, form):
+        cliente = form.cleaned_data.get('cliente') if hasattr(form, 'cleaned_data') else None
+        if cliente:
+            return cliente
+        cliente_id = form.data.get('cliente') if form.is_bound else form.initial.get('cliente')
+        if cliente_id:
+            return Cliente.objects.filter(pk=cliente_id, ativo=True).first()
+        return None
+
+    def get_context_data(self, form, formset):
+        return {
+            'form': form,
+            'formset': formset,
+            'selected_cliente': self.get_selected_cliente(form),
+        }
+
     def get(self, request):
         form = VendaForm(initial={'status': Venda.Status.RASCUNHO})
         formset = ItemVendaFormSet()
-        return render(request, self.template_name, {'form': form, 'formset': formset})
+        return render(request, self.template_name, self.get_context_data(form, formset))
 
     def post(self, request):
         form = VendaForm(request.POST)
-        venda = form.save(commit=False) if form.is_valid() else Venda()
+        form_is_valid = form.is_valid()
+        venda = form.save(commit=False) if form_is_valid else Venda()
         venda.usuario = request.user
         formset = ItemVendaFormSet(request.POST, instance=venda)
 
-        if form.is_valid() and formset.is_valid():
+        if form_is_valid and formset.is_valid():
             status_solicitado = venda.status
             if status_solicitado == Venda.Status.FINALIZADA:
                 venda.status = Venda.Status.RASCUNHO
@@ -115,7 +161,7 @@ class VendaCreateView(LoginRequiredMixin, View):
                     venda.finalizar(usuario=request.user)
                 except ValidationError as exc:
                     form.add_error(None, exc)
-                    return render(request, self.template_name, {'form': form, 'formset': formset})
+                    return render(request, self.template_name, self.get_context_data(form, formset))
                 messages.success(request, 'Venda registrada, finalizada e estoque atualizado com sucesso.')
                 registrar_log(request.user, 'criação de venda', 'vendas', f'Venda #{venda.pk} criada e finalizada.', request=request)
             else:
@@ -126,7 +172,7 @@ class VendaCreateView(LoginRequiredMixin, View):
 
             return redirect(venda.get_absolute_url())
 
-        return render(request, self.template_name, {'form': form, 'formset': formset})
+        return render(request, self.template_name, self.get_context_data(form, formset))
 
 
 class VendaFinalizarView(LoginRequiredMixin, View):

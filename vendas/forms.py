@@ -3,15 +3,25 @@ from decimal import Decimal
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
+from clientes.models import Cliente
+
 from .models import ItemVenda, Venda
 
 
 class VendaForm(forms.ModelForm):
+    cliente = forms.ModelChoiceField(
+        queryset=Cliente.objects.filter(ativo=True),
+        error_messages={
+            'required': 'Selecione um cliente para continuar.',
+            'invalid_choice': 'Selecione um cliente ativo para continuar.',
+        },
+        widget=forms.HiddenInput(),
+    )
+
     class Meta:
         model = Venda
         fields = ['cliente', 'desconto', 'forma_pagamento', 'status']
         widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-select'}),
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'forma_pagamento': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),

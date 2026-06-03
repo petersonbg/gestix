@@ -151,14 +151,16 @@ O layout de impressão foi otimizado para papel A5 em orientação paisagem, com
 
 Para testar a tela dinâmica de vendas:
 
-1. Cadastre ou importe produtos com estoque disponível.
+1. Cadastre clientes ativos e produtos com estoque disponível.
 2. Acesse `/vendas/nova/`.
-3. Digite no campo de pesquisa o nome, código interno ou código de barras do produto.
-4. Clique em **Adicionar** para inserir o produto na tabela de itens.
-5. Altere a quantidade e confira o recálculo automático de subtotal e total.
-6. Tente adicionar produto sem estoque ou quantidade acima do saldo para validar os bloqueios.
-7. Abra o caixa em `/caixa/abrir/` antes de finalizar a venda.
-8. Salve a venda como `Finalizada` para baixar o estoque e registrar o recebimento automaticamente no caixa.
+3. No bloco **Cliente da venda**, pesquise clientes por nome, CPF/CNPJ ou telefone. A busca usa o endpoint interno `/vendas/clientes/buscar/`, exige login, retorna somente clientes ativos e limita os resultados a 10 registros.
+4. Clique em **Selecionar** para preencher o cliente da venda; o sistema grava o ID em um campo oculto, exibe os dados básicos e permite trocar o cliente antes de salvar.
+5. Digite no campo de pesquisa o nome, código interno ou código de barras do produto.
+6. Clique em **Adicionar** para inserir o produto na tabela de itens.
+7. Altere a quantidade e confira o recálculo automático de subtotal e total.
+8. Tente adicionar produto sem estoque ou quantidade acima do saldo para validar os bloqueios.
+9. Abra o caixa em `/caixa/abrir/` antes de finalizar a venda.
+10. Salve a venda como `Finalizada` para baixar o estoque e registrar o recebimento automaticamente no caixa.
 
 ## Módulo caixa
 
