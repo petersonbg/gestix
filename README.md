@@ -10,6 +10,7 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 - `produtos`
 - `estoque`
 - `vendas`
+- `caixa`
 - `orcamentos`
 - `fiscal`
 - `dashboard`
@@ -156,7 +157,38 @@ Para testar a tela dinâmica de vendas:
 4. Clique em **Adicionar** para inserir o produto na tabela de itens.
 5. Altere a quantidade e confira o recálculo automático de subtotal e total.
 6. Tente adicionar produto sem estoque ou quantidade acima do saldo para validar os bloqueios.
-7. Salve a venda como `Finalizada` para baixar o estoque automaticamente.
+7. Abra o caixa em `/caixa/abrir/` antes de finalizar a venda.
+8. Salve a venda como `Finalizada` para baixar o estoque e registrar o recebimento automaticamente no caixa.
+
+## Módulo caixa
+
+O módulo `caixa` controla o caixa diário em `/caixa/`, exigindo login e respeitando os perfis de acesso. Administradores e gerentes podem consultar todos os caixas no histórico, vendedores operam apenas o próprio caixa e estoquistas não possuem acesso ao módulo.
+
+Funcionalidades disponíveis:
+
+- abertura de caixa em `/caixa/abrir/` com valor inicial;
+- tela de caixa atual em `/caixa/atual/` com resumo financeiro, saldo calculado e movimentações;
+- lançamento de suprimento em `/caixa/suprimento/`;
+- lançamento de sangria em `/caixa/sangria/`;
+- lançamento de saída manual em `/caixa/saida/`;
+- fechamento em `/caixa/fechar/`, informando o valor contado para cálculo da diferença;
+- histórico em `/caixa/historico/` com filtros por data, usuário e status.
+
+Regras importantes:
+
+- cada usuário pode ter apenas um caixa aberto por vez;
+- vendas finalizadas exigem caixa aberto para o usuário logado;
+- ao finalizar uma venda, o sistema cria automaticamente uma movimentação do tipo `VENDA` no caixa com o valor total e a forma de pagamento;
+- movimentações não podem ser negativas e não podem ser lançadas em caixa fechado;
+- sangria e saída reduzem o saldo calculado, enquanto suprimento e venda aumentam o saldo.
+
+Fluxo sugerido:
+
+1. Acesse `/caixa/abrir/` e informe o valor inicial.
+2. Registre vendas normalmente; ao finalizar, elas entram automaticamente no caixa.
+3. Use `/caixa/sangria/` para registrar retiradas de dinheiro e `/caixa/suprimento/` para adicionar reforço de caixa.
+4. Ao final do expediente, acesse `/caixa/fechar/`, confira o saldo calculado e informe o valor contado.
+5. Consulte caixas anteriores em `/caixa/historico/`.
 
 ## Módulo orçamentos
 

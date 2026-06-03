@@ -17,6 +17,14 @@ class Venda(models.Model):
         FINALIZADA = 'FINALIZADA', 'Finalizada'
         CANCELADA = 'CANCELADA', 'Cancelada'
 
+    class FormaPagamento(models.TextChoices):
+        DINHEIRO = 'DINHEIRO', 'Dinheiro'
+        PIX = 'PIX', 'PIX'
+        CARTAO_CREDITO = 'CARTAO_CREDITO', 'Cartão de crédito'
+        CARTAO_DEBITO = 'CARTAO_DEBITO', 'Cartão de débito'
+        BOLETO = 'BOLETO', 'Boleto'
+        OUTROS = 'OUTROS', 'Outros'
+
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name='vendas')
     data = models.DateTimeField(auto_now_add=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
@@ -28,6 +36,12 @@ class Venda(models.Model):
     )
     total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.RASCUNHO)
+    forma_pagamento = models.CharField(
+        'forma de pagamento',
+        max_length=20,
+        choices=FormaPagamento.choices,
+        default=FormaPagamento.DINHEIRO,
+    )
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -76,6 +90,15 @@ class Venda(models.Model):
             if not itens:
                 raise ValidationError('Inclua ao menos um item para finalizar a venda.')
 
+            from caixa.models import Caixa, MovimentacaoCaixa
+
+            caixa = Caixa.objects.select_for_update().filter(
+                usuario_abertura=usuario or venda.usuario,
+                status=Caixa.Status.ABERTO,
+            ).first()
+            if not caixa:
+                raise ValidationError('É necessário abrir o caixa antes de finalizar vendas.')
+
             produto_ids = [item.produto_id for item in itens]
             produtos = Produto.objects.select_for_update().filter(pk__in=produto_ids)
             saldos = {produto.pk: produto.estoque_atual for produto in produtos}
@@ -108,9 +131,21 @@ class Venda(models.Model):
                     usuario=usuario or venda.usuario,
                 )
 
+            MovimentacaoCaixa.registrar(
+                caixa=caixa,
+                tipo=MovimentacaoCaixa.Tipo.VENDA,
+                descricao=f'Venda #{venda.pk}',
+                valor=venda.total,
+                forma_pagamento=venda.forma_pagamento,
+                venda=venda,
+                usuario=usuario or venda.usuario,
+                observacao='Recebimento registrado automaticamente ao finalizar venda.',
+            )
+
             self.status = venda.status
             self.subtotal = venda.subtotal
             self.total = venda.total
+            self.forma_pagamento = venda.forma_pagamento
 
     def get_absolute_url(self):
         return reverse('vendas:detail', kwargs={'pk': self.pk})

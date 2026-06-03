@@ -138,7 +138,7 @@
                 <div class="border rounded p-2 h-100">
                     <div class="text-uppercase text-secondary small fw-semibold">Venda</div>
                     <div>Vendedor: {{ vendedor_nome }}</div>
-                    {% if venda.forma_pagamento %}<div>Forma de pagamento: {{ venda.forma_pagamento }}</div>{% endif %}
+                    {% if venda.forma_pagamento %}<div>Forma de pagamento: {{ venda.get_forma_pagamento_display }}</div>{% endif %}
                     {% if venda.observacoes %}<div>Observações: {{ venda.observacoes }}</div>{% endif %}
                 </div>
             </div>
