@@ -67,6 +67,12 @@ class ContaReceber(models.Model):
     def status_exibicao_label(self):
         return self.Status(self.status_exibicao).label
 
+    @property
+    def dias_atraso(self):
+        if self.status_exibicao != self.Status.ATRASADA:
+            return 0
+        return max((timezone.localdate() - self.data_vencimento).days, 0)
+
     def clean(self):
         super().clean()
         if self.valor is not None and self.valor < 0:

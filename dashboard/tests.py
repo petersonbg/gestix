@@ -1,10 +1,16 @@
-from datetime import date
+from datetime import date, timedelta
+
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from clientes.models import Cliente
+from contas_receber.models import ContaReceber
+from vendas.models import Venda
 
 from .models import ConfiguracaoSistema
 from .services import buscar_aniversariantes
@@ -75,3 +81,84 @@ class DashboardAniversariantesTests(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Notificações de aniversário desativadas.')
         self.assertEqual(response.context['aniversariantes'], [])
+
+
+class DashboardContasAtrasadasTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username='gerente', password='senha')
+        self.user.groups.add(Group.objects.get_or_create(name='Gerente')[0])
+        self.client.login(username='gerente', password='senha')
+        self.cliente = Cliente.objects.create(
+            nome='Cliente Atraso',
+            tipo_pessoa=Cliente.TipoPessoa.FISICA,
+            cpf_cnpj='atraso-001',
+        )
+        self.venda = Venda.objects.create(cliente=self.cliente, usuario=self.user)
+
+    def criar_conta(self, *, dias_vencida=1, valor=Decimal('100.00'), status=ContaReceber.Status.ABERTA, indice=1):
+        return ContaReceber.objects.create(
+            venda=self.venda,
+            cliente=self.cliente,
+            numero_parcela=indice,
+            total_parcelas=10,
+            data_vencimento=timezone.localdate() - timedelta(days=dias_vencida),
+            valor=valor,
+            status=status,
+        )
+
+    def test_conta_aberta_vencida_aparece_no_dashboard(self):
+        self.criar_conta(dias_vencida=3, valor=Decimal('120.00'))
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertContains(response, 'Contas a receber atrasadas')
+        self.assertContains(response, 'Cliente Atraso')
+        self.assertEqual(response.context['contas_atrasadas_qtd'], 1)
+
+    def test_conta_paga_vencida_nao_aparece(self):
+        self.criar_conta(dias_vencida=3, status=ContaReceber.Status.PAGA)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.context['contas_atrasadas_qtd'], 0)
+        self.assertContains(response, 'Nenhuma conta a receber atrasada.')
+
+    def test_conta_cancelada_vencida_nao_aparece(self):
+        self.criar_conta(dias_vencida=3, status=ContaReceber.Status.CANCELADA)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.context['contas_atrasadas_qtd'], 0)
+        self.assertContains(response, 'Nenhuma conta a receber atrasada.')
+
+    def test_valor_total_atrasado_eh_calculado_corretamente(self):
+        self.criar_conta(dias_vencida=5, valor=Decimal('100.00'), indice=1)
+        self.criar_conta(dias_vencida=2, valor=Decimal('50.50'), indice=2)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.context['contas_atrasadas_total'], Decimal('150.50'))
+
+    def test_lista_limita_a_cinco_registros_mais_antigos(self):
+        for indice in range(1, 8):
+            self.criar_conta(dias_vencida=indice, valor=Decimal('10.00'), indice=indice)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.context['contas_atrasadas_qtd'], 7)
+        self.assertEqual(len(response.context['contas_atrasadas_lista']), 5)
+        self.assertEqual(response.context['contas_atrasadas_lista'][0].data_vencimento, timezone.localdate() - timedelta(days=7))
+
+    def test_usuario_sem_permissao_nao_visualiza_notificacao(self):
+        User = get_user_model()
+        estoquista = User.objects.create_user(username='estoquista', password='senha')
+        estoquista.groups.add(Group.objects.get_or_create(name='Estoquista')[0])
+        self.criar_conta(dias_vencida=3)
+        self.client.logout()
+        self.client.login(username='estoquista', password='senha')
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertFalse(response.context['pode_visualizar_contas_atrasadas'])
+        self.assertNotContains(response, 'Contas a receber atrasadas')

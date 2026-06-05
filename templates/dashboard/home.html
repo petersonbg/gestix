@@ -81,6 +81,56 @@
     </div>
 </div>
 
+
+{% if pode_visualizar_contas_atrasadas %}
+    <div class="card border-danger shadow-sm mt-4">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h2 class="h5 mb-0">Contas a receber atrasadas</h2>
+                <span class="small">Parcelas vencidas do crediário que precisam de acompanhamento.</span>
+            </div>
+            <a class="btn btn-light btn-sm" href="{% url 'contas_receber:atrasadas' %}">Ver contas atrasadas</a>
+        </div>
+        <div class="card-body">
+            {% if contas_atrasadas_qtd %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="alert alert-danger mb-0">
+                            <div class="text-uppercase small fw-semibold">Quantidade de parcelas</div>
+                            <div class="h4 mb-0">{{ contas_atrasadas_qtd }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-danger mb-0">
+                            <div class="text-uppercase small fw-semibold">Valor total em atraso</div>
+                            <div class="h4 mb-0">R$ {{ contas_atrasadas_total }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for conta in contas_atrasadas_lista %}
+                        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3" href="{{ conta.get_absolute_url }}">
+                            <div>
+                                <div class="fw-semibold">{{ conta.cliente.nome }}</div>
+                                <div class="text-secondary small">
+                                    Venda #{{ conta.venda_id }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }} ·
+                                    Vencimento: {{ conta.data_vencimento|date:'d/m/Y' }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge text-bg-danger">{{ conta.dias_atraso }} dia(s) em atraso</span>
+                                <div class="fw-semibold mt-1">R$ {{ conta.valor }}</div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-secondary mb-0">Nenhuma conta a receber atrasada.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
 {% if configuracao_sistema.notificacoes_aniversario_ativas %}
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">

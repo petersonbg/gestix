@@ -51,16 +51,22 @@ class ContaReceberListView(LoginRequiredMixin, ContaReceberQuerysetMixin, ListVi
             )
         if venda.isdigit():
             queryset = queryset.filter(venda_id=int(venda))
-        if status == ContaReceber.Status.ATRASADA:
-            queryset = queryset.filter(status=ContaReceber.Status.ABERTA, data_vencimento__lt=hoje)
+        if status in {ContaReceber.Status.ATRASADA, 'atrasadas'}:
+            queryset = queryset.filter(
+                Q(status=ContaReceber.Status.ATRASADA)
+                | Q(status=ContaReceber.Status.ABERTA, data_vencimento__lt=hoje)
+            )
         elif status:
             queryset = queryset.filter(status=status)
         if data_inicial:
             queryset = queryset.filter(data_vencimento__gte=data_inicial)
         if data_final:
             queryset = queryset.filter(data_vencimento__lte=data_final)
-        if periodo == 'vencidas':
-            queryset = queryset.filter(status=ContaReceber.Status.ABERTA, data_vencimento__lt=hoje)
+        if periodo in {'vencidas', 'atrasadas'}:
+            queryset = queryset.filter(
+                Q(status=ContaReceber.Status.ATRASADA)
+                | Q(status=ContaReceber.Status.ABERTA, data_vencimento__lt=hoje)
+            )
         elif periodo == 'hoje':
             queryset = queryset.filter(status=ContaReceber.Status.ABERTA, data_vencimento=hoje)
         elif periodo == 'a_vencer':
