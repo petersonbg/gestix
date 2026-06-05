@@ -1,0 +1,26 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Importar NF-e | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Importar XML de NF-e</h1>
+        <p class="text-secondary mb-0">Nesta etapa não há integração com a SEFAZ; apenas leitura do arquivo XML enviado.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'fiscal:list' %}">Voltar</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        <label class="form-label" for="{{ form.arquivo_xml.id_for_label }}">{{ form.arquivo_xml.label }}</label>
+        {{ form.arquivo_xml }}
+        {% for error in form.arquivo_xml.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'fiscal:list' %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Importar XML</button>
+    </div>
+</form>
+{% endblock %}

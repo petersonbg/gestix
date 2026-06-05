@@ -1,0 +1,39 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Conta a receber</h1>
+        <p class="text-secondary mb-0">Venda #{{ conta.venda_id }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'contas_receber:list' %}">Voltar</a>
+        {% if conta.status != 'PAGA' and conta.status != 'CANCELADA' %}
+            <a class="btn btn-primary" href="{% url 'contas_receber:receber' conta.pk %}">Receber</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Dados da parcela</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8">{{ conta.cliente.nome }}</dd>
+                    <dt class="col-sm-4">Venda</dt><dd class="col-sm-8">#{{ conta.venda_id }}</dd>
+                    <dt class="col-sm-4">Vencimento</dt><dd class="col-sm-8">{{ conta.data_vencimento|date:'d/m/Y' }}</dd>
+                    <dt class="col-sm-4">Valor</dt><dd class="col-sm-8">R$ {{ conta.valor }}</dd>
+                    <dt class="col-sm-4">Valor pago</dt><dd class="col-sm-8">R$ {{ conta.valor_pago }}</dd>
+                    <dt class="col-sm-4">Saldo</dt><dd class="col-sm-8">R$ {{ conta.saldo }}</dd>
+                    <dt class="col-sm-4">Status</dt><dd class="col-sm-8">{{ conta.status_exibicao_label }}</dd>
+                    <dt class="col-sm-4">Forma de recebimento</dt><dd class="col-sm-8">{{ conta.get_forma_recebimento_display|default:'Não informado' }}</dd>
+                    <dt class="col-sm-4">Observação</dt><dd class="col-sm-8">{{ conta.observacao|default:'-' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
