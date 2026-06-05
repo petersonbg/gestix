@@ -422,3 +422,20 @@ URLs úteis:
 - `/contas-receber/vencidas/`: parcelas abertas vencidas.
 - `/contas-receber/hoje/`: parcelas abertas que vencem no dia.
 - `/contas-receber/<id>/receber/`: recebimento de uma parcela.
+
+## Contas a pagar
+
+O módulo **Contas a pagar** permite registrar despesas da empresa, acompanhar vencimentos e baixar pagamentos.
+
+Fluxo básico:
+
+1. Acesse **Contas a pagar > Nova conta**.
+2. Informe descrição, fornecedor opcional, categoria, data de emissão, vencimento, valor e observação.
+3. Use a listagem em `/contas-pagar/` para filtrar por fornecedor, categoria, status, vencidas, vencem hoje, a vencer e próximos 7 dias.
+4. Clique em **Pagar** para registrar data de pagamento, valor pago, forma de pagamento e observação.
+5. Pagamentos em **dinheiro** exigem caixa aberto para o usuário e registram uma `MovimentacaoCaixa` do tipo **SAIDA** com a descrição `Pagamento de conta: [descrição]`.
+6. Pagamentos por PIX, cartão, boleto, transferência ou outros são registrados no financeiro sem exigir caixa aberto.
+7. Contas abertas vencidas aparecem dinamicamente como **Atrasadas**. Contas pagas ou canceladas não entram nos alertas de atraso.
+8. Contas abertas podem ser canceladas; contas pagas não devem ser canceladas diretamente sem estorno.
+
+O dashboard exibe, para Administrador e Gerente, cards de **Contas a pagar atrasadas**, **Contas a pagar hoje** e **Próximos 7 dias**, com quantidade, valor total e lista resumida das 5 contas mais relevantes.

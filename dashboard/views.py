@@ -6,7 +6,7 @@ from django.views.generic import TemplateView, UpdateView
 
 from .forms import ConfiguracaoSistemaForm
 from .models import ConfiguracaoSistema
-from .services import buscar_aniversariantes, buscar_contas_atrasadas_dashboard
+from .services import buscar_aniversariantes, buscar_contas_atrasadas_dashboard, buscar_contas_pagar_dashboard
 
 
 def usuario_em_grupo(user, nome_grupo):
@@ -37,6 +37,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         if configuracao.notificacoes_aniversario_ativas:
             context['aniversariantes'] = buscar_aniversariantes(configuracao.dias_antecedencia_aniversario)
         context.update(buscar_contas_atrasadas_dashboard(self.request.user))
+        context.update(buscar_contas_pagar_dashboard(self.request.user))
         return context
 
 

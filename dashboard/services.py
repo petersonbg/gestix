@@ -87,3 +87,59 @@ def buscar_contas_atrasadas_dashboard(user, hoje=None, limite=5):
         'contas_atrasadas_lista': list(queryset.order_by('data_vencimento', 'numero_parcela')[:limite]),
         'pode_visualizar_contas_atrasadas': True,
     }
+
+
+def queryset_contas_pagar_atrasadas(hoje=None):
+    from contas_pagar.models import ContaPagar
+
+    hoje = hoje or timezone.localdate()
+    return ContaPagar.objects.select_related('fornecedor', 'categoria').filter(
+        Q(status=ContaPagar.Status.ATRASADA)
+        | Q(status=ContaPagar.Status.ABERTA, data_vencimento__lt=hoje)
+    )
+
+
+def usuario_pode_visualizar_contas_pagar(user):
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    return user.groups.filter(name__in=['Administrador', 'Gerente']).exists()
+
+
+def buscar_contas_pagar_dashboard(user, hoje=None, limite=5):
+    from datetime import timedelta
+    from contas_pagar.models import ContaPagar
+
+    if not usuario_pode_visualizar_contas_pagar(user):
+        return {
+            'pode_visualizar_contas_pagar': False,
+            'contas_pagar_atrasadas_qtd': 0,
+            'contas_pagar_atrasadas_total': 0,
+            'contas_pagar_atrasadas_lista': [],
+            'contas_pagar_hoje_qtd': 0,
+            'contas_pagar_hoje_total': 0,
+            'contas_pagar_hoje_lista': [],
+            'contas_pagar_7_dias_qtd': 0,
+            'contas_pagar_7_dias_total': 0,
+            'contas_pagar_7_dias_lista': [],
+        }
+
+    hoje = hoje or timezone.localdate()
+    em_7_dias = hoje + timedelta(days=7)
+    atrasadas = queryset_contas_pagar_atrasadas(hoje=hoje)
+    hoje_qs = ContaPagar.objects.select_related('fornecedor', 'categoria').filter(status=ContaPagar.Status.ABERTA, data_vencimento=hoje)
+    proximas = ContaPagar.objects.select_related('fornecedor', 'categoria').filter(status=ContaPagar.Status.ABERTA, data_vencimento__gt=hoje, data_vencimento__lte=em_7_dias)
+
+    return {
+        'pode_visualizar_contas_pagar': True,
+        'contas_pagar_atrasadas_qtd': atrasadas.count(),
+        'contas_pagar_atrasadas_total': atrasadas.aggregate(total=Sum('valor'))['total'] or 0,
+        'contas_pagar_atrasadas_lista': list(atrasadas.order_by('data_vencimento', 'descricao')[:limite]),
+        'contas_pagar_hoje_qtd': hoje_qs.count(),
+        'contas_pagar_hoje_total': hoje_qs.aggregate(total=Sum('valor'))['total'] or 0,
+        'contas_pagar_hoje_lista': list(hoje_qs.order_by('data_vencimento', 'descricao')[:limite]),
+        'contas_pagar_7_dias_qtd': proximas.count(),
+        'contas_pagar_7_dias_total': proximas.aggregate(total=Sum('valor'))['total'] or 0,
+        'contas_pagar_7_dias_lista': list(proximas.order_by('data_vencimento', 'descricao')[:limite]),
+    }

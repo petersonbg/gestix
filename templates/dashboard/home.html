@@ -131,6 +131,81 @@
     </div>
 {% endif %}
 
+
+{% if pode_visualizar_contas_pagar %}
+    <div class="row g-4 mt-1">
+        <div class="col-lg-4">
+            <div class="card border-danger shadow-sm h-100">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center gap-2">
+                    <h2 class="h6 mb-0">Contas a pagar atrasadas</h2>
+                    <a class="btn btn-light btn-sm" href="{% url 'contas_pagar:list' %}?periodo=atrasadas">Ver</a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3"><span>{{ contas_pagar_atrasadas_qtd }} conta(s)</span><strong>R$ {{ contas_pagar_atrasadas_total }}</strong></div>
+                    {% if contas_pagar_atrasadas_lista %}
+                        <div class="list-group list-group-flush">
+                            {% for conta in contas_pagar_atrasadas_lista %}
+                                <a class="list-group-item list-group-item-action px-0" href="{{ conta.get_absolute_url }}">
+                                    <div class="fw-semibold">{{ conta.descricao }}</div>
+                                    <div class="text-secondary small">{{ conta.data_vencimento|date:'d/m/Y' }} · R$ {{ conta.valor }} · {{ conta.dias_atraso }} dia(s)</div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-secondary mb-0">Nenhuma conta a pagar atrasada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-header bg-warning d-flex justify-content-between align-items-center gap-2">
+                    <h2 class="h6 mb-0">Contas a pagar hoje</h2>
+                    <a class="btn btn-light btn-sm" href="{% url 'contas_pagar:list' %}?periodo=hoje">Ver</a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3"><span>{{ contas_pagar_hoje_qtd }} conta(s)</span><strong>R$ {{ contas_pagar_hoje_total }}</strong></div>
+                    {% if contas_pagar_hoje_lista %}
+                        <div class="list-group list-group-flush">
+                            {% for conta in contas_pagar_hoje_lista %}
+                                <a class="list-group-item list-group-item-action px-0" href="{{ conta.get_absolute_url }}">
+                                    <div class="fw-semibold">{{ conta.descricao }}</div>
+                                    <div class="text-secondary small">Vence hoje · R$ {{ conta.valor }}</div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-secondary mb-0">Nenhuma conta vence hoje.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center gap-2">
+                    <h2 class="h6 mb-0">Próximos 7 dias</h2>
+                    <a class="btn btn-light btn-sm" href="{% url 'contas_pagar:list' %}?periodo=proximos_7">Ver</a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3"><span>{{ contas_pagar_7_dias_qtd }} conta(s)</span><strong>R$ {{ contas_pagar_7_dias_total }}</strong></div>
+                    {% if contas_pagar_7_dias_lista %}
+                        <div class="list-group list-group-flush">
+                            {% for conta in contas_pagar_7_dias_lista %}
+                                <a class="list-group-item list-group-item-action px-0" href="{{ conta.get_absolute_url }}">
+                                    <div class="fw-semibold">{{ conta.descricao }}</div>
+                                    <div class="text-secondary small">{{ conta.data_vencimento|date:'d/m/Y' }} · R$ {{ conta.valor }}</div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-secondary mb-0">Nenhuma conta nos próximos 7 dias.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 {% if configuracao_sistema.notificacoes_aniversario_ativas %}
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
