@@ -1,0 +1,32 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Cancelar conta | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Cancelar conta</h1>
+        <p class="text-secondary mb-0">{{ conta.descricao }}</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ conta.get_absolute_url }}">Voltar</a>
+</div>
+
+<div class="card border-danger shadow-sm">
+    <div class="card-body">
+        <p>Confirme o cancelamento desta conta. Contas pagas não podem ser canceladas diretamente sem estorno.</p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            {% for field in form %}
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            {% endfor %}
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a class="btn btn-outline-secondary" href="{{ conta.get_absolute_url }}">Voltar</a>
+                <button class="btn btn-danger" type="submit">Cancelar conta</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
