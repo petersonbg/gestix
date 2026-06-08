@@ -461,7 +461,7 @@ Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, vis
 
 O menu **Administração** centraliza configurações gerais do GESTIX e fica disponível somente para os perfis **Administrador** e **Gerente**:
 
-- **Dados da Empresa**: razão social, nome fantasia, CNPJ, inscrição estadual, telefone, e-mail e endereço.
+- **Dados da Empresa**: cadastro único com razão social, nome fantasia, CNPJ, inscrições estadual e municipal, endereço completo, contatos, logos, cores institucionais, responsável e observações. Administradores podem editar em `/administracao/dados-empresa/editar/`; Gerentes acessam somente a visualização.
 - **Configurações do Sistema**: preferências compartilhadas pelos módulos, incluindo as notificações de aniversário.
 
 Administradores podem visualizar e alterar os dados. Gerentes possuem acesso somente para consulta, com os campos desabilitados no formulário. Vendedores, Estoquistas e usuários sem perfil não acessam o módulo. A URL anterior `/configuracoes/` é mantida por compatibilidade e redireciona para a nova área administrativa.

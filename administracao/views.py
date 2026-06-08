@@ -2,12 +2,12 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, UpdateView
+from django.views.generic import DetailView, TemplateView, UpdateView
 
 from dashboard.models import ConfiguracaoSistema
 
-from .forms import ConfiguracaoSistemaAdministracaoForm, DadosEmpresaForm
-from .models import DadosEmpresa
+from .forms import ConfiguracaoSistemaAdministracaoForm, EmpresaForm
+from .models import Empresa
 
 
 def usuario_administrador(user):
@@ -39,12 +39,50 @@ class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['pode_editar'] = usuario_administrador(self.request.user)
-        context['empresa'] = DadosEmpresa.get_solo()
+        context['empresa'] = Empresa.get_solo()
         context['configuracao'] = ConfiguracaoSistema.get_solo()
         return context
 
 
-class AdministracaoUpdateMixin(AdministracaoPermissaoMixin, UpdateView):
+class EmpresaDetailView(AdministracaoPermissaoMixin, DetailView):
+    model = Empresa
+    template_name = 'administracao/dados_empresa.html'
+    context_object_name = 'empresa'
+
+    def get_object(self, queryset=None):
+        return Empresa.get_solo()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class EmpresaUpdateView(AdministracaoPermissaoMixin, UpdateView):
+    model = Empresa
+    form_class = EmpresaForm
+    template_name = 'administracao/dados_empresa_form.html'
+    context_object_name = 'empresa'
+    success_url = reverse_lazy('administracao:dados_empresa')
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def get_object(self, queryset=None):
+        return Empresa.get_solo()
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Dados da empresa atualizados com sucesso.')
+        return super().form_valid(form)
+
+
+class ConfiguracaoSistemaView(AdministracaoPermissaoMixin, UpdateView):
+    model = ConfiguracaoSistema
+    form_class = ConfiguracaoSistemaAdministracaoForm
+    template_name = 'administracao/configuracoes_sistema.html'
+    context_object_name = 'configuracao'
+    success_url = reverse_lazy('administracao:configuracoes_sistema')
+
     def pode_editar(self):
         return usuario_administrador(self.request.user)
 
@@ -52,6 +90,9 @@ class AdministracaoUpdateMixin(AdministracaoPermissaoMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['somente_leitura'] = not self.pode_editar()
         return kwargs
+
+    def get_object(self, queryset=None):
+        return ConfiguracaoSistema.get_solo()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -63,32 +104,6 @@ class AdministracaoUpdateMixin(AdministracaoPermissaoMixin, UpdateView):
             messages.error(request, 'Apenas administradores podem alterar estas configurações.')
             return redirect(self.success_url)
         return super().post(request, *args, **kwargs)
-
-
-class DadosEmpresaView(AdministracaoUpdateMixin):
-    model = DadosEmpresa
-    form_class = DadosEmpresaForm
-    template_name = 'administracao/dados_empresa.html'
-    context_object_name = 'empresa'
-    success_url = reverse_lazy('administracao:dados_empresa')
-
-    def get_object(self, queryset=None):
-        return DadosEmpresa.get_solo()
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Dados da empresa atualizados com sucesso.')
-        return super().form_valid(form)
-
-
-class ConfiguracaoSistemaView(AdministracaoUpdateMixin):
-    model = ConfiguracaoSistema
-    form_class = ConfiguracaoSistemaAdministracaoForm
-    template_name = 'administracao/configuracoes_sistema.html'
-    context_object_name = 'configuracao'
-    success_url = reverse_lazy('administracao:configuracoes_sistema')
-
-    def get_object(self, queryset=None):
-        return ConfiguracaoSistema.get_solo()
 
     def form_valid(self, form):
         messages.success(self.request, 'Configurações do sistema atualizadas com sucesso.')

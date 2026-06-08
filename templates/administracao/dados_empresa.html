@@ -6,41 +6,58 @@
 <div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
     <div>
         <h1 class="h2 mb-1">Dados da Empresa</h1>
-        <p class="text-secondary mb-0">Informações institucionais e de contato da empresa.</p>
+        <p class="text-secondary mb-0">Informações institucionais, contatos e identidade visual.</p>
     </div>
-    <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+        {% if pode_editar %}<a class="btn btn-primary" href="{% url 'administracao:dados_empresa_editar' %}">Editar dados</a>{% endif %}
+    </div>
 </div>
 
-{% if not pode_editar %}
-<div class="alert alert-info">Seu perfil possui acesso somente para visualização. Apenas administradores podem editar estes dados.</div>
-{% endif %}
-
-<form method="post" novalidate>
-    {% csrf_token %}
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white"><h2 class="h5 mb-0">Identificação</h2></div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6"><label class="form-label" for="{{ form.razao_social.id_for_label }}">{{ form.razao_social.label }}</label>{{ form.razao_social }}{{ form.razao_social.errors }}</div>
-                <div class="col-md-6"><label class="form-label" for="{{ form.nome_fantasia.id_for_label }}">{{ form.nome_fantasia.label }}</label>{{ form.nome_fantasia }}{{ form.nome_fantasia.errors }}</div>
-                <div class="col-md-6"><label class="form-label" for="{{ form.cnpj.id_for_label }}">{{ form.cnpj.label }}</label>{{ form.cnpj }}{{ form.cnpj.errors }}</div>
-                <div class="col-md-6"><label class="form-label" for="{{ form.inscricao_estadual.id_for_label }}">{{ form.inscricao_estadual.label }}</label>{{ form.inscricao_estadual }}{{ form.inscricao_estadual.errors }}</div>
-            </div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Dados gerais</h2></div>
+            <div class="card-body"><dl class="row mb-0">
+                <dt class="col-sm-4">Razão social</dt><dd class="col-sm-8">{{ empresa.razao_social|default:'Não informada' }}</dd>
+                <dt class="col-sm-4">Nome fantasia</dt><dd class="col-sm-8">{{ empresa.nome_fantasia|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">CNPJ</dt><dd class="col-sm-8">{{ empresa.cnpj|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">Inscrição estadual</dt><dd class="col-sm-8">{{ empresa.inscricao_estadual|default:'Não informada' }}</dd>
+                <dt class="col-sm-4">Inscrição municipal</dt><dd class="col-sm-8">{{ empresa.inscricao_municipal|default:'Não informada' }}</dd>
+                <dt class="col-sm-4">Responsável</dt><dd class="col-sm-8">{{ empresa.responsavel|default:'Não informado' }}</dd>
+            </dl></div>
+        </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Endereço</h2></div>
+            <div class="card-body"><dl class="row mb-0">
+                <dt class="col-sm-4">CEP</dt><dd class="col-sm-8">{{ empresa.cep|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">Logradouro</dt><dd class="col-sm-8">{{ empresa.logradouro|default:'Não informado' }}{% if empresa.numero %}, {{ empresa.numero }}{% endif %}</dd>
+                <dt class="col-sm-4">Complemento</dt><dd class="col-sm-8">{{ empresa.complemento|default:'-' }}</dd>
+                <dt class="col-sm-4">Bairro</dt><dd class="col-sm-8">{{ empresa.bairro|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">Cidade/UF</dt><dd class="col-sm-8">{{ empresa.cidade|default:'Não informada' }}{% if empresa.estado %}/{{ empresa.estado }}{% endif %}</dd>
+            </dl></div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Contato</h2></div>
+            <div class="card-body"><dl class="row mb-0">
+                <dt class="col-sm-4">Telefone</dt><dd class="col-sm-8">{{ empresa.telefone|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">Celular</dt><dd class="col-sm-8">{{ empresa.celular|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">WhatsApp</dt><dd class="col-sm-8">{{ empresa.whatsapp|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">E-mail</dt><dd class="col-sm-8">{{ empresa.email|default:'Não informado' }}</dd>
+                <dt class="col-sm-4">Site</dt><dd class="col-sm-8">{% if empresa.site %}<a href="{{ empresa.site }}" rel="noopener noreferrer">{{ empresa.site }}</a>{% else %}Não informado{% endif %}</dd>
+            </dl></div>
         </div>
     </div>
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white"><h2 class="h5 mb-0">Contato e endereço</h2></div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6"><label class="form-label" for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>{{ form.telefone }}{{ form.telefone.errors }}</div>
-                <div class="col-md-6"><label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>{{ form.email }}{{ form.email.errors }}</div>
-                <div class="col-12"><label class="form-label" for="{{ form.endereco.id_for_label }}">{{ form.endereco.label }}</label>{{ form.endereco }}{{ form.endereco.errors }}</div>
-                <div class="col-md-6"><label class="form-label" for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>{{ form.cidade }}{{ form.cidade.errors }}</div>
-                <div class="col-md-2"><label class="form-label" for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>{{ form.estado }}{{ form.estado.errors }}</div>
-                <div class="col-md-4"><label class="form-label" for="{{ form.cep.id_for_label }}">{{ form.cep.label }}</label>{{ form.cep }}{{ form.cep.errors }}</div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Identidade visual</h2></div>
+            <div class="card-body">
+                <div class="mb-4"><div class="text-secondary small mb-2">Logo principal</div>{% if empresa.logo %}<img class="img-fluid border rounded p-2" src="{{ empresa.logo.url }}" alt="Logo da empresa">{% else %}<div class="text-secondary">Não informada</div>{% endif %}</div>
+                <div class="mb-4"><div class="text-secondary small mb-2">Logo para impressão</div>{% if empresa.logo_impressao %}<img class="img-fluid border rounded p-2" src="{{ empresa.logo_impressao.url }}" alt="Logo para impressão">{% else %}<div class="text-secondary">Não informada</div>{% endif %}</div>
+                <div class="d-flex gap-3"><div><span class="d-inline-block border rounded" style="width: 32px; height: 32px; background: {{ empresa.cor_primaria }}"></span><div class="small">{{ empresa.cor_primaria }}</div></div><div><span class="d-inline-block border rounded" style="width: 32px; height: 32px; background: {{ empresa.cor_secundaria }}"></span><div class="small">{{ empresa.cor_secundaria }}</div></div></div>
             </div>
-            {% if pode_editar %}<div class="text-end mt-4"><button class="btn btn-primary" type="submit">Salvar dados da empresa</button></div>{% endif %}
         </div>
+        <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Observações</h2></div><div class="card-body"><p class="mb-0 text-break">{{ empresa.observacoes|default:'Nenhuma observação cadastrada.'|linebreaksbr }}</p></div></div>
     </div>
-</form>
+</div>
 {% endblock %}

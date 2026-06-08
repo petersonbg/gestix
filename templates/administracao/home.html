@@ -23,7 +23,7 @@
                     <dt class="col-sm-4">CNPJ</dt>
                     <dd class="col-sm-8">{{ empresa.cnpj|default:'Não informado' }}</dd>
                 </dl>
-                <a class="btn btn-outline-primary align-self-start" href="{% url 'administracao:dados_empresa' %}">{% if pode_editar %}Configurar{% else %}Visualizar{% endif %} dados</a>
+                <a class="btn btn-outline-primary align-self-start" href="{% url 'administracao:dados_empresa' %}">Visualizar dados</a>
             </div>
         </div>
     </div>

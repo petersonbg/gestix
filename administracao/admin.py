@@ -1,19 +1,21 @@
 from django.contrib import admin
 
-from .models import DadosEmpresa
+from .models import Empresa
 
 
-@admin.register(DadosEmpresa)
-class DadosEmpresaAdmin(admin.ModelAdmin):
+@admin.register(Empresa)
+class EmpresaAdmin(admin.ModelAdmin):
     fieldsets = (
-        ('Identificação', {'fields': ('razao_social', 'nome_fantasia', 'cnpj', 'inscricao_estadual')}),
-        ('Contato e endereço', {'fields': ('telefone', 'email', 'endereco', 'cidade', 'estado', 'cep')}),
-        ('Controle', {'fields': ('atualizado_em',)}),
+        ('Dados gerais', {'fields': ('razao_social', 'nome_fantasia', 'cnpj', 'inscricao_estadual', 'inscricao_municipal')}),
+        ('Endereço', {'fields': ('cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'estado')}),
+        ('Contato', {'fields': ('telefone', 'celular', 'whatsapp', 'email', 'site')}),
+        ('Identidade visual', {'fields': ('logo', 'logo_impressao', 'cor_primaria', 'cor_secundaria')}),
+        ('Outros', {'fields': ('responsavel', 'observacoes', 'criado_em', 'atualizado_em')}),
     )
-    readonly_fields = ('atualizado_em',)
+    readonly_fields = ('criado_em', 'atualizado_em')
 
     def has_add_permission(self, request):
-        return not DadosEmpresa.objects.exists()
+        return not Empresa.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

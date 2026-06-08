@@ -2,7 +2,7 @@ from django import forms
 
 from dashboard.models import ConfiguracaoSistema
 
-from .models import DadosEmpresa
+from .models import Empresa
 
 
 class BootstrapModelFormMixin:
@@ -18,30 +18,26 @@ class BootstrapModelFormMixin:
             field.disabled = True
 
 
-class DadosEmpresaForm(BootstrapModelFormMixin, forms.ModelForm):
+class EmpresaForm(BootstrapModelFormMixin, forms.ModelForm):
     class Meta:
-        model = DadosEmpresa
+        model = Empresa
         fields = [
-            'razao_social',
-            'nome_fantasia',
-            'cnpj',
-            'inscricao_estadual',
-            'telefone',
-            'email',
-            'endereco',
-            'cidade',
-            'estado',
-            'cep',
+            'razao_social', 'nome_fantasia', 'cnpj', 'inscricao_estadual', 'inscricao_municipal',
+            'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'estado',
+            'telefone', 'celular', 'whatsapp', 'email', 'site',
+            'logo', 'logo_impressao', 'cor_primaria', 'cor_secundaria',
+            'responsavel', 'observacoes',
         ]
         widgets = {
             'estado': forms.TextInput(attrs={'maxlength': 2, 'style': 'text-transform: uppercase'}),
+            'cor_primaria': forms.TextInput(attrs={'type': 'color'}),
+            'cor_secundaria': forms.TextInput(attrs={'type': 'color'}),
+            'observacoes': forms.Textarea(attrs={'rows': 4}),
         }
 
-    def __init__(self, *args, somente_leitura=False, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.aplicar_bootstrap()
-        if somente_leitura:
-            self.definir_somente_leitura()
 
     def clean_estado(self):
         return self.cleaned_data.get('estado', '').strip().upper()

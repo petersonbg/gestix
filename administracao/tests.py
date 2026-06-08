@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
 from dashboard.models import ConfiguracaoSistema
 
-from .models import DadosEmpresa
+from .models import Empresa
 
 
 class AdministracaoAcessoTests(TestCase):
@@ -21,50 +22,47 @@ class AdministracaoAcessoTests(TestCase):
         cls.estoquista = User.objects.create_user(username='estoquista-app', password='senha')
         cls.estoquista.groups.add(Group.objects.get_or_create(name='Estoquista')[0])
 
+    def dados_empresa(self, **alteracoes):
+        dados = {
+            'razao_social': 'GESTIX Tecnologia Ltda', 'nome_fantasia': 'GESTIX',
+            'cnpj': '12.345.678/0001-99', 'inscricao_estadual': 'ISENTO',
+            'inscricao_municipal': '12345', 'cep': '29000-000',
+            'logradouro': 'Rua Principal', 'numero': '100', 'complemento': 'Sala 1',
+            'bairro': 'Centro', 'cidade': 'Vitória', 'estado': 'es',
+            'telefone': '(27) 3333-3333', 'celular': '(27) 99999-9999',
+            'whatsapp': '(27) 99999-9999', 'email': 'contato@gestix.local',
+            'site': 'https://gestix.local', 'cor_primaria': '#112233',
+            'cor_secundaria': '#445566', 'responsavel': 'Responsável',
+            'observacoes': 'Cadastro principal.',
+        }
+        dados.update(alteracoes)
+        return dados
+
     def test_views_exigem_login(self):
-        for url in [
-            reverse('administracao:home'),
-            reverse('administracao:dados_empresa'),
-            reverse('administracao:configuracoes_sistema'),
-        ]:
+        for url in [reverse('administracao:home'), reverse('administracao:dados_empresa'), reverse('administracao:dados_empresa_editar'), reverse('administracao:configuracoes_sistema')]:
             response = self.client.get(url)
             self.assertEqual(response.status_code, 302)
             self.assertIn(reverse('login'), response.url)
 
-    def test_administrador_visualiza_e_edita_dados_empresa(self):
+    def test_administrador_visualiza_e_edita_empresa(self):
         self.client.force_login(self.admin)
-        response = self.client.post(reverse('administracao:dados_empresa'), {
-            'razao_social': 'GESTIX Tecnologia Ltda',
-            'nome_fantasia': 'GESTIX',
-            'cnpj': '12.345.678/0001-99',
-            'inscricao_estadual': 'ISENTO',
-            'telefone': '(27) 99999-9999',
-            'email': 'contato@gestix.local',
-            'endereco': 'Rua Principal, 100',
-            'cidade': 'Vitória',
-            'estado': 'es',
-            'cep': '29000-000',
-        })
+        response = self.client.post(reverse('administracao:dados_empresa_editar'), self.dados_empresa())
         self.assertRedirects(response, reverse('administracao:dados_empresa'))
-        empresa = DadosEmpresa.get_solo()
+        empresa = Empresa.get_solo()
         self.assertEqual(empresa.nome_fantasia, 'GESTIX')
+        self.assertEqual(empresa.logradouro, 'Rua Principal')
         self.assertEqual(empresa.estado, 'ES')
 
-    def test_gerente_visualiza_mas_nao_edita(self):
-        empresa = DadosEmpresa.get_solo()
-        empresa.nome_fantasia = 'Nome original'
-        empresa.save()
-        self.client.force_login(self.gerente)
-
         response = self.client.get(reverse('administracao:dados_empresa'))
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.context['pode_editar'])
-        self.assertTrue(response.context['form'].fields['nome_fantasia'].disabled)
+        self.assertContains(response, 'GESTIX')
+        self.assertContains(response, 'Rua Principal')
 
-        response = self.client.post(reverse('administracao:dados_empresa'), {'nome_fantasia': 'Alterado'})
-        self.assertRedirects(response, reverse('administracao:dados_empresa'))
-        empresa.refresh_from_db()
-        self.assertEqual(empresa.nome_fantasia, 'Nome original')
+    def test_gerente_visualiza_mas_nao_acessa_edicao(self):
+        Empresa.get_solo().save()
+        self.client.force_login(self.gerente)
+        self.assertEqual(self.client.get(reverse('administracao:dados_empresa')).status_code, 200)
+        response = self.client.get(reverse('administracao:dados_empresa_editar'))
+        self.assertRedirects(response, reverse('dashboard'))
 
     def test_vendedor_e_estoquista_nao_acessam(self):
         for usuario in [self.vendedor, self.estoquista]:
@@ -72,12 +70,22 @@ class AdministracaoAcessoTests(TestCase):
             response = self.client.get(reverse('administracao:home'))
             self.assertRedirects(response, reverse('dashboard'))
 
+    def test_apenas_um_cadastro_de_empresa(self):
+        empresa = Empresa.get_solo()
+        self.assertEqual(empresa.pk, 1)
+        outra = Empresa(pk=2, nome_fantasia='Outra empresa')
+        with self.assertRaisesMessage(ValidationError, 'apenas um cadastro'):
+            outra.save()
+        self.assertEqual(Empresa.objects.count(), 1)
+
+    def test_empresa_nao_pode_ser_excluida(self):
+        empresa = Empresa.get_solo()
+        with self.assertRaisesMessage(ValidationError, 'não pode ser excluído'):
+            empresa.delete()
+
     def test_administrador_edita_configuracao_existente(self):
         self.client.force_login(self.admin)
-        response = self.client.post(reverse('administracao:configuracoes_sistema'), {
-            'notificacoes_aniversario_ativas': '',
-            'dias_antecedencia_aniversario': 5,
-        })
+        response = self.client.post(reverse('administracao:configuracoes_sistema'), {'notificacoes_aniversario_ativas': '', 'dias_antecedencia_aniversario': 5})
         self.assertRedirects(response, reverse('administracao:configuracoes_sistema'))
         configuracao = ConfiguracaoSistema.get_solo()
         self.assertFalse(configuracao.notificacoes_aniversario_ativas)
