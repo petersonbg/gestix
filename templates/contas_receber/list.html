@@ -64,7 +64,7 @@
             <thead class="table-light">
                 <tr>
                     <th>Cliente</th>
-                    <th>Venda</th>
+                    <th>Origem</th>
                     <th>Parcela</th>
                     <th>Vencimento</th>
                     <th class="text-end">Valor</th>
@@ -77,7 +77,7 @@
                 {% for conta in contas %}
                     <tr>
                         <td>{{ conta.cliente.nome }}</td>
-                        <td>#{{ conta.venda_id }}</td>
+                        <td>{{ conta.referencia }}</td>
                         <td>{{ conta.numero_parcela }}/{{ conta.total_parcelas }}</td>
                         <td>{{ conta.data_vencimento|date:'d/m/Y' }}</td>
                         <td class="text-end">R$ {{ conta.valor }}</td>

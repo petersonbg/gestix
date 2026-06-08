@@ -27,7 +27,8 @@ class ContaReceber(models.Model):
         BOLETO = 'BOLETO', 'Boleto'
         OUTROS = 'OUTROS', 'Outros'
 
-    venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='contas_receber')
+    venda = models.ForeignKey('vendas.Venda', on_delete=models.PROTECT, related_name='contas_receber', blank=True, null=True)
+    ordem_servico = models.ForeignKey('ordens_servico.OrdemServico', on_delete=models.PROTECT, related_name='contas_receber', blank=True, null=True)
     cliente = models.ForeignKey('clientes.Cliente', on_delete=models.PROTECT, related_name='contas_receber')
     numero_parcela = models.PositiveIntegerField()
     total_parcelas = models.PositiveIntegerField()
@@ -47,11 +48,17 @@ class ContaReceber(models.Model):
         verbose_name = 'conta a receber'
         verbose_name_plural = 'contas a receber'
         constraints = [
-            models.UniqueConstraint(fields=['venda', 'numero_parcela'], name='unique_parcela_por_venda')
+            models.UniqueConstraint(fields=['venda', 'numero_parcela'], condition=models.Q(venda__isnull=False), name='unique_parcela_por_venda'),
+            models.UniqueConstraint(fields=['ordem_servico', 'numero_parcela'], condition=models.Q(ordem_servico__isnull=False), name='unique_parcela_por_os'),
         ]
 
     def __str__(self):
-        return f'Venda #{self.venda_id} - Parcela {self.numero_parcela}/{self.total_parcelas}'
+        origem = f'Venda #{self.venda_id}' if self.venda_id else (f'OS {self.ordem_servico.numero}' if self.ordem_servico_id else 'Sem origem')
+        return f'{origem} - Parcela {self.numero_parcela}/{self.total_parcelas}'
+
+    @property
+    def referencia(self):
+        return f'Venda #{self.venda_id}' if self.venda_id else (f'OS {self.ordem_servico.numero}' if self.ordem_servico_id else 'Sem origem')
 
     @property
     def saldo(self):
@@ -75,6 +82,8 @@ class ContaReceber(models.Model):
 
     def clean(self):
         super().clean()
+        if bool(self.venda_id) == bool(self.ordem_servico_id):
+            raise ValidationError('A conta a receber deve pertencer a uma venda ou a uma ordem de serviço.')
         if self.valor is not None and self.valor < 0:
             raise ValidationError({'valor': 'O valor da parcela não pode ser negativo.'})
         if self.valor_pago is not None and self.valor_pago < 0:
@@ -109,6 +118,32 @@ class ContaReceber(models.Model):
                 data_vencimento=venda.data_primeiro_vencimento + timedelta(days=venda.intervalo_parcelas * (numero - 1)),
                 valor=valor,
                 observacao=venda.observacoes_crediario,
+            ))
+        return cls.objects.bulk_create(parcelas)
+
+    @classmethod
+    def gerar_para_ordem_servico(cls, ordem, total_parcelas, primeiro_vencimento, intervalo, valor):
+        if cls.objects.filter(ordem_servico=ordem).exists():
+            raise ValidationError('Já existem parcelas para esta ordem de serviço.')
+        total_parcelas = int(total_parcelas)
+        if total_parcelas < 1:
+            raise ValidationError('A quantidade de parcelas deve ser maior ou igual a 1.')
+        valor = Decimal(valor).quantize(CENTAVO, rounding=ROUND_HALF_UP)
+        valor_base = (valor / total_parcelas).quantize(CENTAVO, rounding=ROUND_HALF_UP)
+        parcelas = []
+        acumulado = Decimal('0.00')
+        for numero in range(1, total_parcelas + 1):
+            valor_parcela = valor_base if numero < total_parcelas else (valor - acumulado).quantize(CENTAVO)
+            acumulado += valor_parcela
+            parcelas.append(cls(
+                ordem_servico=ordem,
+                cliente=ordem.cliente,
+                numero_parcela=numero,
+                total_parcelas=total_parcelas,
+                data_emissao=timezone.localdate(),
+                data_vencimento=primeiro_vencimento + timedelta(days=int(intervalo) * (numero - 1)),
+                valor=valor_parcela,
+                observacao=f'Parcela referente à OS {ordem.numero}.',
             ))
         return cls.objects.bulk_create(parcelas)
 
@@ -149,13 +184,17 @@ class ContaReceber(models.Model):
             MovimentacaoCaixa.registrar(
                 caixa=caixa,
                 tipo=MovimentacaoCaixa.Tipo.ENTRADA,
-                descricao=f'Recebimento de parcela - Venda nº {conta.venda_id} ({conta.numero_parcela}/{conta.total_parcelas})',
+                descricao=f'Recebimento de parcela - {conta.referencia} ({conta.numero_parcela}/{conta.total_parcelas})',
                 valor=valor_recebido,
                 forma_pagamento=forma_recebimento,
                 usuario=usuario,
-                venda=conta.venda,
+                venda=conta.venda if conta.venda_id else None,
                 observacao=observacao,
             )
+            if conta.ordem_servico_id:
+                ordem = conta.ordem_servico
+                ordem.valor_pago = min(ordem.valor_pago + valor_recebido, ordem.total)
+                ordem.save(update_fields=['valor_pago', 'atualizado_em'])
             self.refresh_from_db()
             return conta
 

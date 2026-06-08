@@ -7,7 +7,7 @@ from .models import ContaReceber
 class ContaReceberAdmin(admin.ModelAdmin):
     list_display = (
         'cliente',
-        'venda',
+        'origem',
         'parcela',
         'data_vencimento',
         'valor',
@@ -15,9 +15,13 @@ class ContaReceberAdmin(admin.ModelAdmin):
         'status',
     )
     list_filter = ('status', 'forma_recebimento', 'data_vencimento', 'cliente')
-    search_fields = ('cliente__nome', 'cliente__cpf_cnpj', 'venda__id')
+    search_fields = ('cliente__nome', 'cliente__cpf_cnpj', 'venda__id', 'ordem_servico__numero')
     date_hierarchy = 'data_vencimento'
     readonly_fields = ('criado_em', 'atualizado_em')
+
+    @admin.display(description='origem')
+    def origem(self, obj):
+        return obj.referencia
 
     def parcela(self, obj):
         return f'{obj.numero_parcela}/{obj.total_parcelas}'

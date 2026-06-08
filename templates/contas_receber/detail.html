@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
     <div>
         <h1 class="h2 mb-1">Conta a receber</h1>
-        <p class="text-secondary mb-0">Venda #{{ conta.venda_id }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }}</p>
+        <p class="text-secondary mb-0">Venda {{ conta.referencia }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }}</p>
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'contas_receber:list' %}">Voltar</a>
@@ -23,7 +23,7 @@
             <div class="card-body">
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8">{{ conta.cliente.nome }}</dd>
-                    <dt class="col-sm-4">Venda</dt><dd class="col-sm-8">#{{ conta.venda_id }}</dd>
+                    <dt class="col-sm-4">Origem</dt><dd class="col-sm-8">{{ conta.referencia }}</dd>
                     <dt class="col-sm-4">Vencimento</dt><dd class="col-sm-8">{{ conta.data_vencimento|date:'d/m/Y' }}</dd>
                     <dt class="col-sm-4">Valor</dt><dd class="col-sm-8">R$ {{ conta.valor }}</dd>
                     <dt class="col-sm-4">Valor pago</dt><dd class="col-sm-8">R$ {{ conta.valor_pago }}</dd>

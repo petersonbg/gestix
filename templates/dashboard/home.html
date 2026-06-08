@@ -113,7 +113,7 @@
                             <div>
                                 <div class="fw-semibold">{{ conta.cliente.nome }}</div>
                                 <div class="text-secondary small">
-                                    Venda #{{ conta.venda_id }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }} ·
+                                    {{ conta.referencia }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }} ·
                                     Vencimento: {{ conta.data_vencimento|date:'d/m/Y' }}
                                 </div>
                             </div>
@@ -204,6 +204,10 @@
             </div>
         </div>
     </div>
+{% endif %}
+
+{% if pode_visualizar_ordens_servico %}
+<div class="card border-0 shadow-sm mt-4"><div class="card-header bg-white d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Ordens de serviço</h2><a class="btn btn-sm btn-outline-primary" href="{% url 'ordens_servico:list' %}">Ver todas</a></div><div class="card-body"><div class="row g-3 text-center"><div class="col"><div class="p-3 bg-light rounded"><strong class="h3 d-block">{{ os_abertas_qtd }}</strong>Abertas</div></div><div class="col"><div class="p-3 bg-light rounded"><strong class="h3 d-block">{{ os_andamento_qtd }}</strong>Em andamento</div></div><div class="col"><div class="p-3 bg-warning-subtle rounded"><strong class="h3 d-block">{{ os_aguardando_peca_qtd }}</strong>Aguardando peça</div></div><div class="col"><div class="p-3 bg-success-subtle rounded"><strong class="h3 d-block">{{ os_concluidas_entrega_qtd }}</strong>Aguardando entrega</div></div><div class="col"><div class="p-3 bg-danger-subtle rounded"><strong class="h3 d-block">{{ os_atrasadas_qtd }}</strong>Atrasadas</div></div></div>{% if os_atrasadas_lista %}<div class="list-group list-group-flush mt-3">{% for ordem in os_atrasadas_lista %}<a class="list-group-item list-group-item-action" href="{{ ordem.get_absolute_url }}"><strong>{{ ordem.numero }}</strong> · {{ ordem.cliente.nome }} <span class="float-end text-danger">Previsão {{ ordem.data_previsao|date:'d/m/Y' }}</span></a>{% endfor %}</div>{% endif %}</div></div>
 {% endif %}
 
 {% if configuracao_sistema.notificacoes_aniversario_ativas %}

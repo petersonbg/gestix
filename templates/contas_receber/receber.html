@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
     <div>
         <h1 class="h2 mb-1">Receber parcela</h1>
-        <p class="text-secondary mb-0">Venda #{{ conta.venda_id }} · {{ conta.cliente.nome }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }}</p>
+        <p class="text-secondary mb-0">{{ conta.referencia }} · {{ conta.cliente.nome }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }}</p>
     </div>
     <a class="btn btn-outline-secondary" href="{{ conta.get_absolute_url }}">Voltar</a>
 </div>

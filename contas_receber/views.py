@@ -20,9 +20,9 @@ def usuario_admin_ou_gerente(user):
 
 class ContaReceberQuerysetMixin:
     def get_base_queryset(self):
-        queryset = ContaReceber.objects.select_related('cliente', 'venda', 'venda__usuario')
+        queryset = ContaReceber.objects.select_related('cliente', 'venda', 'venda__usuario', 'ordem_servico', 'ordem_servico__responsavel')
         if not usuario_admin_ou_gerente(self.request.user):
-            queryset = queryset.filter(venda__usuario=self.request.user)
+            queryset = queryset.filter(Q(venda__usuario=self.request.user) | Q(ordem_servico__responsavel=self.request.user))
         return queryset
 
 
@@ -122,7 +122,7 @@ class ContaReceberReceberView(LoginRequiredMixin, ContaReceberQuerysetMixin, Vie
                     request.user,
                     'recebimento de parcela',
                     'contas_receber',
-                    f'Parcela {conta.numero_parcela}/{conta.total_parcelas} da venda #{conta.venda_id} recebida.',
+                    f'Parcela {conta.numero_parcela}/{conta.total_parcelas} de {conta.referencia} recebida.',
                     request=request,
                 )
                 return redirect(conta.get_absolute_url())

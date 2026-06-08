@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'caixa.apps.CaixaConfig',
     'contas_receber.apps.ContasReceberConfig',
     'contas_pagar.apps.ContasPagarConfig',
+    'ordens_servico.apps.OrdensServicoConfig',
     'orcamentos',
     'fiscal',
     'dashboard',

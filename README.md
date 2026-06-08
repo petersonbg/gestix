@@ -439,3 +439,20 @@ Fluxo básico:
 8. Contas abertas podem ser canceladas; contas pagas não devem ser canceladas diretamente sem estorno.
 
 O dashboard exibe, para Administrador e Gerente, cards de **Contas a pagar atrasadas**, **Contas a pagar hoje** e **Próximos 7 dias**, com quantidade, valor total e lista resumida das 5 contas mais relevantes.
+
+## Ordens de serviço
+
+O módulo **Ordens de serviço** centraliza atendimentos técnicos, serviços executados, produtos/peças utilizados, conclusão, pagamento e entrega.
+
+Fluxo recomendado:
+
+1. Acesse **Ordens de serviço > Nova OS** e pesquise um cliente ativo por nome, CPF/CNPJ ou telefone.
+2. Informe o problema relatado, previsão, responsável e observações.
+3. Pesquise e adicione serviços e produtos/peças. O estoque é apenas consultado nesta etapa e não é baixado na abertura.
+4. Salve a OS e utilize a tela de detalhes para registrar diagnóstico, solução e acompanhar o histórico.
+5. Ao concluir, o backend revalida o estoque e cria uma saída com origem `ORDEM_SERVICO` para cada peça utilizada. A conclusão é bloqueada se faltar estoque.
+6. Depois da conclusão, registre o pagamento. Pagamentos à vista exigem caixa aberto e geram entrada; no crediário, o sistema gera parcelas em **Contas a receber**.
+7. Marque a OS concluída como entregue. Depois da entrega, somente administradores podem alterá-la.
+8. Use **Imprimir OS** para abrir o documento A4 em uma janela autorizada de impressão.
+
+Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, visualizar, entregar e receber; Estoquista pode visualizar as ordens e peças necessárias. O dashboard resume OS abertas, em andamento, aguardando peça, concluídas aguardando entrega e atrasadas pela previsão.

@@ -53,7 +53,7 @@ def buscar_aniversariantes(dias_antecedencia, hoje=None):
 
 def queryset_contas_atrasadas(hoje=None):
     hoje = hoje or timezone.localdate()
-    return ContaReceber.objects.select_related('cliente', 'venda').filter(
+    return ContaReceber.objects.select_related('cliente', 'venda', 'ordem_servico').filter(
         Q(status=ContaReceber.Status.ATRASADA)
         | Q(status=ContaReceber.Status.ABERTA, data_vencimento__lt=hoje)
     )
@@ -79,7 +79,7 @@ def buscar_contas_atrasadas_dashboard(user, hoje=None, limite=5):
     hoje = hoje or timezone.localdate()
     queryset = queryset_contas_atrasadas(hoje=hoje)
     if not (user.is_superuser or user.groups.filter(name__in=['Administrador', 'Gerente']).exists()):
-        queryset = queryset.filter(venda__usuario=user)
+        queryset = queryset.filter(Q(venda__usuario=user) | Q(ordem_servico__responsavel=user))
 
     return {
         'contas_atrasadas_qtd': queryset.count(),
@@ -142,4 +142,30 @@ def buscar_contas_pagar_dashboard(user, hoje=None, limite=5):
         'contas_pagar_7_dias_qtd': proximas.count(),
         'contas_pagar_7_dias_total': proximas.aggregate(total=Sum('valor'))['total'] or 0,
         'contas_pagar_7_dias_lista': list(proximas.order_by('data_vencimento', 'descricao')[:limite]),
+    }
+
+
+def buscar_ordens_servico_dashboard(user, hoje=None, limite=5):
+    from ordens_servico.models import OrdemServico
+
+    if not user.is_authenticated or not (user.is_superuser or user.groups.filter(name__in=['Administrador', 'Gerente', 'Vendedor', 'Estoquista']).exists()):
+        return {'pode_visualizar_ordens_servico': False}
+    hoje = hoje or timezone.localdate()
+    base = OrdemServico.objects.select_related('cliente', 'responsavel')
+    abertas = base.filter(status=OrdemServico.Status.ABERTA)
+    andamento = base.filter(status=OrdemServico.Status.EM_ANDAMENTO)
+    aguardando = base.filter(status=OrdemServico.Status.AGUARDANDO_PECA)
+    concluidas = base.filter(status=OrdemServico.Status.CONCLUIDA)
+    atrasadas = base.filter(
+        status__in=[OrdemServico.Status.ABERTA, OrdemServico.Status.EM_ANDAMENTO, OrdemServico.Status.AGUARDANDO_PECA],
+        data_previsao__lt=hoje,
+    ).order_by('data_previsao')
+    return {
+        'pode_visualizar_ordens_servico': True,
+        'os_abertas_qtd': abertas.count(),
+        'os_andamento_qtd': andamento.count(),
+        'os_aguardando_peca_qtd': aguardando.count(),
+        'os_concluidas_entrega_qtd': concluidas.count(),
+        'os_atrasadas_qtd': atrasadas.count(),
+        'os_atrasadas_lista': list(atrasadas[:limite]),
     }
