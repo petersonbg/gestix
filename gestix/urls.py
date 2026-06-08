@@ -12,6 +12,7 @@ urlpatterns = [
     path('accounts/logout/', GestixLogoutView.as_view(), name='logout'),
     path('dashboard/', DashboardHomeView.as_view(), name='dashboard'),
     path('configuracoes/', include('dashboard.urls')),
+    path('administracao/', include('administracao.urls')),
     path('clientes/', include('clientes.urls')),
     path('fornecedores/', include('fornecedores.urls')),
     path('produtos/', include('produtos.urls')),

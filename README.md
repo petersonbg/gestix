@@ -456,3 +456,12 @@ Fluxo recomendado:
 8. Use **Imprimir OS** para abrir o documento A4 em uma janela autorizada de impressão.
 
 Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, visualizar, entregar e receber; Estoquista pode visualizar as ordens e peças necessárias. O dashboard resume OS abertas, em andamento, aguardando peça, concluídas aguardando entrega e atrasadas pela previsão.
+
+## Administração
+
+O menu **Administração** centraliza configurações gerais do GESTIX e fica disponível somente para os perfis **Administrador** e **Gerente**:
+
+- **Dados da Empresa**: razão social, nome fantasia, CNPJ, inscrição estadual, telefone, e-mail e endereço.
+- **Configurações do Sistema**: preferências compartilhadas pelos módulos, incluindo as notificações de aniversário.
+
+Administradores podem visualizar e alterar os dados. Gerentes possuem acesso somente para consulta, com os campos desabilitados no formulário. Vendedores, Estoquistas e usuários sem perfil não acessam o módulo. A URL anterior `/configuracoes/` é mantida por compatibilidade e redireciona para a nova área administrativa.

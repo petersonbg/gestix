@@ -217,7 +217,7 @@
                 <h2 class="h5 mb-0">Aniversariantes</h2>
                 <span class="text-secondary small">Clientes com aniversário nos próximos {{ configuracao_sistema.dias_antecedencia_aniversario }} dia(s).</span>
             </div>
-            <a class="btn btn-outline-secondary btn-sm" href="{% url 'configuracoes:sistema' %}">Configurar</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'administracao:configuracoes_sistema' %}">Configurar</a>
         </div>
         <div class="card-body">
             {% if aniversariantes %}

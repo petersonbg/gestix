@@ -1,9 +1,8 @@
 from django.urls import path
-
-from .views import ConfiguracaoSistemaView
+from django.views.generic import RedirectView
 
 app_name = 'configuracoes'
 
 urlpatterns = [
-    path('', ConfiguracaoSistemaView.as_view(), name='sistema'),
+    path('', RedirectView.as_view(pattern_name='administracao:configuracoes_sistema', permanent=False), name='sistema'),
 ]

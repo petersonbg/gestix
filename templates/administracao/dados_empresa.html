@@ -1,0 +1,46 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Dados da Empresa | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Dados da Empresa</h1>
+        <p class="text-secondary mb-0">Informações institucionais e de contato da empresa.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+</div>
+
+{% if not pode_editar %}
+<div class="alert alert-info">Seu perfil possui acesso somente para visualização. Apenas administradores podem editar estes dados.</div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white"><h2 class="h5 mb-0">Identificação</h2></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label" for="{{ form.razao_social.id_for_label }}">{{ form.razao_social.label }}</label>{{ form.razao_social }}{{ form.razao_social.errors }}</div>
+                <div class="col-md-6"><label class="form-label" for="{{ form.nome_fantasia.id_for_label }}">{{ form.nome_fantasia.label }}</label>{{ form.nome_fantasia }}{{ form.nome_fantasia.errors }}</div>
+                <div class="col-md-6"><label class="form-label" for="{{ form.cnpj.id_for_label }}">{{ form.cnpj.label }}</label>{{ form.cnpj }}{{ form.cnpj.errors }}</div>
+                <div class="col-md-6"><label class="form-label" for="{{ form.inscricao_estadual.id_for_label }}">{{ form.inscricao_estadual.label }}</label>{{ form.inscricao_estadual }}{{ form.inscricao_estadual.errors }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white"><h2 class="h5 mb-0">Contato e endereço</h2></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label" for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>{{ form.telefone }}{{ form.telefone.errors }}</div>
+                <div class="col-md-6"><label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>{{ form.email }}{{ form.email.errors }}</div>
+                <div class="col-12"><label class="form-label" for="{{ form.endereco.id_for_label }}">{{ form.endereco.label }}</label>{{ form.endereco }}{{ form.endereco.errors }}</div>
+                <div class="col-md-6"><label class="form-label" for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>{{ form.cidade }}{{ form.cidade.errors }}</div>
+                <div class="col-md-2"><label class="form-label" for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>{{ form.estado }}{{ form.estado.errors }}</div>
+                <div class="col-md-4"><label class="form-label" for="{{ form.cep.id_for_label }}">{{ form.cep.label }}</label>{{ form.cep }}{{ form.cep.errors }}</div>
+            </div>
+            {% if pode_editar %}<div class="text-end mt-4"><button class="btn btn-primary" type="submit">Salvar dados da empresa</button></div>{% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}

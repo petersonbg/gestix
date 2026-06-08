@@ -5,6 +5,7 @@ from django.urls import reverse
 
 INTERNAL_PREFIXES = (
     '/dashboard/',
+    '/administracao/',
     '/clientes/',
     '/fornecedores/',
     '/produtos/',
@@ -27,7 +28,7 @@ PRINT_EXCEPTIONS = (
 
 ROLE_PERMISSIONS = {
     'Administrador': {'*'},
-    'Gerente': {'dashboard', 'vendas', 'clientes', 'produtos', 'estoque', 'orcamentos', 'caixa', 'contas-receber', 'contas-pagar', 'ordens-servico', 'configuracoes'},
+    'Gerente': {'dashboard', 'vendas', 'clientes', 'produtos', 'estoque', 'orcamentos', 'caixa', 'contas-receber', 'contas-pagar', 'ordens-servico', 'administracao', 'configuracoes'},
     'Vendedor': {'dashboard', 'clientes', 'vendas', 'orcamentos', 'caixa', 'contas-receber', 'ordens-servico'},
     'Estoquista': {'dashboard', 'produtos', 'fornecedores', 'estoque', 'ordens-servico'},
 }
