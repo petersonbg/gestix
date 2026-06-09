@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from administracao.models import Empresa
 from clientes.models import Cliente
 from produtos.models import Produto
 
@@ -94,4 +95,19 @@ class ClienteBuscaOrcamentoTests(TestCase):
         self.assertContains(response, 'Rua Central, 100')
         self.assertContains(response, 'cliente.impressão@example.com')
         self.assertContains(response, 'ISENTO')
+        self.assertContains(response, 'Orçamento válido por 30 dias')
+
+        Empresa.objects.create(
+            nome_fantasia='Empresa Orçamentos', razao_social='Empresa Orçamentos Ltda',
+            cnpj='98.765.432/0001-10', inscricao_estadual='987654321',
+            telefone='(11) 3333-2222', whatsapp='(11) 98888-7777',
+            email='orcamentos@empresa.test', logradouro='Rua Comercial', numero='45',
+            bairro='Centro', cidade='São Paulo', estado='SP', cep='01000-000',
+        )
+        response = self.client.get(reverse('orcamentos:imprimir_orcamento', kwargs={'pk': orcamento.pk}))
+        for texto in ['Empresa Orçamentos', 'Empresa Orçamentos Ltda', '98.765.432/0001-10',
+                      '987654321', '(11) 3333-2222', '(11) 98888-7777',
+                      'orcamentos@empresa.test', 'Rua Comercial, 45', 'São Paulo - SP']:
+            self.assertContains(response, texto)
+        self.assertContains(response, 'size: A4 portrait')
         self.assertContains(response, 'Orçamento válido por 30 dias')

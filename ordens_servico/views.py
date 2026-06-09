@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 
 from accounts.utils import registrar_log
+from administracao.services import contexto_documento_impresso
 from clientes.models import Cliente
 from produtos.models import Produto
 
@@ -290,4 +291,6 @@ def imprimir(request, pk):
         messages.error(request, 'Você não possui permissão para imprimir esta OS.')
         return redirect('dashboard')
     ordem.registrar_historico(request.user, 'IMPRESSAO', 'Ordem de serviço impressa.')
-    return render(request, 'ordens_servico/imprimir.html', {'ordem': ordem})
+    context = {'ordem': ordem}
+    context.update(contexto_documento_impresso())
+    return render(request, 'ordens_servico/imprimir.html', context)

@@ -83,6 +83,51 @@ class Empresa(models.Model):
     def get_absolute_url(self):
         return reverse('administracao:dados_empresa')
 
+    @property
+    def possui_dados_cadastrais(self):
+        return any([
+            self.razao_social,
+            self.nome_fantasia,
+            self.cnpj,
+            self.inscricao_estadual,
+            self.telefone,
+            self.celular,
+            self.whatsapp,
+            self.email,
+            self.logradouro,
+            self.cidade,
+        ])
+
+    @property
+    def endereco_completo(self):
+        endereco = self.logradouro
+        if endereco and self.numero:
+            endereco = f'{endereco}, {self.numero}'
+        elif self.numero:
+            endereco = self.numero
+        partes = [endereco, self.complemento, self.bairro]
+        cidade_estado = ' - '.join(parte for parte in [self.cidade, self.estado] if parte)
+        if cidade_estado:
+            partes.append(cidade_estado)
+        if self.cep:
+            partes.append(f'CEP {self.cep}')
+        return ', '.join(parte for parte in partes if parte)
+
+    @property
+    def telefone_whatsapp(self):
+        contatos = []
+        telefone = self.telefone or self.celular
+        if telefone:
+            contatos.append(telefone)
+        if self.whatsapp and self.whatsapp != telefone:
+            contatos.append(f'WhatsApp: {self.whatsapp}')
+        return ' | '.join(contatos)
+
+    @property
+    def logo_para_impressao_url(self):
+        arquivo = self.logo_impressao or self.logo
+        return arquivo.url if arquivo else ''
+
 
 class ConfiguracaoSistema(models.Model):
     notificacoes_aniversario_ativas = models.BooleanField(

@@ -1,5 +1,3 @@
-import os
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
@@ -11,6 +9,7 @@ from django.views import View
 from django.views.generic import DetailView, ListView
 
 from accounts.utils import registrar_log
+from administracao.services import contexto_documento_impresso
 from clientes.models import Cliente
 from produtos.models import Produto
 
@@ -200,6 +199,6 @@ class VendaPrintView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['logo_url'] = os.getenv('GESTIX_LOGO_URL', '').strip()
+        context.update(contexto_documento_impresso())
         context['vendedor_nome'] = formatar_nome_vendedor(self.object.usuario)
         return context

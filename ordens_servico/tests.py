@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from administracao.models import Empresa
 from caixa.models import Caixa, MovimentacaoCaixa
 from clientes.models import Cliente
 from contas_receber.models import ContaReceber
@@ -76,6 +77,20 @@ class OrdemServicoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'ORDEM DE SERVIÇO')
         self.assertContains(response, ordem.numero)
+
+        Empresa.objects.create(
+            nome_fantasia='Assistência GESTIX', razao_social='Assistência Técnica GESTIX Ltda',
+            cnpj='11.222.333/0001-44', inscricao_estadual='11223344',
+            telefone='(27) 3222-1111', whatsapp='(27) 97777-6666',
+            email='os@gestix.test', logradouro='Rua das Oficinas', numero='80',
+            bairro='Industrial', cidade='Vila Velha', estado='ES', cep='29100-000',
+        )
+        response = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
+        for texto in ['Assistência GESTIX', 'Assistência Técnica GESTIX Ltda',
+                      '11.222.333/0001-44', '11223344', '(27) 3222-1111',
+                      '(27) 97777-6666', 'os@gestix.test', 'Rua das Oficinas, 80', 'Vila Velha - ES']:
+            self.assertContains(response, texto)
+        self.assertContains(response, 'size: A4 portrait')
 
     def test_filtrar_por_status(self):
         self.criar_os(status=OrdemServico.Status.ABERTA)

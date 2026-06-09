@@ -32,6 +32,26 @@
             margin-bottom: 1rem;
         }
 
+        .company-header-logo {
+            max-height: 72px;
+            max-width: 180px;
+            object-fit: contain;
+        }
+
+        .company-details {
+            font-size: 0.78rem;
+            line-height: 1.3;
+        }
+
+        .company-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .company-separator::before {
+            content: " | ";
+        }
+
         .brand-mark {
             width: 48px;
             height: 48px;
@@ -111,12 +131,9 @@
 
     <main class="print-page shadow-sm">
         <header class="document-header d-flex justify-content-between align-items-start gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <span class="brand-mark">GX</span>
-                <div>
-                    <h1 class="h3 fw-bold mb-1">GESTIX</h1>
-                    <div class="text-secondary">Proposta comercial / Orçamento</div>
-                </div>
+            <div>
+                {% include 'administracao/partials/cabecalho_empresa.html' %}
+                <div class="text-secondary mt-1">Proposta comercial / Orçamento</div>
             </div>
             <div class="text-end">
                 <div class="fw-bold fs-5">Orçamento #{{ orcamento.pk }}</div>
@@ -208,6 +225,9 @@
                 </div>
             </div>
         </section>
+        <footer class="text-center text-secondary small border-top mt-4 pt-2">
+            {{ configuracao_sistema.mensagem_rodape_documentos }}
+        </footer>
     </main>
 </body>
 </html>

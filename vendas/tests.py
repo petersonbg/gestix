@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from administracao.models import ConfiguracaoSistema, Empresa
 from clientes.models import Cliente
 
 from .forms import VendaForm
@@ -123,6 +124,43 @@ class ClienteBuscaVendaTests(TestCase):
         self.assertContains(response, 'cliente.recibo@example.com')
         self.assertContains(response, 'Rua das Vendas, 10')
         self.assertContains(response, 'ISENTO')
+        self.assertContains(response, 'GESTIX')
+        self.assertContains(response, 'size: A5 landscape')
+
+    def test_recibo_exibe_cabecalho_da_empresa_e_respeita_logo(self):
+        empresa = Empresa.objects.create(
+            nome_fantasia='Loja GESTIX',
+            razao_social='GESTIX Comércio Ltda',
+            cnpj='12.345.678/0001-90',
+            inscricao_estadual='123.456.789',
+            telefone='(27) 3333-4444',
+            whatsapp='(27) 99999-8888',
+            email='financeiro@gestix.test',
+            logradouro='Avenida Central',
+            numero='250',
+            bairro='Centro',
+            cidade='Vitória',
+            estado='ES',
+            cep='29000-000',
+            logo_impressao='empresa/logos/impressao/logo-recibo.png',
+        )
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.mostrar_logo_impressoes = True
+        configuracao.save()
+        cliente = self.criar_cliente('Cliente Empresa', '32165498700')
+        venda = Venda.objects.create(cliente=cliente, usuario=self.user, total=Decimal('10.00'))
+
+        response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
+
+        for texto in ['Loja GESTIX', 'GESTIX Comércio Ltda', empresa.cnpj, empresa.inscricao_estadual,
+                      empresa.telefone, empresa.whatsapp, empresa.email, 'Avenida Central, 250', 'Vitória - ES']:
+            self.assertContains(response, texto)
+        self.assertContains(response, empresa.logo_impressao.url)
+
+        configuracao.mostrar_logo_impressoes = False
+        configuracao.save()
+        response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
+        self.assertNotContains(response, empresa.logo_impressao.url)
 
 from django.utils import timezone
 

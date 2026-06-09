@@ -8,6 +8,7 @@ from django.views import View
 from django.views.generic import DetailView, ListView
 
 from accounts.utils import registrar_log
+from administracao.services import contexto_documento_impresso
 from clientes.models import Cliente
 from produtos.models import Produto
 
@@ -108,6 +109,11 @@ class OrcamentoPrintView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return super().get_queryset().select_related('cliente', 'usuario').prefetch_related('itens__produto')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(contexto_documento_impresso())
+        return context
 
 
 class OrcamentoCreateView(LoginRequiredMixin, View):

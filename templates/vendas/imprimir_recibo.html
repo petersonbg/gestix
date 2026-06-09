@@ -31,10 +31,24 @@
             margin-bottom: 0.65rem;
         }
 
-        .brand-logo {
-            max-height: 42px;
+        .company-header-logo {
+            max-height: 58px;
             max-width: 150px;
             object-fit: contain;
+        }
+
+        .company-details {
+            font-size: 0.7rem;
+            line-height: 1.25;
+        }
+
+        .company-name {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .company-separator::before {
+            content: " | ";
         }
 
         .brand-mark {
@@ -107,16 +121,9 @@
 
     <main class="receipt-page shadow-sm">
         <header class="receipt-header d-flex justify-content-between align-items-start gap-3">
-            <div class="d-flex align-items-center gap-3">
-                {% if logo_url %}
-                    <img src="{{ logo_url }}" alt="Logo GESTIX" class="brand-logo">
-                {% else %}
-                    <span class="brand-mark">GX</span>
-                {% endif %}
-                <div>
-                    <h1 class="h4 fw-bold mb-0">GESTIX</h1>
-                    <div class="text-secondary">Recibo / Comprovante de venda</div>
-                </div>
+            <div>
+                {% include 'administracao/partials/cabecalho_empresa.html' %}
+                <div class="text-secondary mt-1">Recibo / Comprovante de venda</div>
             </div>
             <div class="text-end">
                 <div class="fw-bold">Venda #{{ venda.pk }}</div>
@@ -233,13 +240,13 @@
         {% endif %}
 
         <footer>
-            <div class="text-center">
-                <div class="signature-line">
-                    ASSINATURA DO CLIENTE
+            {% if configuracao_sistema.mostrar_assinatura_cliente %}
+                <div class="text-center">
+                    <div class="signature-line">ASSINATURA DO CLIENTE</div>
                 </div>
-            </div>
+            {% endif %}
             <div class="generated-footer text-center text-secondary">
-                Documento gerado pelo sistema GESTIX em {% now "d/m/Y H:i" %}
+                {{ configuracao_sistema.mensagem_rodape_documentos }} Emitido em {% now "d/m/Y H:i" %}.
             </div>
         </footer>
     </main>
