@@ -1,0 +1,36 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Fechar caixa | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Fechar caixa</h1>
+        <p class="text-secondary mb-0">Confira o saldo calculado e informe o valor contado manualmente.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'caixa:atual' %}">Voltar</a>
+</div>
+
+<div class="alert alert-info">Saldo calculado pelo sistema: <strong>R$ {{ saldo_calculado }}</strong></div>
+
+<form method="post" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.valor_fechamento_informado.id_for_label }}">Valor contado</label>
+            {{ form.valor_fechamento_informado }}
+            {% for error in form.valor_fechamento_informado.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.observacao_fechamento.id_for_label }}">Observação de fechamento</label>
+            {{ form.observacao_fechamento }}
+            {% for error in form.observacao_fechamento.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'caixa:atual' %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Fechar caixa</button>
+    </div>
+</form>
+{% endblock %}
