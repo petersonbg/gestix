@@ -1,0 +1,48 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Administração | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Administração</h1>
+        <p class="text-secondary mb-0">Central de configurações gerais do GESTIX.</p>
+    </div>
+    {% if not pode_editar %}<span class="badge text-bg-secondary">Somente visualização</span>{% endif %}
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+                <h2 class="h5">Dados da Empresa</h2>
+                <p class="text-secondary flex-grow-1">Razão social, nome fantasia, documentos, contatos e endereço usados pelo sistema.</p>
+                <dl class="row small mb-3">
+                    <dt class="col-sm-4">Empresa</dt>
+                    <dd class="col-sm-8">{{ empresa.nome_fantasia|default:empresa.razao_social|default:'Não informada' }}</dd>
+                    <dt class="col-sm-4">CNPJ</dt>
+                    <dd class="col-sm-8">{{ empresa.cnpj|default:'Não informado' }}</dd>
+                </dl>
+                <a class="btn btn-outline-primary align-self-start" href="{% url 'administracao:dados_empresa' %}">Visualizar dados</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+                <h2 class="h5">Configurações do Sistema</h2>
+                <p class="text-secondary flex-grow-1">Preferências gerais compartilhadas pelos módulos do GESTIX.</p>
+                <dl class="row small mb-3">
+                    <dt class="col-sm-7">Notificações de aniversário</dt>
+                    <dd class="col-sm-5">{% if configuracao.notificacoes_aniversario_ativas %}<span class="badge text-bg-success">Ativas</span>{% else %}<span class="badge text-bg-secondary">Desativadas</span>{% endif %}</dd>
+                    <dt class="col-sm-7">Antecedência</dt>
+                    <dd class="col-sm-5">{{ configuracao.dias_antecedencia_aniversario }} dia(s)</dd>
+                    <dt class="col-sm-7">Logout por inatividade</dt>
+                    <dd class="col-sm-5">{{ configuracao.tempo_logout_inatividade }} min</dd>
+                </dl>
+                <a class="btn btn-outline-primary align-self-start" href="{% url 'administracao:configuracoes_sistema' %}">{% if pode_editar %}Configurar{% else %}Visualizar{% endif %} sistema</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
