@@ -5,6 +5,7 @@ from datetime import date
 from django.db.models import Q, Sum
 from django.utils import timezone
 
+from administracao.models import ConfiguracaoSistema
 from clientes.models import Cliente
 from contas_receber.models import ContaReceber
 
@@ -49,6 +50,19 @@ def buscar_aniversariantes(dias_antecedencia, hoje=None):
             )
 
     return sorted(aniversariantes, key=lambda item: (item.dias_restantes, item.cliente.nome))
+
+
+def buscar_aniversariantes_configurados(hoje=None):
+    """Aplica a configuração global antes de consultar aniversariantes."""
+    configuracao = ConfiguracaoSistema.get_solo()
+    if not configuracao.notificacoes_aniversario_ativas:
+        return configuracao, []
+
+    aniversariantes = buscar_aniversariantes(
+        configuracao.dias_antecedencia_aniversario,
+        hoje=hoje,
+    )
+    return configuracao, aniversariantes
 
 
 def queryset_contas_atrasadas(hoje=None):

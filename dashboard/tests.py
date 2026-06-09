@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -13,7 +14,7 @@ from contas_receber.models import ContaReceber
 from vendas.models import Venda
 
 from administracao.models import ConfiguracaoSistema
-from .services import buscar_aniversariantes
+from .services import buscar_aniversariantes, buscar_aniversariantes_configurados
 
 
 class AniversariantesServiceTests(TestCase):
@@ -87,6 +88,45 @@ class DashboardAniversariantesTests(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Notificações de aniversário desativadas.')
         self.assertEqual(response.context['aniversariantes'], [])
+
+    def test_configuracao_padrao_e_criada_automaticamente(self):
+        ConfiguracaoSistema.objects.all().delete()
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        configuracao = ConfiguracaoSistema.objects.get(pk=1)
+        self.assertTrue(configuracao.notificacoes_aniversario_ativas)
+        self.assertEqual(configuracao.dias_antecedencia_aniversario, 0)
+        self.assertEqual(response.context['configuracao_sistema'], configuracao)
+
+    @patch('dashboard.services.buscar_aniversariantes')
+    def test_servico_usa_dias_de_antecedencia_configurados(self, buscar_mock):
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.notificacoes_aniversario_ativas = True
+        configuracao.dias_antecedencia_aniversario = 12
+        configuracao.save()
+        buscar_mock.return_value = []
+        hoje = date(2026, 6, 1)
+
+        configuracao_retornada, aniversariantes = buscar_aniversariantes_configurados(hoje=hoje)
+
+        self.assertEqual(configuracao_retornada, configuracao)
+        self.assertEqual(aniversariantes, [])
+        buscar_mock.assert_called_once_with(12, hoje=hoje)
+
+    @patch('dashboard.services.buscar_aniversariantes')
+    def test_servico_nao_busca_clientes_quando_notificacoes_estao_desativadas(self, buscar_mock):
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.notificacoes_aniversario_ativas = False
+        configuracao.dias_antecedencia_aniversario = 30
+        configuracao.save()
+
+        configuracao_retornada, aniversariantes = buscar_aniversariantes_configurados()
+
+        self.assertEqual(configuracao_retornada, configuracao)
+        self.assertEqual(aniversariantes, [])
+        buscar_mock.assert_not_called()
 
 
 class DashboardContasAtrasadasTests(TestCase):
