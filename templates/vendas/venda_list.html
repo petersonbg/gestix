@@ -16,6 +16,11 @@
         <label for="search" class="form-label">Buscar vendas</label>
         <div class="input-group">
             <input type="search" id="search" name="q" value="{{ query }}" class="form-control" placeholder="Busque por cliente ou número da venda">
+            <select class="form-select" name="status" aria-label="Situação das vendas">
+                <option value="ativas" {% if status_filtro == 'ativas' %}selected{% endif %}>Vendas ativas</option>
+                <option value="canceladas" {% if status_filtro == 'canceladas' %}selected{% endif %}>Canceladas</option>
+                <option value="todas" {% if status_filtro == 'todas' %}selected{% endif %}>Todas</option>
+            </select>
             <button class="btn btn-outline-primary" type="submit">Buscar</button>
             {% if query %}
                 <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Limpar</a>
@@ -50,14 +55,22 @@
                         <td>R$ {{ venda.total }}</td>
                         <td>
                             {% if venda.status == 'FINALIZADA' %}
-                                <span class="badge text-bg-success">Finalizada</span>
+                                <span class="badge text-bg-success">FINALIZADA</span>
                             {% elif venda.status == 'CANCELADA' %}
-                                <span class="badge text-bg-secondary">Cancelada</span>
+                                <span class="badge text-bg-danger">CANCELADA</span>
                             {% else %}
-                                <span class="badge text-bg-warning">Rascunho</span>
+                                <span class="badge text-bg-warning">RASCUNHO</span>
                             {% endif %}
                         </td>
-                        <td class="text-end"><a class="btn btn-outline-primary btn-sm" href="{% url 'vendas:detail' venda.pk %}">Detalhes</a></td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-outline-primary" href="{% url 'vendas:detail' venda.pk %}">Detalhes</a>
+                                {% if venda.status == 'RASCUNHO' %}
+                                    <a class="btn btn-outline-secondary" href="{% url 'vendas:update' venda.pk %}">Editar</a>
+                                    <a class="btn btn-outline-danger" href="{% url 'vendas:cancelar' venda.pk %}">Cancelar</a>
+                                {% endif %}
+                            </div>
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
@@ -73,11 +86,11 @@
     <nav class="mt-4" aria-label="Paginação de vendas">
         <ul class="pagination justify-content-end">
             {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filtro }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
             {% endif %}
             <li class="page-item active" aria-current="page"><span class="page-link">{{ page_obj.number }}</span></li>
             {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filtro }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
             {% endif %}
         </ul>
     </nav>

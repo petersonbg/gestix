@@ -13,7 +13,7 @@ from administracao.services import contexto_documento_impresso
 from clientes.models import Cliente
 from produtos.models import Produto
 
-from .forms import ItemVendaFormSet, VendaForm
+from .forms import ItemVendaFormSet, VendaCancelamentoForm, VendaForm
 from .models import Venda
 
 
@@ -92,6 +92,11 @@ class VendaListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related('cliente', 'usuario')
+        status = self.request.GET.get('status', 'ativas')
+        if status == 'canceladas':
+            queryset = queryset.filter(status=Venda.Status.CANCELADA)
+        elif status != 'todas':
+            queryset = queryset.exclude(status=Venda.Status.CANCELADA)
         query = self.request.GET.get('q', '').strip()
         if query:
             filters = Q(cliente__nome__icontains=query)
@@ -103,6 +108,7 @@ class VendaListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '').strip()
+        context['status_filtro'] = self.request.GET.get('status', 'ativas')
         return context
 
 
@@ -127,12 +133,14 @@ class VendaCreateView(LoginRequiredMixin, View):
             return Cliente.objects.filter(pk=cliente_id, ativo=True).first()
         return None
 
-    def get_context_data(self, form, formset):
-        return {
+    def get_context_data(self, form, formset, **extra):
+        context = {
             'form': form,
             'formset': formset,
             'selected_cliente': self.get_selected_cliente(form),
         }
+        context.update(extra)
+        return context
 
     def get(self, request):
         form = VendaForm(initial={'status': Venda.Status.RASCUNHO})
@@ -147,31 +155,94 @@ class VendaCreateView(LoginRequiredMixin, View):
         formset = ItemVendaFormSet(request.POST, instance=venda)
 
         if form_is_valid and formset.is_valid():
-            status_solicitado = venda.status
-            if status_solicitado == Venda.Status.FINALIZADA:
-                venda.status = Venda.Status.RASCUNHO
+            venda.status = Venda.Status.RASCUNHO
             venda.save()
             formset.instance = venda
             formset.save()
             venda.recalcular_totais()
-
-            if status_solicitado == Venda.Status.FINALIZADA:
-                try:
-                    venda.finalizar(usuario=request.user)
-                except ValidationError as exc:
-                    form.add_error(None, exc)
-                    return render(request, self.template_name, self.get_context_data(form, formset))
-                messages.success(request, 'Venda registrada, finalizada e estoque atualizado com sucesso.')
-                registrar_log(request.user, 'criação de venda', 'vendas', f'Venda #{venda.pk} criada e finalizada.', request=request)
-            else:
-                venda.status = status_solicitado
-                venda.save(update_fields=['status'])
-                messages.success(request, 'Venda registrada com sucesso.')
-                registrar_log(request.user, 'criação de venda', 'vendas', f'Venda #{venda.pk} criada como {venda.get_status_display()}.', request=request)
-
+            messages.success(request, 'Venda salva como rascunho. Finalize-a para movimentar estoque e financeiro.')
+            registrar_log(
+                request.user,
+                'criação de venda',
+                'vendas',
+                f'Venda #{venda.pk} criada como rascunho.',
+                request=request,
+            )
             return redirect(venda.get_absolute_url())
 
         return render(request, self.template_name, self.get_context_data(form, formset))
+
+
+class VendaUpdateView(VendaCreateView):
+    def obter_venda(self, pk):
+        return get_object_or_404(Venda.objects.prefetch_related('itens'), pk=pk)
+
+    def get(self, request, pk):
+        venda = self.obter_venda(pk)
+        if venda.status != Venda.Status.RASCUNHO:
+            messages.error(request, 'Somente vendas em rascunho podem ser editadas.')
+            return redirect(venda.get_absolute_url())
+        form = VendaForm(instance=venda)
+        formset = ItemVendaFormSet(instance=venda)
+        return render(request, self.template_name, self.get_context_data(form, formset, venda=venda, is_editing=True))
+
+    def post(self, request, pk):
+        venda = self.obter_venda(pk)
+        if venda.status != Venda.Status.RASCUNHO:
+            messages.error(request, 'Somente vendas em rascunho podem ser editadas.')
+            return redirect(venda.get_absolute_url())
+
+        form = VendaForm(request.POST, instance=venda)
+        formset = ItemVendaFormSet(request.POST, instance=venda)
+        if form.is_valid() and formset.is_valid():
+            venda = form.save(commit=False)
+            venda.status = Venda.Status.RASCUNHO
+            venda.save()
+            formset.save()
+            venda.recalcular_totais()
+            messages.success(request, 'Rascunho da venda atualizado com sucesso.')
+            registrar_log(request.user, 'edição de venda', 'vendas', f'Venda #{venda.pk} atualizada.', request=request)
+            return redirect(venda.get_absolute_url())
+
+        return render(request, self.template_name, self.get_context_data(form, formset, venda=venda, is_editing=True))
+
+
+class VendaCancelarView(LoginRequiredMixin, View):
+    template_name = 'vendas/venda_cancelar.html'
+
+    def get_venda(self, pk):
+        return get_object_or_404(Venda.objects.select_related('cliente'), pk=pk)
+
+    def get(self, request, pk):
+        venda = self.get_venda(pk)
+        if venda.status != Venda.Status.RASCUNHO:
+            messages.error(request, 'Somente vendas em rascunho podem ser canceladas.')
+            return redirect(venda.get_absolute_url())
+        return render(request, self.template_name, {'venda': venda, 'form': VendaCancelamentoForm()})
+
+    def post(self, request, pk):
+        venda = self.get_venda(pk)
+        form = VendaCancelamentoForm(request.POST)
+        if venda.status != Venda.Status.RASCUNHO:
+            messages.error(request, 'Somente vendas em rascunho podem ser canceladas.')
+            return redirect(venda.get_absolute_url())
+        if form.is_valid():
+            motivo = form.cleaned_data['motivo']
+            try:
+                venda.cancelar(usuario=request.user, motivo=motivo)
+            except ValidationError as exc:
+                form.add_error(None, exc)
+            else:
+                registrar_log(
+                    request.user,
+                    'cancelamento de venda',
+                    'vendas',
+                    f'Venda #{venda.pk} cancelada. Motivo: {motivo}',
+                    request=request,
+                )
+                messages.success(request, 'Venda em rascunho cancelada sem movimentar estoque ou financeiro.')
+                return redirect(venda.get_absolute_url())
+        return render(request, self.template_name, {'venda': venda, 'form': form})
 
 
 class VendaFinalizarView(LoginRequiredMixin, View):

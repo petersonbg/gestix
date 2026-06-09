@@ -491,3 +491,7 @@ Administradores podem visualizar e alterar os dados. Gerentes possuem acesso som
 ### Diagnóstico da rota inicial
 
 A rota `/` não depende de registros de `Empresa` ou `ConfiguracaoSistema` para ser renderizada. Se as migrations de administração ainda estiverem sendo aplicadas, as preferências usam temporariamente os valores padrão e voltam a persistir pelo singleton assim que o banco estiver disponível. O WhiteNoise continua sendo usado nos containers instalados pelo `requirements.txt`; em um ambiente Python incompleto, o projeto usa o armazenamento estático padrão do Django para que a página inicial não falhe com erro 500.
+
+### Cancelamento de vendas em rascunho
+
+Vendas novas são sempre salvas como **RASCUNHO** e somente movimentam estoque, caixa ou contas a receber quando finalizadas. Enquanto estiver em rascunho, a venda pode ser editada ou cancelada mediante motivo obrigatório. O cancelamento registra usuário, data/hora e motivo no histórico de atividades, bloqueia novas alterações e não realiza qualquer baixa ou lançamento financeiro. Vendas finalizadas não podem usar esse cancelamento simples.

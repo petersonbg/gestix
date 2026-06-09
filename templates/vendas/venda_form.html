@@ -1,12 +1,12 @@
 {% extends 'layouts/internal.html' %}
 
-{% block title %}Nova venda | GESTIX{% endblock %}
+{% block title %}{% if is_editing %}Editar venda #{{ venda.pk }}{% else %}Nova venda{% endif %} | GESTIX{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
     <div>
-        <h1 class="h2 mb-1">Nova venda</h1>
-        <p class="text-secondary mb-0">Pesquise produtos, adicione múltiplos itens e finalize para baixar o estoque.</p>
+        <h1 class="h2 mb-1">{% if is_editing %}Editar venda #{{ venda.pk }}{% else %}Nova venda{% endif %}</h1>
+        <p class="text-secondary mb-0">A venda será salva como rascunho e não movimentará estoque ou financeiro até a finalização.</p>
     </div>
     <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
 </div>
@@ -61,11 +61,6 @@
                     <label class="form-label" for="{{ form.forma_pagamento.id_for_label }}">{{ form.forma_pagamento.label }}</label>
                     {{ form.forma_pagamento }}
                     {% for error in form.forma_pagamento.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
-                    {{ form.status }}
-                    {% for error in form.status.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                 </div>
             </div>
             <div class="border rounded bg-light p-3 mt-3 d-none" id="crediario-fields">
@@ -168,7 +163,7 @@
         </div>
         <div class="card-footer bg-white d-flex justify-content-end gap-2">
             <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Cancelar</a>
-            <button class="btn btn-primary" type="submit">Salvar venda</button>
+            <button class="btn btn-primary" type="submit">{% if is_editing %}Salvar alterações{% else %}Salvar rascunho{% endif %}</button>
         </div>
     </div>
 </form>

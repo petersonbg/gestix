@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.urls import reverse
+from django.utils import timezone
 
 from clientes.models import Cliente
 from estoque.models import MovimentacaoEstoque
@@ -69,6 +70,15 @@ class Venda(models.Model):
         blank=True,
         null=True,
     )
+    cancelada_em = models.DateTimeField('cancelada em', blank=True, null=True)
+    usuario_cancelamento = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='vendas_canceladas',
+        blank=True,
+        null=True,
+    )
+    motivo_cancelamento = models.TextField('motivo do cancelamento', blank=True)
 
     class Meta:
         ordering = ['-data']
@@ -106,6 +116,11 @@ class Venda(models.Model):
                 raise ValidationError({'quantidade_parcelas': 'Informe ao menos uma parcela.'})
             if not self.intervalo_parcelas or self.intervalo_parcelas < 1:
                 raise ValidationError({'intervalo_parcelas': 'O intervalo entre parcelas deve ser maior que zero.'})
+
+    def save(self, *args, **kwargs):
+        if self.pk and Venda.objects.filter(pk=self.pk, status=self.Status.CANCELADA).exists():
+            raise ValidationError('Venda cancelada não pode ser alterada.')
+        return super().save(*args, **kwargs)
 
     def recalcular_totais(self, save=True):
         subtotal = sum((item.total_item for item in self.itens.all()), Decimal('0.00'))
@@ -209,20 +224,37 @@ class Venda(models.Model):
             self.total = venda.total
             self.forma_pagamento = venda.forma_pagamento
 
-    def cancelar(self, usuario=None, observacao=''):
-        if self.status == self.Status.CANCELADA:
-            return
+    def cancelar(self, usuario, motivo):
+        motivo = (motivo or '').strip()
+        if not motivo:
+            raise ValidationError({'motivo_cancelamento': 'Informe o motivo do cancelamento.'})
+        if not self.pk:
+            raise ValidationError('Salve a venda antes de cancelá-la.')
+
         with transaction.atomic():
             venda = Venda.objects.select_for_update().get(pk=self.pk)
-            contas = list(venda.contas_receber.select_for_update()) if venda.forma_pagamento == self.FormaPagamento.CREDIARIO else []
-            if any(conta.status == conta.Status.PAGA for conta in contas):
-                raise ValidationError('Não é possível cancelar venda com parcelas já pagas sem procedimento específico.')
-            for conta in contas:
-                if conta.status != conta.Status.CANCELADA:
-                    conta.cancelar(observacao or 'Parcela cancelada devido ao cancelamento da venda.')
+            if venda.status == self.Status.FINALIZADA:
+                raise ValidationError('Venda finalizada não pode ser cancelada por esta operação.')
+            if venda.status == self.Status.CANCELADA:
+                raise ValidationError('Venda já está cancelada.')
+            if venda.status != self.Status.RASCUNHO:
+                raise ValidationError('Somente vendas em rascunho podem ser canceladas.')
+
             venda.status = self.Status.CANCELADA
-            venda.save(update_fields=['status'])
+            venda.cancelada_em = timezone.now()
+            venda.usuario_cancelamento = usuario
+            venda.motivo_cancelamento = motivo
+            venda.save(update_fields=[
+                'status',
+                'cancelada_em',
+                'usuario_cancelamento',
+                'motivo_cancelamento',
+            ])
+
             self.status = venda.status
+            self.cancelada_em = venda.cancelada_em
+            self.usuario_cancelamento = venda.usuario_cancelamento
+            self.motivo_cancelamento = venda.motivo_cancelamento
 
     def get_absolute_url(self):
         return reverse('vendas:detail', kwargs={'pk': self.pk})

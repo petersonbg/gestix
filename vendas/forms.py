@@ -34,7 +34,6 @@ class VendaForm(forms.ModelForm):
             'intervalo_parcelas',
             'valor_entrada',
             'observacoes_crediario',
-            'status',
         ]
         widgets = {
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
@@ -44,7 +43,6 @@ class VendaForm(forms.ModelForm):
             'intervalo_parcelas': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
             'valor_entrada': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'observacoes_crediario': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def clean(self):
@@ -126,3 +124,15 @@ ItemVendaFormSet = inlineformset_factory(
     extra=5,
     can_delete=False,
 )
+
+
+class VendaCancelamentoForm(forms.Form):
+    motivo = forms.CharField(
+        label='Motivo do cancelamento',
+        min_length=3,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Informe por que esta venda em rascunho está sendo cancelada.',
+        }),
+    )

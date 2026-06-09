@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -320,10 +322,134 @@ class VendaCrediarioTests(TestCase):
                 forma_recebimento=ContaReceber.FormaRecebimento.DINHEIRO,
             )
 
-    def test_cancelamento_de_venda_crediario_cancela_parcelas_abertas(self):
+    def test_cancelamento_simples_nao_altera_venda_finalizada_nem_parcelas(self):
         venda = self.criar_venda_crediario(total_unitario=Decimal('100.00'), parcelas=2)
         venda.finalizar(usuario=self.user)
 
-        venda.cancelar()
+        with self.assertRaisesMessage(ValidationError, 'Venda finalizada não pode ser cancelada'):
+            venda.cancelar(usuario=self.user, motivo='Tentativa inválida.')
 
-        self.assertEqual(set(ContaReceber.objects.filter(venda=venda).values_list('status', flat=True)), {ContaReceber.Status.CANCELADA})
+        venda.refresh_from_db()
+        self.assertEqual(venda.status, Venda.Status.FINALIZADA)
+        self.assertEqual(
+            set(ContaReceber.objects.filter(venda=venda).values_list('status', flat=True)),
+            {ContaReceber.Status.ABERTA},
+        )
+
+
+class VendaCancelamentoRascunhoTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='cancelador', password='senha')
+        self.user.groups.add(Group.objects.get_or_create(name='Vendedor')[0])
+        self.client.force_login(self.user)
+        self.cliente = Cliente.objects.create(
+            nome='Cliente Cancelamento',
+            tipo_pessoa=Cliente.TipoPessoa.FISICA,
+            cpf_cnpj='12312312312',
+        )
+        self.produto = Produto.objects.create(
+            nome='Produto Cancelamento',
+            codigo_interno='CANCEL-001',
+            unidade_medida='UN',
+            preco_custo=Decimal('10.00'),
+            preco_venda=Decimal('25.00'),
+            estoque_atual=10,
+        )
+
+    def criar_venda(self, status=Venda.Status.RASCUNHO):
+        venda = Venda.objects.create(
+            cliente=self.cliente,
+            usuario=self.user,
+            forma_pagamento=Venda.FormaPagamento.PIX,
+            status=status,
+        )
+        ItemVenda.objects.create(
+            venda=venda,
+            produto=self.produto,
+            quantidade=2,
+            valor_unitario=Decimal('25.00'),
+        )
+        venda.recalcular_totais()
+        return venda
+
+    def test_nova_venda_tem_status_rascunho_e_formulario_nao_permite_status(self):
+        from .forms import VendaForm
+
+        venda = Venda(cliente=self.cliente, usuario=self.user)
+        self.assertEqual(venda.status, Venda.Status.RASCUNHO)
+        self.assertNotIn('status', VendaForm().fields)
+
+    def test_cancelar_venda_em_rascunho_sem_movimentacoes(self):
+        from accounts.models import LogAtividade
+        from estoque.models import MovimentacaoEstoque
+
+        venda = self.criar_venda()
+        response = self.client.post(
+            reverse('vendas:cancelar', kwargs={'pk': venda.pk}),
+            {'motivo': 'Cliente desistiu da compra.'},
+        )
+
+        self.assertRedirects(response, venda.get_absolute_url())
+        venda.refresh_from_db()
+        self.produto.refresh_from_db()
+        self.assertEqual(venda.status, Venda.Status.CANCELADA)
+        self.assertEqual(venda.usuario_cancelamento, self.user)
+        self.assertEqual(venda.motivo_cancelamento, 'Cliente desistiu da compra.')
+        self.assertIsNotNone(venda.cancelada_em)
+        self.assertEqual(self.produto.estoque_atual, 10)
+        self.assertFalse(MovimentacaoEstoque.objects.filter(origem=f'Venda #{venda.pk}').exists())
+        self.assertFalse(MovimentacaoCaixa.objects.filter(venda=venda).exists())
+        self.assertFalse(ContaReceber.objects.filter(venda=venda).exists())
+        self.assertTrue(LogAtividade.objects.filter(
+            usuario=self.user,
+            modulo='vendas',
+            descricao__contains='Cliente desistiu da compra.',
+        ).exists())
+
+    def test_impedir_cancelamento_de_venda_finalizada(self):
+        venda = self.criar_venda(status=Venda.Status.FINALIZADA)
+
+        response = self.client.post(
+            reverse('vendas:cancelar', kwargs={'pk': venda.pk}),
+            {'motivo': 'Tentativa inválida.'},
+        )
+
+        self.assertRedirects(response, venda.get_absolute_url())
+        venda.refresh_from_db()
+        self.assertEqual(venda.status, Venda.Status.FINALIZADA)
+        self.assertIsNone(venda.cancelada_em)
+
+    def test_impedir_edicao_de_venda_cancelada(self):
+        venda = self.criar_venda()
+        venda.cancelar(usuario=self.user, motivo='Cancelada para teste.')
+
+        response = self.client.get(reverse('vendas:update', kwargs={'pk': venda.pk}))
+
+        self.assertRedirects(response, venda.get_absolute_url())
+
+    def test_model_impede_alteracao_de_venda_cancelada(self):
+        venda = self.criar_venda()
+        venda.cancelar(usuario=self.user, motivo='Cancelada para teste.')
+        venda.desconto = Decimal('1.00')
+
+        with self.assertRaisesMessage(ValidationError, 'Venda cancelada não pode ser alterada.'):
+            venda.save()
+
+    def test_impedir_finalizacao_de_venda_cancelada(self):
+        venda = self.criar_venda()
+        venda.cancelar(usuario=self.user, motivo='Cancelada para teste.')
+
+        with self.assertRaisesMessage(ValidationError, 'Venda cancelada não pode ser finalizada.'):
+            venda.finalizar(usuario=self.user)
+
+    def test_canceladas_nao_aparecem_na_listagem_ativa(self):
+        ativa = self.criar_venda()
+        cancelada = self.criar_venda()
+        cancelada.cancelar(usuario=self.user, motivo='Não deve aparecer nas ativas.')
+
+        response = self.client.get(reverse('vendas:list'))
+
+        self.assertContains(response, f'#{ativa.pk}')
+        self.assertNotContains(response, f'#{cancelada.pk}')
+        response = self.client.get(reverse('vendas:list'), {'status': 'canceladas'})
+        self.assertContains(response, f'#{cancelada.pk}')
