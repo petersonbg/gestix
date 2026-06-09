@@ -12,7 +12,7 @@ from clientes.models import Cliente
 from contas_receber.models import ContaReceber
 from vendas.models import Venda
 
-from .models import ConfiguracaoSistema
+from administracao.models import ConfiguracaoSistema
 from .services import buscar_aniversariantes
 
 
@@ -72,12 +72,18 @@ class DashboardAniversariantesTests(TestCase):
         self.client.login(username='admin', password='senha')
 
     def test_notificacoes_ativadas_no_dashboard(self):
-        ConfiguracaoSistema.objects.create(notificacoes_aniversario_ativas=True, dias_antecedencia_aniversario=7)
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.notificacoes_aniversario_ativas = True
+        configuracao.dias_antecedencia_aniversario = 7
+        configuracao.save()
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Aniversariantes')
 
     def test_notificacoes_desativadas_no_dashboard(self):
-        ConfiguracaoSistema.objects.create(notificacoes_aniversario_ativas=False, dias_antecedencia_aniversario=7)
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.notificacoes_aniversario_ativas = False
+        configuracao.dias_antecedencia_aniversario = 7
+        configuracao.save()
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Notificações de aniversário desativadas.')
         self.assertEqual(response.context['aniversariantes'], [])

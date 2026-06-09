@@ -83,7 +83,7 @@
             return;
         }
 
-        const timeoutMs = 15 * 60 * 1000;
+        const timeoutMs = {{ configuracao_global.tempo_logout_inatividade|default:15 }} * 60 * 1000;
         const warningMs = 60 * 1000;
         let logoutTimer;
         let warningTimer;

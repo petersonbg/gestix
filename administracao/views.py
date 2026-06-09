@@ -4,10 +4,8 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, TemplateView, UpdateView
 
-from dashboard.models import ConfiguracaoSistema
-
 from .forms import ConfiguracaoSistemaAdministracaoForm, EmpresaForm
-from .models import Empresa
+from .models import ConfiguracaoSistema, Empresa
 
 
 def usuario_administrador(user):

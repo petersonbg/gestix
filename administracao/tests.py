@@ -4,9 +4,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
-from dashboard.models import ConfiguracaoSistema
-
-from .models import Empresa
+from .models import ConfiguracaoSistema, Empresa
 
 
 class AdministracaoAcessoTests(TestCase):
@@ -83,13 +81,55 @@ class AdministracaoAcessoTests(TestCase):
         with self.assertRaisesMessage(ValidationError, 'não pode ser excluído'):
             empresa.delete()
 
+    def dados_configuracao(self, **alteracoes):
+        dados = {
+            'notificacoes_aniversario_ativas': '',
+            'dias_antecedencia_aniversario': 5,
+            'tempo_logout_inatividade': 30,
+            'mostrar_logo_impressoes': 'on',
+            'mostrar_assinatura_cliente': '',
+            'mensagem_rodape_documentos': 'Obrigado pela preferência.',
+        }
+        dados.update(alteracoes)
+        return dados
+
     def test_administrador_edita_configuracao_existente(self):
         self.client.force_login(self.admin)
-        response = self.client.post(reverse('administracao:configuracoes_sistema'), {'notificacoes_aniversario_ativas': '', 'dias_antecedencia_aniversario': 5})
+        response = self.client.post(
+            reverse('administracao:configuracoes_sistema'),
+            self.dados_configuracao(),
+        )
         self.assertRedirects(response, reverse('administracao:configuracoes_sistema'))
         configuracao = ConfiguracaoSistema.get_solo()
         self.assertFalse(configuracao.notificacoes_aniversario_ativas)
         self.assertEqual(configuracao.dias_antecedencia_aniversario, 5)
+        self.assertEqual(configuracao.tempo_logout_inatividade, 30)
+        self.assertTrue(configuracao.mostrar_logo_impressoes)
+        self.assertFalse(configuracao.mostrar_assinatura_cliente)
+        self.assertEqual(configuracao.mensagem_rodape_documentos, 'Obrigado pela preferência.')
+
+    def test_gerente_visualiza_mas_nao_edita_configuracoes(self):
+        configuracao = ConfiguracaoSistema.get_solo()
+        self.client.force_login(self.gerente)
+        response = self.client.get(reverse('administracao:configuracoes_sistema'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].fields['tempo_logout_inatividade'].disabled)
+
+        response = self.client.post(
+            reverse('administracao:configuracoes_sistema'),
+            self.dados_configuracao(tempo_logout_inatividade=60),
+        )
+        self.assertRedirects(response, reverse('administracao:configuracoes_sistema'))
+        configuracao.refresh_from_db()
+        self.assertEqual(configuracao.tempo_logout_inatividade, 15)
+
+    def test_configuracao_e_registro_unico_e_nao_pode_ser_excluida(self):
+        configuracao = ConfiguracaoSistema.get_solo()
+        self.assertEqual(configuracao.pk, 1)
+        with self.assertRaisesMessage(ValidationError, 'apenas um registro'):
+            ConfiguracaoSistema(pk=2).save()
+        with self.assertRaisesMessage(ValidationError, 'não pode ser excluída'):
+            configuracao.delete()
 
     def test_url_antiga_de_configuracoes_redireciona_para_administracao(self):
         self.client.force_login(self.admin)

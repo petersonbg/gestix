@@ -82,3 +82,60 @@ class Empresa(models.Model):
 
     def get_absolute_url(self):
         return reverse('administracao:dados_empresa')
+
+
+class ConfiguracaoSistema(models.Model):
+    notificacoes_aniversario_ativas = models.BooleanField(
+        'ativar notificações de aniversário',
+        default=True,
+    )
+    dias_antecedencia_aniversario = models.PositiveIntegerField(
+        'dias de antecedência para aviso',
+        default=0,
+        help_text='0 = avisar somente no dia; 7 = avisar com uma semana de antecedência.',
+    )
+    tempo_logout_inatividade = models.PositiveIntegerField(
+        'tempo para logout por inatividade (minutos)',
+        default=15,
+        help_text='Tempo em minutos antes de encerrar automaticamente uma sessão inativa.',
+    )
+    mostrar_logo_impressoes = models.BooleanField('mostrar logo nas impressões', default=True)
+    mostrar_assinatura_cliente = models.BooleanField('mostrar assinatura do cliente', default=True)
+    mensagem_rodape_documentos = models.CharField(
+        'mensagem de rodapé dos documentos',
+        max_length=255,
+        default='Documento gerado pelo sistema GESTIX.',
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'configuração do sistema'
+        verbose_name_plural = 'configuração do sistema'
+        constraints = [
+            models.CheckConstraint(condition=models.Q(id=1), name='configuracao_sistema_registro_unico'),
+        ]
+
+    def __str__(self):
+        return 'Configurações do Sistema'
+
+    def clean(self):
+        super().clean()
+        if self.pk not in (None, 1):
+            raise ValidationError('O sistema permite apenas um registro de configuração.')
+        if self.tempo_logout_inatividade < 1:
+            raise ValidationError({'tempo_logout_inatividade': 'O tempo de inatividade deve ser de pelo menos 1 minuto.'})
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.pk = 1
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError('A configuração do sistema não pode ser excluída; edite o registro existente.')
+
+    @classmethod
+    def get_solo(cls):
+        configuracao, _ = cls.objects.get_or_create(pk=1)
+        return configuracao

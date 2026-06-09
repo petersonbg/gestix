@@ -37,6 +37,8 @@
                     <dd class="col-sm-5">{% if configuracao.notificacoes_aniversario_ativas %}<span class="badge text-bg-success">Ativas</span>{% else %}<span class="badge text-bg-secondary">Desativadas</span>{% endif %}</dd>
                     <dt class="col-sm-7">Antecedência</dt>
                     <dd class="col-sm-5">{{ configuracao.dias_antecedencia_aniversario }} dia(s)</dd>
+                    <dt class="col-sm-7">Logout por inatividade</dt>
+                    <dd class="col-sm-5">{{ configuracao.tempo_logout_inatividade }} min</dd>
                 </dl>
                 <a class="btn btn-outline-primary align-self-start" href="{% url 'administracao:configuracoes_sistema' %}">{% if pode_editar %}Configurar{% else %}Visualizar{% endif %} sistema</a>
             </div>

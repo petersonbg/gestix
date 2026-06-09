@@ -1,8 +1,6 @@
 from django import forms
 
-from dashboard.models import ConfiguracaoSistema
-
-from .models import Empresa
+from .models import ConfiguracaoSistema, Empresa
 
 
 class BootstrapModelFormMixin:
@@ -46,10 +44,18 @@ class EmpresaForm(BootstrapModelFormMixin, forms.ModelForm):
 class ConfiguracaoSistemaAdministracaoForm(BootstrapModelFormMixin, forms.ModelForm):
     class Meta:
         model = ConfiguracaoSistema
-        fields = ['notificacoes_aniversario_ativas', 'dias_antecedencia_aniversario']
+        fields = [
+            'notificacoes_aniversario_ativas',
+            'dias_antecedencia_aniversario',
+            'tempo_logout_inatividade',
+            'mostrar_logo_impressoes',
+            'mostrar_assinatura_cliente',
+            'mensagem_rodape_documentos',
+        ]
         widgets = {
             'notificacoes_aniversario_ativas': forms.CheckboxInput(),
             'dias_antecedencia_aniversario': forms.NumberInput(attrs={'min': 0}),
+            'tempo_logout_inatividade': forms.NumberInput(attrs={'min': 1}),
         }
 
     def __init__(self, *args, somente_leitura=False, **kwargs):
