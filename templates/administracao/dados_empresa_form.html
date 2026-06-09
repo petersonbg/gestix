@@ -1,0 +1,45 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Editar Dados da Empresa | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div><h1 class="h2 mb-1">Editar Dados da Empresa</h1><p class="text-secondary mb-0">Atualize os dados institucionais e a identidade visual.</p></div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:dados_empresa' %}">Cancelar</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Dados gerais</h2></div><div class="card-body"><div class="row g-3">
+        {% for field in form %}{% if field.name == 'razao_social' or field.name == 'nome_fantasia' or field.name == 'cnpj' or field.name == 'inscricao_estadual' or field.name == 'inscricao_municipal' %}<div class="col-md-6"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+    </div></div></div>
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Endereço</h2></div><div class="card-body"><div class="row g-3">
+        <div class="col-md-3"><label class="form-label" for="{{ form.cep.id_for_label }}">{{ form.cep.label }}</label>{{ form.cep }}{{ form.cep.errors }}</div>
+        <div class="col-md-7"><label class="form-label" for="{{ form.logradouro.id_for_label }}">{{ form.logradouro.label }}</label>{{ form.logradouro }}{{ form.logradouro.errors }}</div>
+        <div class="col-md-2"><label class="form-label" for="{{ form.numero.id_for_label }}">{{ form.numero.label }}</label>{{ form.numero }}{{ form.numero.errors }}</div>
+        <div class="col-md-4"><label class="form-label" for="{{ form.complemento.id_for_label }}">{{ form.complemento.label }}</label>{{ form.complemento }}{{ form.complemento.errors }}</div>
+        <div class="col-md-3"><label class="form-label" for="{{ form.bairro.id_for_label }}">{{ form.bairro.label }}</label>{{ form.bairro }}{{ form.bairro.errors }}</div>
+        <div class="col-md-3"><label class="form-label" for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>{{ form.cidade }}{{ form.cidade.errors }}</div>
+        <div class="col-md-2"><label class="form-label" for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>{{ form.estado }}{{ form.estado.errors }}</div>
+    </div></div></div>
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Contato</h2></div><div class="card-body"><div class="row g-3">
+        {% for field in form %}{% if field.name == 'telefone' or field.name == 'celular' or field.name == 'whatsapp' or field.name == 'email' or field.name == 'site' %}<div class="col-md-6"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+    </div></div></div>
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Identidade visual</h2></div><div class="card-body"><div class="row g-3">
+        <div class="col-md-6"><label class="form-label" for="{{ form.logo.id_for_label }}">{{ form.logo.label }}</label>{{ form.logo }}<div class="form-text">PNG, JPG, WEBP ou SVG.</div>{{ form.logo.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.logo_impressao.id_for_label }}">{{ form.logo_impressao.label }}</label>{{ form.logo_impressao }}<div class="form-text">Versão indicada para recibos e documentos.</div>{{ form.logo_impressao.errors }}</div>
+        <div class="col-md-3"><label class="form-label" for="{{ form.cor_primaria.id_for_label }}">{{ form.cor_primaria.label }}</label>{{ form.cor_primaria }}{{ form.cor_primaria.errors }}</div>
+        <div class="col-md-3"><label class="form-label" for="{{ form.cor_secundaria.id_for_label }}">{{ form.cor_secundaria.label }}</label>{{ form.cor_secundaria }}{{ form.cor_secundaria.errors }}</div>
+    </div></div></div>
+
+    <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Outros</h2></div><div class="card-body"><div class="row g-3">
+        <div class="col-md-6"><label class="form-label" for="{{ form.responsavel.id_for_label }}">{{ form.responsavel.label }}</label>{{ form.responsavel }}{{ form.responsavel.errors }}</div>
+        <div class="col-12"><label class="form-label" for="{{ form.observacoes.id_for_label }}">{{ form.observacoes.label }}</label>{{ form.observacoes }}{{ form.observacoes.errors }}</div>
+    </div><div class="text-end mt-4"><button class="btn btn-primary" type="submit">Salvar dados da empresa</button></div></div></div>
+</form>
+{% endblock %}
