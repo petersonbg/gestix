@@ -73,6 +73,8 @@
         const dashboardPath = '{% url "dashboard" %}';
         const loginPath = '{% url "login" %}';
         const logoutForm = document.getElementById('logout-form');
+        const keepalivePath = '{% url "session_keepalive" %}';
+        const csrfToken = logoutForm?.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const currentPath = window.location.pathname;
         const mainWindowKey = 'gestixMainWindow';
 
@@ -83,11 +85,14 @@
             return;
         }
 
-        const timeoutMs = {{ configuracao_global.tempo_logout_inatividade|default:15 }} * 60 * 1000;
-        const warningMs = 60 * 1000;
+        const timeoutMinutes = Number({{ configuracao_global.tempo_logout_inatividade|default:15 }});
+        const timeoutMs = timeoutMinutes * 60 * 1000;
+        const warningMs = Math.min(60 * 1000, Math.max(30 * 1000, timeoutMs / 2));
+        const keepaliveIntervalMs = Math.min(60 * 1000, Math.max(10 * 1000, timeoutMs / 2));
         let logoutTimer;
         let warningTimer;
         let warningToast;
+        let lastKeepaliveAt = 0;
 
         function showWarning() {
             const warningElement = document.getElementById('session-timeout-warning');
@@ -106,12 +111,33 @@
             window.location.href = loginPath;
         }
 
+        async function notifyBackendActivity() {
+            const now = Date.now();
+            if (!csrfToken || now - lastKeepaliveAt < keepaliveIntervalMs) {
+                return;
+            }
+            lastKeepaliveAt = now;
+            try {
+                const response = await fetch(keepalivePath, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest'},
+                    credentials: 'same-origin',
+                });
+                if (!response.ok || response.redirected) {
+                    window.location.replace(loginPath);
+                }
+            } catch (error) {
+                // Uma falha de rede não encerra a sessão local; o backend validará no próximo acesso.
+            }
+        }
+
         function resetInactivityTimers() {
             clearTimeout(logoutTimer);
             clearTimeout(warningTimer);
             warningToast?.hide();
-            warningTimer = setTimeout(showWarning, timeoutMs - warningMs);
+            warningTimer = setTimeout(showWarning, Math.max(0, timeoutMs - warningMs));
             logoutTimer = setTimeout(logoutByInactivity, timeoutMs);
+            notifyBackendActivity();
         }
 
         ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach((eventName) => {

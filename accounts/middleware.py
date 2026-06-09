@@ -1,6 +1,14 @@
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
+
+from administracao.services import obter_tempo_logout_inatividade_minutos
+
+
+ULTIMA_ATIVIDADE_SESSAO = 'gestix_ultima_atividade'
 
 
 INTERNAL_PREFIXES = (
@@ -64,6 +72,18 @@ class InternalSecurityMiddleware:
 
     def __call__(self, request):
         path = request.path
+        if request.user.is_authenticated:
+            timeout_segundos = obter_tempo_logout_inatividade_minutos() * 60
+            agora = timezone.now().timestamp()
+            ultima_atividade = request.session.get(ULTIMA_ATIVIDADE_SESSAO)
+            if ultima_atividade is not None and agora - ultima_atividade >= timeout_segundos:
+                logout(request)
+                messages.warning(request, 'Sua sessão expirou por inatividade. Faça login novamente.')
+                return redirect(settings.LOGIN_URL)
+
+            request.session[ULTIMA_ATIVIDADE_SESSAO] = agora
+            request.session.set_expiry(timeout_segundos)
+
         if is_internal_path(path) and request.user.is_authenticated:
             modulo = module_from_path(path)
             allowed = user_allowed_modules(request.user)

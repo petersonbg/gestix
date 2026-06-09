@@ -1,9 +1,22 @@
 from .models import ConfiguracaoSistema, Empresa
 
 
+TEMPO_LOGOUT_PADRAO_MINUTOS = 15
+
+
+def obter_configuracao_sistema():
+    """Obtém o singleton, criando os valores padrão quando necessário."""
+    return ConfiguracaoSistema.get_solo()
+
+
+def obter_tempo_logout_inatividade_minutos():
+    configuracao = obter_configuracao_sistema()
+    return configuracao.tempo_logout_inatividade or TEMPO_LOGOUT_PADRAO_MINUTOS
+
+
 def contexto_documento_impresso():
     """Retorna a identidade da empresa e preferências comuns às impressões."""
-    configuracao = ConfiguracaoSistema.get_solo()
+    configuracao = obter_configuracao_sistema()
     empresa = Empresa.objects.order_by('pk').first()
     if empresa and not empresa.possui_dados_cadastrais:
         empresa = None
