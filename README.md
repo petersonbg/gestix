@@ -461,6 +461,8 @@ Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, vis
 
 O menu **Administração** centraliza configurações gerais do GESTIX e fica disponível somente para os perfis **Administrador** e **Gerente**:
 
+A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões** e **Logs de Atividade**, com resumos e acesso às respectivas consultas.
+
 - **Dados da Empresa**: cadastro único com razão social, nome fantasia, CNPJ, inscrições estadual e municipal, endereço completo, contatos, logos, cores institucionais, responsável e observações. Administradores podem editar em `/administracao/dados-empresa/editar/`; Gerentes acessam somente a visualização.
   Esses dados alimentam automaticamente os cabeçalhos do recibo de venda, orçamento e ordem de serviço; quando não há cadastro, os documentos exibem somente a marca GESTIX. A logo obedece à opção **Mostrar logo nas impressões**.
 - **Configurações do Sistema**: cadastro único de preferências compartilhadas, incluindo notificações de aniversário, tempo de logout por inatividade, exibição de logo e assinatura nas impressões e mensagem padrão do rodapé dos documentos.

@@ -1,8 +1,12 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, TemplateView, UpdateView
+from django.views.generic import DetailView, ListView, TemplateView, UpdateView
+
+from accounts.models import LogAtividade
 
 from .forms import ConfiguracaoSistemaAdministracaoForm, EmpresaForm
 from .models import ConfiguracaoSistema, Empresa
@@ -39,7 +43,36 @@ class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
         context['pode_editar'] = usuario_administrador(self.request.user)
         context['empresa'] = Empresa.get_solo()
         context['configuracao'] = ConfiguracaoSistema.get_solo()
+        context['usuarios_total'] = get_user_model().objects.count()
+        context['usuarios_ativos'] = get_user_model().objects.filter(is_active=True).count()
+        context['grupos_total'] = Group.objects.count()
+        context['logs_total'] = LogAtividade.objects.count()
+        context['ultimo_log'] = LogAtividade.objects.select_related('usuario').first()
         return context
+
+
+class UsuariosPermissoesView(AdministracaoPermissaoMixin, ListView):
+    template_name = 'administracao/usuarios_permissoes.html'
+    context_object_name = 'usuarios'
+    paginate_by = 25
+
+    def get_queryset(self):
+        return get_user_model().objects.prefetch_related('groups').order_by('username')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['grupos'] = Group.objects.order_by('name')
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class LogsAtividadeView(AdministracaoPermissaoMixin, ListView):
+    template_name = 'administracao/logs_atividade.html'
+    context_object_name = 'logs'
+    paginate_by = 50
+
+    def get_queryset(self):
+        return LogAtividade.objects.select_related('usuario').all()
 
 
 class EmpresaDetailView(AdministracaoPermissaoMixin, DetailView):

@@ -20,6 +20,8 @@
                 <nav class="nav flex-column ms-3 mt-1 gap-1" aria-label="Submenu Administração">
                     <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'dados_empresa' %}active{% endif %}" href="{% url 'administracao:dados_empresa' %}">Dados da Empresa</a>
                     <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'configuracoes_sistema' %}active{% endif %}" href="{% url 'administracao:configuracoes_sistema' %}">Configurações do Sistema</a>
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'usuarios_permissoes' %}active{% endif %}" href="{% url 'administracao:usuarios_permissoes' %}">Usuários e Permissões</a>
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'logs_atividade' %}active{% endif %}" href="{% url 'administracao:logs_atividade' %}">Logs de Atividade</a>
                 </nav>
             </div>
         {% endif %}

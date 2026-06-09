@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import LogAtividade
+
 from .models import ConfiguracaoSistema, Empresa
 
 
@@ -37,10 +39,38 @@ class AdministracaoAcessoTests(TestCase):
         return dados
 
     def test_views_exigem_login(self):
-        for url in [reverse('administracao:home'), reverse('administracao:dados_empresa'), reverse('administracao:dados_empresa_editar'), reverse('administracao:configuracoes_sistema')]:
+        for url in [reverse('administracao:home'), reverse('administracao:dados_empresa'), reverse('administracao:dados_empresa_editar'), reverse('administracao:configuracoes_sistema'), reverse('administracao:usuarios_permissoes'), reverse('administracao:logs_atividade')]:
             response = self.client.get(url)
             self.assertEqual(response.status_code, 302)
             self.assertIn(reverse('login'), response.url)
+
+    def test_home_exibe_cards_e_resumos_administrativos(self):
+        LogAtividade.objects.create(usuario=self.admin, acao='teste', modulo='administracao')
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse('administracao:home'))
+
+        self.assertEqual(response.status_code, 200)
+        for titulo in ['Dados da Empresa', 'Configurações do Sistema', 'Usuários e Permissões', 'Logs de Atividade']:
+            self.assertContains(response, titulo)
+        self.assertEqual(response.context['usuarios_total'], 4)
+        self.assertEqual(response.context['usuarios_ativos'], 4)
+        self.assertGreaterEqual(response.context['grupos_total'], 4)
+        self.assertGreaterEqual(response.context['logs_total'], 1)
+        self.assertIsNotNone(response.context['ultimo_log'])
+
+    def test_administrador_e_gerente_acessam_usuarios_e_logs(self):
+        for usuario in [self.admin, self.gerente]:
+            self.client.force_login(usuario)
+            self.assertEqual(self.client.get(reverse('administracao:usuarios_permissoes')).status_code, 200)
+            self.assertEqual(self.client.get(reverse('administracao:logs_atividade')).status_code, 200)
+
+    def test_vendedor_e_estoquista_nao_acessam_usuarios_e_logs(self):
+        for usuario in [self.vendedor, self.estoquista]:
+            self.client.force_login(usuario)
+            for nome_url in ['usuarios_permissoes', 'logs_atividade']:
+                response = self.client.get(reverse(f'administracao:{nome_url}'))
+                self.assertRedirects(response, reverse('dashboard'))
 
     def test_administrador_visualiza_e_edita_empresa(self):
         self.client.force_login(self.admin)
