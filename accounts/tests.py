@@ -89,3 +89,27 @@ class LogoutInatividadeTests(TestCase):
             f"{reverse('login')}?next={reverse('session_keepalive')}",
             fetch_redirect_response=False,
         )
+
+
+class ArquivosEstaticosAdminTests(TestCase):
+    def test_configuracao_usa_whitenoise_e_static_root(self):
+        from django.conf import settings
+
+        self.assertEqual(settings.STATIC_URL, '/static/')
+        self.assertEqual(settings.STATIC_ROOT, settings.BASE_DIR / 'staticfiles')
+        self.assertIn(settings.BASE_DIR / 'static', settings.STATICFILES_DIRS)
+        self.assertEqual(
+            settings.STORAGES['staticfiles']['BACKEND'],
+            'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        )
+        security_index = settings.MIDDLEWARE.index('django.middleware.security.SecurityMiddleware')
+        self.assertEqual(
+            settings.MIDDLEWARE[security_index + 1],
+            'whitenoise.middleware.WhiteNoiseMiddleware',
+        )
+
+    def test_django_encontra_css_do_admin_e_estaticos_do_projeto(self):
+        from django.contrib.staticfiles import finders
+
+        self.assertIsNotNone(finders.find('admin/css/base.css'))
+        self.assertIsNotNone(finders.find('css/home.css'))

@@ -59,10 +59,11 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
    createdb gestix
    ```
 
-6. Execute as migrações iniciais:
+6. Execute as migrações iniciais e colete os arquivos estáticos:
 
    ```bash
    python manage.py migrate
+   python manage.py collectstatic --noinput
    ```
 
 7. Inicie o servidor de desenvolvimento:
@@ -75,6 +76,23 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 
 
 
+
+## Arquivos estáticos e Django Admin
+
+O projeto usa **WhiteNoise** para servir os arquivos reunidos em `staticfiles`, inclusive com `DEBUG=False`. O container web executa automaticamente `collectstatic` depois das migrações e antes de iniciar o servidor. O bind mount do código-fonte em `docker-compose.yml` não monta um volume vazio sobre `/app/staticfiles`; a pasta é recriada no próprio container a cada inicialização.
+
+Para atualizar os estáticos em um container já iniciado:
+
+```bash
+docker compose exec web python manage.py collectstatic --noinput
+docker compose restart web
+```
+
+Depois, confirme no navegador que `/static/admin/css/base.css` retorna HTTP 200. Para diagnóstico pelo terminal:
+
+```bash
+curl -I http://localhost:8000/static/admin/css/base.css
+```
 
 ## Módulo clientes
 
