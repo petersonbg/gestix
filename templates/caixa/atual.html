@@ -1,0 +1,53 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Caixa atual | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Caixa atual</h1>
+        <p class="text-secondary mb-0">Aberto em {{ caixa.data_abertura|date:'d/m/Y H:i' }} por {{ caixa.usuario_abertura.get_full_name|default:caixa.usuario_abertura.username }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" href="{% url 'caixa:historico' %}">Histórico</a>
+        <a class="btn btn-success" href="{% url 'caixa:suprimento' %}">Suprimento</a>
+        <a class="btn btn-warning" href="{% url 'caixa:sangria' %}">Sangria</a>
+        <a class="btn btn-outline-danger" href="{% url 'caixa:saida' %}">Saída</a>
+        <a class="btn btn-primary" href="{% url 'caixa:fechar' %}">Fechar caixa</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Valor inicial</span><div class="h5 mb-0">R$ {{ caixa.valor_inicial }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Vendas</span><div class="h5 mb-0">R$ {{ total_vendas }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Entradas</span><div class="h5 mb-0">R$ {{ total_entradas }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Suprimentos</span><div class="h5 mb-0">R$ {{ total_suprimentos }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Saídas</span><div class="h5 mb-0">R$ {{ total_saidas }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Sangrias</span><div class="h5 mb-0">R$ {{ total_sangrias }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Cancelamentos</span><div class="h5 mb-0">R$ {{ total_cancelamentos }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm border-primary"><div class="card-body"><span class="text-secondary small">Saldo calculado</span><div class="h5 mb-0">R$ {{ saldo_calculado }}</div></div></div></div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white"><h2 class="h5 mb-0">Movimentações do caixa</h2></div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Pagamento</th><th>Venda</th><th class="text-end">Valor</th></tr></thead>
+            <tbody>
+                {% for mov in movimentacoes %}
+                    <tr>
+                        <td>{{ mov.data|date:'d/m/Y H:i' }}</td>
+                        <td><span class="badge text-bg-secondary">{{ mov.get_tipo_display }}</span></td>
+                        <td>{{ mov.descricao }}</td>
+                        <td>{{ mov.get_forma_pagamento_display }}</td>
+                        <td>{% if mov.venda %}<a href="{{ mov.venda.get_absolute_url }}">#{{ mov.venda_id }}</a>{% else %}-{% endif %}</td>
+                        <td class="text-end">R$ {{ mov.valor }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-secondary py-4">Nenhuma movimentação registrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
