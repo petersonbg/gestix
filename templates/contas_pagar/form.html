@@ -1,0 +1,35 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}{% if object %}Editar conta{% else %}Nova conta{% endif %} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">{% if object %}Editar conta a pagar{% else %}Nova conta a pagar{% endif %}</h1>
+        <p class="text-secondary mb-0">Informe dados da despesa, vencimento e valor.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'contas_pagar:list' %}">Voltar</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-md-6 {% if field.name == 'observacao' or field.name == 'descricao' %}col-md-12{% endif %}">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a class="btn btn-outline-secondary" href="{% url 'contas_pagar:list' %}">Cancelar</a>
+                <button class="btn btn-primary" type="submit">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
