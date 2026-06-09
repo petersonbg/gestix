@@ -487,3 +487,7 @@ A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configur
   O tempo de logout é aplicado tanto pelo backend quanto pelo temporizador do navegador; atividades no navegador renovam a sessão por um endpoint autenticado e, ao expirar, o usuário retorna à tela de login. Na ausência de configuração, o padrão é 15 minutos.
 
 Administradores podem visualizar e alterar os dados. Gerentes possuem acesso somente para consulta, com os campos desabilitados no formulário. Vendedores, Estoquistas e usuários sem perfil não acessam o módulo. A URL anterior `/configuracoes/` é mantida por compatibilidade e redireciona para a nova área administrativa.
+
+### Diagnóstico da rota inicial
+
+A rota `/` não depende de registros de `Empresa` ou `ConfiguracaoSistema` para ser renderizada. Se as migrations de administração ainda estiverem sendo aplicadas, as preferências usam temporariamente os valores padrão e voltam a persistir pelo singleton assim que o banco estiver disponível. O WhiteNoise continua sendo usado nos containers instalados pelo `requirements.txt`; em um ambiente Python incompleto, o projeto usa o armazenamento estático padrão do Django para que a página inicial não falhe com erro 500.

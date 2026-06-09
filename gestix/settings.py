@@ -1,4 +1,5 @@
 """Django settings for the GESTIX project."""
+from importlib.util import find_spec
 from pathlib import Path
 import os
 
@@ -39,9 +40,14 @@ INSTALLED_APPS = [
     'dashboard',
 ]
 
+WHITENOISE_AVAILABLE = find_spec('whitenoise') is not None
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+]
+if WHITENOISE_AVAILABLE:
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+MIDDLEWARE += [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -99,7 +105,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = (
+    'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    if WHITENOISE_AVAILABLE
+    else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+)
+WHITENOISE_MANIFEST_STRICT = False
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',

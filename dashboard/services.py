@@ -5,7 +5,7 @@ from datetime import date
 from django.db.models import Q, Sum
 from django.utils import timezone
 
-from administracao.models import ConfiguracaoSistema
+from administracao.services import obter_configuracao_sistema
 from clientes.models import Cliente
 from contas_receber.models import ContaReceber
 
@@ -54,7 +54,7 @@ def buscar_aniversariantes(dias_antecedencia, hoje=None):
 
 def buscar_aniversariantes_configurados(hoje=None):
     """Aplica a configuração global antes de consultar aniversariantes."""
-    configuracao = ConfiguracaoSistema.get_solo()
+    configuracao = obter_configuracao_sistema()
     if not configuracao.notificacoes_aniversario_ativas:
         return configuracao, []
 

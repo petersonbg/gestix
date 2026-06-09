@@ -1,3 +1,5 @@
+from django.db.utils import OperationalError, ProgrammingError
+
 from .models import ConfiguracaoSistema, Empresa
 
 
@@ -5,8 +7,11 @@ TEMPO_LOGOUT_PADRAO_MINUTOS = 15
 
 
 def obter_configuracao_sistema():
-    """Obtém o singleton, criando os valores padrão quando necessário."""
-    return ConfiguracaoSistema.get_solo()
+    """Obtém o singleton ou usa os padrões enquanto as migrations não foram aplicadas."""
+    try:
+        return ConfiguracaoSistema.get_solo()
+    except (OperationalError, ProgrammingError):
+        return ConfiguracaoSistema()
 
 
 def obter_tempo_logout_inatividade_minutos():
@@ -17,7 +22,10 @@ def obter_tempo_logout_inatividade_minutos():
 def contexto_documento_impresso():
     """Retorna a identidade da empresa e preferências comuns às impressões."""
     configuracao = obter_configuracao_sistema()
-    empresa = Empresa.objects.order_by('pk').first()
+    try:
+        empresa = Empresa.objects.order_by('pk').first()
+    except (OperationalError, ProgrammingError):
+        empresa = None
     if empresa and not empresa.possui_dados_cadastrais:
         empresa = None
 

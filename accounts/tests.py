@@ -1,7 +1,9 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.db.utils import OperationalError
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -91,22 +93,51 @@ class LogoutInatividadeTests(TestCase):
         )
 
 
-class ArquivosEstaticosAdminTests(TestCase):
-    def test_configuracao_usa_whitenoise_e_static_root(self):
+class HomeRouteTests(SimpleTestCase):
+    @override_settings(DEBUG=False, ALLOWED_HOSTS=['testserver'])
+    def test_rota_inicial_renderiza_sem_banco_e_sem_manifesto_estatico(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'GESTIX')
+        self.assertContains(response, '/static/css/home.css')
+
+    @patch('administracao.services.ConfiguracaoSistema.get_solo', side_effect=OperationalError)
+    def test_configuracao_usa_valores_padrao_se_tabela_ainda_nao_existe(self, get_solo):
+        from administracao.services import obter_configuracao_sistema
+
+        configuracao = obter_configuracao_sistema()
+
+        get_solo.assert_called_once_with()
+        self.assertIsNone(configuracao.pk)
+        self.assertEqual(configuracao.tempo_logout_inatividade, 15)
+        self.assertTrue(configuracao.notificacoes_aniversario_ativas)
+
+
+class ArquivosEstaticosAdminTests(SimpleTestCase):
+    def test_configuracao_estatica_tem_fallback_quando_whitenoise_nao_esta_instalado(self):
         from django.conf import settings
 
         self.assertEqual(settings.STATIC_URL, '/static/')
         self.assertEqual(settings.STATIC_ROOT, settings.BASE_DIR / 'staticfiles')
         self.assertIn(settings.BASE_DIR / 'static', settings.STATICFILES_DIRS)
-        self.assertEqual(
-            settings.STORAGES['staticfiles']['BACKEND'],
-            'whitenoise.storage.CompressedManifestStaticFilesStorage',
-        )
         security_index = settings.MIDDLEWARE.index('django.middleware.security.SecurityMiddleware')
-        self.assertEqual(
-            settings.MIDDLEWARE[security_index + 1],
-            'whitenoise.middleware.WhiteNoiseMiddleware',
-        )
+
+        if settings.WHITENOISE_AVAILABLE:
+            self.assertEqual(
+                settings.STORAGES['staticfiles']['BACKEND'],
+                'whitenoise.storage.CompressedManifestStaticFilesStorage',
+            )
+            self.assertEqual(
+                settings.MIDDLEWARE[security_index + 1],
+                'whitenoise.middleware.WhiteNoiseMiddleware',
+            )
+        else:
+            self.assertEqual(
+                settings.STORAGES['staticfiles']['BACKEND'],
+                'django.contrib.staticfiles.storage.StaticFilesStorage',
+            )
+            self.assertNotIn('whitenoise.middleware.WhiteNoiseMiddleware', settings.MIDDLEWARE)
 
     def test_django_encontra_css_do_admin_e_estaticos_do_projeto(self):
         from django.contrib.staticfiles import finders
