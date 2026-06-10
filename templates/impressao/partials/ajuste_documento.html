@@ -1,0 +1,22 @@
+<script>
+    (() => {
+        const ajustarDocumento = () => {
+            const documento = document.querySelector('.print-container');
+            if (!documento) return;
+
+            documento.classList.remove('print-compact', 'print-ultra-compact', 'allow-page-overflow');
+            if (documento.scrollHeight > documento.clientHeight + 1) {
+                documento.classList.add('print-compact');
+            }
+            if (documento.scrollHeight > documento.clientHeight + 1) {
+                documento.classList.add('print-ultra-compact');
+            }
+            if (documento.scrollHeight > documento.clientHeight + 1) {
+                documento.classList.add('allow-page-overflow');
+            }
+        };
+
+        window.addEventListener('load', ajustarDocumento);
+        window.addEventListener('beforeprint', ajustarDocumento);
+    })();
+</script>

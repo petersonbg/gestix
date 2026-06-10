@@ -232,11 +232,26 @@ class OrdemServicoTests(TestCase):
 
     def test_imprimir_os(self):
         ordem = self.criar_os()
+        ItemServicoOS.objects.create(
+            ordem_servico=ordem,
+            servico=self.servico,
+            quantidade=1,
+            valor_unitario=Decimal('100.00'),
+        )
+        ItemProdutoOS.objects.create(
+            ordem_servico=ordem,
+            produto=self.produto,
+            quantidade=1,
+            valor_unitario=Decimal('25.00'),
+        )
+        ordem.recalcular_totais()
         response = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'ORDEM DE SERVIÇO')
         self.assertContains(response, ordem.numero)
         self.assertContains(response, 'Assinatura do Responsável pela Execução')
+        self.assertContains(response, 'Manutenção')
+        self.assertContains(response, 'Peça A')
 
         ordem.responsavel_execucao = self.executor
         ordem.assinatura_responsavel_execucao = 'assinaturas_os/tecnico.png'
@@ -260,10 +275,13 @@ class OrdemServicoTests(TestCase):
             self.assertContains(response, texto)
         for texto in ['Assistência Técnica GESTIX Ltda', '11223344', 'os@gestix.test', '(27) 3222-1111']:
             self.assertNotContains(response, texto)
-        self.assertContains(response, 'size: A5 landscape')
-        self.assertContains(response, 'margin: 6mm')
-        self.assertContains(response, 'max-height: 136mm')
+        self.assertContains(response, 'size: 210mm 140mm')
+        self.assertContains(response, 'margin: 5mm')
+        self.assertContains(response, 'height: 130mm')
         self.assertContains(response, 'Assinatura do Cliente')
+        self.assertContains(response, 'width: 200mm')
+        self.assertContains(response, 'print-compact')
+        self.assertContains(response, 'Descrição')
 
     def test_filtrar_por_status(self):
         self.criar_os(status=OrdemServico.Status.ABERTA)

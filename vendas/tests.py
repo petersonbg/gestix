@@ -126,10 +126,41 @@ class ClienteBuscaVendaTests(TestCase):
         self.assertNotContains(response, 'Rua das Vendas, 10')
         self.assertNotContains(response, 'ISENTO')
         self.assertContains(response, 'GESTIX')
-        self.assertContains(response, 'size: A5 landscape')
-        self.assertContains(response, 'margin: 6mm')
-        self.assertContains(response, 'max-height: 136mm')
+        self.assertContains(response, 'size: 210mm 140mm')
+        self.assertContains(response, 'margin: 5mm')
+        self.assertContains(response, 'height: 130mm')
         self.assertContains(response, 'Assinatura do Cliente')
+        self.assertContains(response, 'width: 200mm')
+        self.assertContains(response, 'print-compact')
+
+    def test_recibo_renderiza_muitos_produtos_sem_ocultar_itens(self):
+        cliente = self.criar_cliente('Cliente Muitos Produtos', '66677788899')
+        venda = Venda.objects.create(
+            cliente=cliente,
+            usuario=self.user,
+            forma_pagamento=Venda.FormaPagamento.DINHEIRO,
+        )
+        for indice in range(12):
+            produto = Produto.objects.create(
+                nome=f'Item de venda {indice + 1:02d}',
+                codigo_interno=f'VEN-{indice + 1:02d}',
+                unidade_medida='UN',
+                preco_venda=Decimal('5.00'),
+            )
+            ItemVenda.objects.create(
+                venda=venda,
+                produto=produto,
+                quantidade=1,
+                valor_unitario=Decimal('5.00'),
+            )
+        venda.recalcular_totais()
+
+        response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.count(b'Item de venda'), 12)
+        self.assertContains(response, 'R$ 60,00')
+        self.assertContains(response, 'allow-page-overflow')
 
     def test_recibo_exibe_cabecalho_da_empresa_e_respeita_logo(self):
         empresa = Empresa.objects.create(

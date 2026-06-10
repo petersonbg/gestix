@@ -5,79 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Recibo Venda #{{ venda.pk }} | GESTIX</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        @page {
-            size: A5 landscape;
-            margin: 6mm;
-        }
-
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; }
-        body {
-            background: #eef1f4;
-            color: #202428;
-            font-family: Arial, sans-serif;
-            font-size: 9px;
-            line-height: 1.15;
-        }
-        h1, h2, p { margin: 0; }
-        h1 { font-size: 13px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 2px 3px; font-size: 8px; border: 1px solid #9da3a8; }
-        th { background: #edf0f2; font-weight: 700; }
-        .no-print { display: block; }
-        .print-container {
-            width: 100%;
-            max-width: 198mm;
-            max-height: 136mm;
-            overflow: hidden;
-            margin: 0 auto;
-            background: #fff;
-            padding: 4mm;
-        }
-        .section { margin-bottom: 3mm; }
-        .compact-text { font-size: 8px; line-height: 1.1; }
-        .document-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 4mm;
-            border-bottom: 1.5px solid #212529;
-            padding-bottom: 2mm;
-        }
-        .company-identity { display: flex; align-items: center; gap: 2mm; min-width: 0; }
-        .company-header-logo { max-height: 13mm; max-width: 34mm; object-fit: contain; }
-        .company-details { font-size: 8px; line-height: 1.1; }
-        .company-name { font-size: 12px; font-weight: 700; }
-        .company-separator::before { content: " | "; }
-        .brand-mark {
-            width: 10mm; height: 10mm; border-radius: 2mm; background: #212529; color: #fff;
-            display: inline-flex; align-items: center; justify-content: center; font-weight: 700;
-        }
-        .document-meta { text-align: right; white-space: nowrap; font-size: 8px; }
-        .document-meta h1 { margin-bottom: 1mm; }
-        .info-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 2mm; }
-        .info-box { border: 1px solid #adb5bd; border-radius: 1mm; padding: 1.5mm 2mm; }
-        .section-title { font-size: 8px; font-weight: 700; text-transform: uppercase; margin-bottom: 1mm; }
-        .text-end { text-align: right; }
-        .summary { width: 42%; margin-left: auto; }
-        .summary td { border: 0; padding: 1px 3px; }
-        .summary .total td { border-top: 1px solid #212529; font-size: 9px; font-weight: 700; }
-        .credit-info { display: flex; gap: 5mm; margin-bottom: 1mm; }
-        .signature { text-align: center; margin: 4mm auto 0; width: 55mm; }
-        .signature-line { border-top: 1px solid #222; padding-top: 1mm; font-size: 8px; }
-        .footer { margin-top: 2mm; border-top: 1px solid #ced4da; padding-top: 1mm; text-align: center; color: #6c757d; font-size: 7px; }
-        .page-break, table, tr, td, th { page-break-inside: avoid; }
-
-        @media print {
-            html, body { width: 210mm; height: 148mm; margin: 0; padding: 0; }
-            body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .no-print { display: none !important; }
-            .print-container { max-width: none; max-height: none; overflow: visible; margin: 0; padding: 0; }
-            .page-break { page-break-before: avoid; page-break-after: avoid; page-break-inside: avoid; }
-            table, tr, td, th { page-break-inside: avoid; }
-        }
-    </style>
+    {% include 'impressao/partials/estilos_documento.html' %}
 </head>
 <body>
     <div class="no-print py-2 text-center">
@@ -103,8 +31,8 @@
             </div>
             <div class="info-box compact-text">
                 <div class="section-title">Venda</div>
-                Vendedor: {{ vendedor_nome }}<br>
-                Pagamento: {{ venda.get_forma_pagamento_display|default:'Não informado' }}
+                <strong>Vendedor:</strong> {{ vendedor_nome }}<br>
+                <strong>Pagamento:</strong> {{ venda.get_forma_pagamento_display|default:'Não informado' }}
             </div>
         </section>
 
@@ -112,24 +40,22 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 16%;">Código</th>
                         <th>Descrição</th>
                         <th class="text-end" style="width: 10%;">Qtd.</th>
-                        <th class="text-end" style="width: 16%;">Vlr. Unit.</th>
-                        <th class="text-end" style="width: 16%;">Total</th>
+                        <th class="text-end" style="width: 17%;">Unit.</th>
+                        <th class="text-end" style="width: 17%;">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in venda.itens.all %}
                         <tr>
-                            <td>{{ item.produto.codigo_interno }}</td>
-                            <td>{{ item.produto.nome }}</td>
-                            <td class="text-end">{{ item.quantidade }}</td>
-                            <td class="text-end">R$ {{ item.valor_unitario }}</td>
-                            <td class="text-end">R$ {{ item.total_item }}</td>
+                            <td class="description-cell">{{ item.produto.nome }}{% if item.produto.codigo_interno %} ({{ item.produto.codigo_interno }}){% endif %}</td>
+                            <td class="text-end nowrap">{{ item.quantidade }}</td>
+                            <td class="text-end nowrap">R$ {{ item.valor_unitario }}</td>
+                            <td class="text-end nowrap">R$ {{ item.total_item }}</td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="5">Nenhum item informado.</td></tr>
+                        <tr><td colspan="4">Nenhum item informado.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -165,9 +91,13 @@
         {% endif %}
 
         {% if configuracao_sistema.mostrar_assinatura_cliente %}
-            <div class="signature page-break"><div class="signature-line">Assinatura do Cliente</div></div>
+            <section class="signature-grid page-break">
+                <div class="signature"><div class="signature-line">Assinatura do Cliente</div></div>
+                <div></div>
+            </section>
         {% endif %}
         <footer class="footer">{{ configuracao_sistema.mensagem_rodape_documentos }} Emitido em {% now "d/m/Y H:i" %}.</footer>
     </main>
+    {% include 'impressao/partials/ajuste_documento.html' %}
 </body>
 </html>

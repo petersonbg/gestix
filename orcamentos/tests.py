@@ -89,13 +89,13 @@ class ClienteBuscaOrcamentoTests(TestCase):
 
         response = self.client.get(reverse('orcamentos:imprimir_orcamento', kwargs={'pk': orcamento.pk}))
 
-        self.assertContains(response, 'Dados do Cliente', html=False)
+        self.assertContains(response, 'Cliente', html=False)
         self.assertContains(response, 'Cliente Impressão')
         self.assertContains(response, '44455566677')
         self.assertContains(response, 'Rua Central, 100')
-        self.assertContains(response, 'cliente.impressão@example.com')
-        self.assertContains(response, 'ISENTO')
-        self.assertContains(response, 'Orçamento válido por 30 dias')
+        self.assertNotContains(response, 'cliente.impressão@example.com')
+        self.assertNotContains(response, 'ISENTO')
+        self.assertContains(response, 'ORÇAMENTO VÁLIDO POR 30 DIAS')
 
         Empresa.objects.create(
             nome_fantasia='Empresa Orçamentos', razao_social='Empresa Orçamentos Ltda',
@@ -110,8 +110,37 @@ class ClienteBuscaOrcamentoTests(TestCase):
             self.assertContains(response, texto)
         for texto in ['Empresa Orçamentos Ltda', '987654321', '(11) 3333-2222', 'orcamentos@empresa.test']:
             self.assertNotContains(response, texto)
-        self.assertContains(response, 'size: A4 portrait')
-        self.assertContains(response, 'margin: 8mm')
-        self.assertContains(response, 'font-size: 9px')
+        self.assertContains(response, 'size: 210mm 140mm')
+        self.assertContains(response, 'margin: 5mm')
+        self.assertContains(response, 'font-size: 8px')
         self.assertContains(response, 'page-break-inside: avoid')
-        self.assertContains(response, 'Orçamento válido por 30 dias')
+        self.assertContains(response, 'ORÇAMENTO VÁLIDO POR 30 DIAS')
+        self.assertContains(response, 'width: 200mm')
+        self.assertContains(response, 'print-compact')
+
+    def test_impressao_orcamento_com_quinze_itens(self):
+        cliente = self.criar_cliente('Cliente Quinze Itens', '55566677788')
+        orcamento = Orcamento.objects.create(cliente=cliente, usuario=self.user)
+        for indice in range(15):
+            produto = Produto.objects.create(
+                nome=f'Produto compacto {indice + 1:02d}',
+                codigo_interno=f'ORC-{indice + 1:02d}',
+                unidade_medida='UN',
+                preco_venda=Decimal('10.00'),
+            )
+            ItemOrcamento.objects.create(
+                orcamento=orcamento,
+                produto=produto,
+                quantidade=1,
+                valor_unitario=Decimal('10.00'),
+            )
+        orcamento.recalcular_totais()
+
+        response = self.client.get(
+            reverse('orcamentos:imprimir_orcamento', kwargs={'pk': orcamento.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.count(b'Produto compacto'), 15)
+        self.assertContains(response, 'R$ 150,00')
+        self.assertContains(response, 'allow-page-overflow')
