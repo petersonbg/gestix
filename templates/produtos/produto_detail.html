@@ -25,7 +25,7 @@
             <div class="col-md-4"><span class="text-secondary small">Categoria</span><div>{{ produto.categoria|default:'-' }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Unidade de medida</span><div>{{ produto.unidade_medida }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">NCM</span><div>{{ produto.ncm|default:'-' }}</div></div>
-            <div class="col-md-4"><span class="text-secondary small">Preço de custo</span><div>R$ {{ produto.preco_custo }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Preço de custo</span><div>R$ {{ produto.preco_custo|default_if_none:"0,00" }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Preço de venda</span><div>R$ {{ produto.preco_venda }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Estoque atual</span><div>{{ produto.estoque_atual }}</div></div>
             <div class="col-md-4"><span class="text-secondary small">Estoque mínimo</span><div>{{ produto.estoque_minimo }}</div></div>
