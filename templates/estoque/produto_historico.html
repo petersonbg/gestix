@@ -1,0 +1,57 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Histórico de estoque | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Histórico de estoque</h1>
+        <p class="text-secondary mb-0">{{ produto.nome }} — saldo atual: <strong>{{ produto.estoque_atual }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'estoque:list' %}">Voltar</a>
+        <a class="btn btn-primary" href="{% url 'estoque:movimentar' %}">Nova movimentação</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Quantidade</th>
+                    <th>Origem</th>
+                    <th>Usuário</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movimentacao in movimentacoes %}
+                    <tr>
+                        <td>{{ movimentacao.data|date:'d/m/Y H:i' }}</td>
+                        <td>
+                            {% if movimentacao.tipo_movimentacao == 'ENTRADA' %}
+                                <span class="badge text-bg-success">Entrada</span>
+                            {% elif movimentacao.tipo_movimentacao == 'SAIDA' %}
+                                <span class="badge text-bg-danger">Saída</span>
+                            {% else %}
+                                <span class="badge text-bg-warning">Ajuste</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ movimentacao.quantidade }}</td>
+                        <td>{{ movimentacao.origem|default:'-' }}</td>
+                        <td>{{ movimentacao.usuario.get_full_name|default:movimentacao.usuario.username|default:'-' }}</td>
+                        <td>{{ movimentacao.observacao|linebreaksbr|default:'-' }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-secondary py-4">Nenhuma movimentação registrada para este produto.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ ordem.numero }} | GESTIX</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% include 'impressao/partials/estilos_documento.html' %}
+</head>
+<body>
+    <div class="no-print py-2 text-center">
+        <button class="btn btn-primary btn-sm" type="button" onclick="window.print()">Imprimir</button>
+    </div>
+
+    <main class="print-container">
+        <header class="document-header section page-break">
+            {% include 'administracao/partials/cabecalho_empresa.html' with compact_print=True %}
+            <div class="document-meta">
+                <h1>ORDEM DE SERVIÇO</h1>
+                <strong>{{ ordem.numero }}</strong><br>
+                {{ ordem.data_abertura|date:'d/m/Y H:i' }}
+            </div>
+        </header>
+
+        <section class="info-grid section page-break">
+            <div class="info-box compact-text">
+                <div class="section-title">Ordem</div>
+                <strong>Status:</strong> {{ ordem.get_status_display }}<br>
+                <strong>Responsável:</strong> {{ ordem.nome_responsavel }}<br>
+                <strong>Executor:</strong> {{ ordem.nome_responsavel_execucao }}<br>
+                <strong>Finalização:</strong> {% if ordem.data_finalizacao %}{{ ordem.data_finalizacao|date:'d/m/Y H:i' }}{% else %}Não finalizada{% endif %}
+            </div>
+            <div class="info-box compact-text">
+                <div class="section-title">Cliente</div>
+                <strong>{{ ordem.cliente.nome }}</strong><br>
+                CPF/CNPJ: {{ ordem.cliente.cpf_cnpj|default:'Não informado' }}
+                <span class="company-separator">Tel.: {{ ordem.cliente.telefone|default:'Não informado' }}</span>
+            </div>
+        </section>
+
+        <section class="service-notes section page-break">
+            <div class="info-box compact-text"><div class="section-title">Problema</div><div class="limited-text">{{ ordem.descricao_problema|default:'Não informado'|truncatechars:240 }}</div></div>
+            <div class="info-box compact-text"><div class="section-title">Diagnóstico</div><div class="limited-text">{{ ordem.diagnostico|default:'Não informado'|truncatechars:240 }}</div></div>
+            <div class="info-box compact-text"><div class="section-title">Solução / observações</div><div class="limited-text"><strong>Solução:</strong> {{ ordem.solucao|default:'Não informada'|truncatechars:150 }}{% if ordem.observacoes %}<br><strong>Obs.:</strong> {{ ordem.observacoes|truncatechars:100 }}{% endif %}</div></div>
+        </section>
+
+        <section class="tables-grid section page-break">
+            <div>
+                <div class="section-title">Serviços</div>
+                <table>
+                    <thead><tr><th>Descrição</th><th class="right" style="width: 11%;">Qtd.</th><th class="right" style="width: 19%;">Unit.</th><th class="right" style="width: 19%;">Total</th></tr></thead>
+                    <tbody>
+                        {% for item in ordem.itens_servico.all %}
+                            <tr><td class="description-cell">{{ item.descricao }}</td><td class="right">{{ item.quantidade }}</td><td class="right nowrap">R$ {{ item.valor_unitario }}</td><td class="right nowrap">R$ {{ item.subtotal }}</td></tr>
+                        {% empty %}<tr><td colspan="4">Nenhum serviço.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div class="section-title">Produtos / peças</div>
+                <table>
+                    <thead><tr><th>Descrição</th><th class="right" style="width: 11%;">Qtd.</th><th class="right" style="width: 19%;">Unit.</th><th class="right" style="width: 19%;">Total</th></tr></thead>
+                    <tbody>
+                        {% for item in ordem.itens_produto.all %}
+                            <tr><td class="description-cell">{{ item.produto.nome }}</td><td class="right">{{ item.quantidade }}</td><td class="right nowrap">R$ {{ item.valor_unitario }}</td><td class="right nowrap">R$ {{ item.subtotal }}</td></tr>
+                        {% empty %}<tr><td colspan="4">Nenhuma peça.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section page-break">
+            <table class="totals">
+                <tr><td>Serviços</td><td class="right">R$ {{ ordem.subtotal_servicos }}</td></tr>
+                <tr><td>Produtos</td><td class="right">R$ {{ ordem.subtotal_produtos }}</td></tr>
+                <tr><td>Deslocamento</td><td class="right">R$ {{ ordem.valor_deslocamento }}</td></tr>
+                <tr><td>Desconto</td><td class="right">R$ {{ ordem.desconto }}</td></tr>
+                <tr class="grand-total"><td>Total</td><td class="right">R$ {{ ordem.total }}</td></tr>
+            </table>
+        </section>
+
+        <section class="signatures page-break">
+            {% if configuracao_sistema.mostrar_assinatura_cliente %}
+                <div class="signature"><div class="signature-line">Assinatura do Cliente</div></div>
+            {% else %}<div></div>{% endif %}
+            <div class="signature">
+                {% if ordem.assinatura_responsavel_execucao %}
+                    <img class="signature-image" src="{{ ordem.assinatura_responsavel_execucao.url }}" alt="Assinatura de {{ ordem.nome_responsavel_execucao }}">
+                    <div class="signature-line">{{ ordem.nome_responsavel_execucao }} — Responsável pela Execução</div>
+                {% else %}
+                    <div class="signature-line">Assinatura do Responsável pela Execução</div>
+                    {% if ordem.responsavel_execucao %}<div>{{ ordem.nome_responsavel_execucao }}</div>{% endif %}
+                {% endif %}
+            </div>
+        </section>
+        <footer class="footer">{{ configuracao_sistema.mensagem_rodape_documentos }}</footer>
+    </main>
+    {% include 'impressao/partials/ajuste_documento.html' %}
+    <script>window.addEventListener('load', () => window.print())</script>
+</body>
+</html>
