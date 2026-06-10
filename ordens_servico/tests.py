@@ -86,11 +86,16 @@ class OrdemServicoTests(TestCase):
             bairro='Industrial', cidade='Vila Velha', estado='ES', cep='29100-000',
         )
         response = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
-        for texto in ['Assistência GESTIX', 'Assistência Técnica GESTIX Ltda',
-                      '11.222.333/0001-44', '11223344', '(27) 3222-1111',
-                      '(27) 97777-6666', 'os@gestix.test', 'Rua das Oficinas, 80', 'Vila Velha - ES']:
+        for texto in ['Assistência GESTIX', '11.222.333/0001-44',
+                      '(27) 3222-1111', '(27) 97777-6666']:
             self.assertContains(response, texto)
-        self.assertContains(response, 'size: A4 portrait')
+        for texto in ['Assistência Técnica GESTIX Ltda', '11223344', 'os@gestix.test',
+                      'Rua das Oficinas, 80', 'Vila Velha - ES']:
+            self.assertNotContains(response, texto)
+        self.assertContains(response, 'size: A5 landscape')
+        self.assertContains(response, 'margin: 6mm')
+        self.assertContains(response, 'max-height: 136mm')
+        self.assertContains(response, 'Assinatura do Cliente')
 
     def test_filtrar_por_status(self):
         self.criar_os(status=OrdemServico.Status.ABERTA)

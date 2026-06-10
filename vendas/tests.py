@@ -107,7 +107,7 @@ class ClienteBuscaVendaTests(TestCase):
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['cliente'], cliente)
 
-    def test_recibo_exibe_dados_completos_do_cliente(self):
+    def test_recibo_exibe_dados_resumidos_do_cliente_em_a5(self):
         cliente = self.criar_cliente('Cliente Recibo', '77788899900', telefone='2744445555')
         venda = Venda.objects.create(
             cliente=cliente,
@@ -119,15 +119,17 @@ class ClienteBuscaVendaTests(TestCase):
 
         response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
 
-        self.assertContains(response, 'Dados do Cliente', html=False)
         self.assertContains(response, 'Cliente Recibo')
         self.assertContains(response, '77788899900')
         self.assertContains(response, '2744445555')
-        self.assertContains(response, 'cliente.recibo@example.com')
-        self.assertContains(response, 'Rua das Vendas, 10')
-        self.assertContains(response, 'ISENTO')
+        self.assertNotContains(response, 'cliente.recibo@example.com')
+        self.assertNotContains(response, 'Rua das Vendas, 10')
+        self.assertNotContains(response, 'ISENTO')
         self.assertContains(response, 'GESTIX')
         self.assertContains(response, 'size: A5 landscape')
+        self.assertContains(response, 'margin: 6mm')
+        self.assertContains(response, 'max-height: 136mm')
+        self.assertContains(response, 'Assinatura do Cliente')
 
     def test_recibo_exibe_cabecalho_da_empresa_e_respeita_logo(self):
         empresa = Empresa.objects.create(
@@ -154,9 +156,11 @@ class ClienteBuscaVendaTests(TestCase):
 
         response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
 
-        for texto in ['Loja GESTIX', 'GESTIX Comércio Ltda', empresa.cnpj, empresa.inscricao_estadual,
-                      empresa.telefone, empresa.whatsapp, empresa.email, 'Avenida Central, 250', 'Vitória - ES']:
+        for texto in ['Loja GESTIX', empresa.cnpj, empresa.telefone, empresa.whatsapp]:
             self.assertContains(response, texto)
+        for texto in ['GESTIX Comércio Ltda', empresa.inscricao_estadual, empresa.email,
+                      'Avenida Central, 250', 'Vitória - ES']:
+            self.assertNotContains(response, texto)
         self.assertContains(response, empresa.logo_impressao.url)
 
         configuracao.mostrar_logo_impressoes = False
