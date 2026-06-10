@@ -1,0 +1,22 @@
+<div class="d-flex align-items-start gap-3 company-identity">
+    {% if logo_empresa_url %}
+        <img src="{{ logo_empresa_url }}" alt="Logo de {{ empresa.nome_fantasia|default:empresa.razao_social }}" class="company-header-logo">
+    {% elif not empresa %}
+        <span class="brand-mark">GX</span>
+    {% endif %}
+    <div class="company-details">
+        {% if empresa %}
+            <div class="company-name">{{ empresa.nome_fantasia|default:empresa.razao_social }}</div>
+            {% if not compact_print and empresa.razao_social and empresa.razao_social != empresa.nome_fantasia %}<div>{{ empresa.razao_social }}</div>{% endif %}
+            <div>
+                {% if empresa.cnpj %}<span><strong>CNPJ:</strong> {{ empresa.cnpj }}</span>{% endif %}
+                {% if not compact_print and empresa.inscricao_estadual %}<span class="company-separator"><strong>IE:</strong> {{ empresa.inscricao_estadual }}</span>{% endif %}
+            </div>
+            {% if empresa.telefone_whatsapp %}<div><strong>Telefone/WhatsApp:</strong> {{ empresa.telefone_whatsapp }}</div>{% endif %}
+            {% if not compact_print and empresa.email %}<div><strong>E-mail:</strong> {{ empresa.email }}</div>{% endif %}
+            {% if not compact_print and empresa.endereco_completo %}<div><strong>Endereço:</strong> {{ empresa.endereco_completo }}</div>{% endif %}
+        {% else %}
+            <div class="company-name">GESTIX</div>
+        {% endif %}
+    </div>
+</div>
