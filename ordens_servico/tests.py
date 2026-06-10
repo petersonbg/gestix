@@ -255,11 +255,10 @@ class OrdemServicoTests(TestCase):
             bairro='Industrial', cidade='Vila Velha', estado='ES', cep='29100-000',
         )
         response = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
-        for texto in ['Assistência GESTIX', '11.222.333/0001-44',
-                      '(27) 3222-1111', '(27) 97777-6666']:
+        for texto in ['Assistência GESTIX', '11.222.333/0001-44', '(27) 97777-6666',
+                      'Rua das Oficinas, 80 - Industrial - Vila Velha/ES', 'Contato:']:
             self.assertContains(response, texto)
-        for texto in ['Assistência Técnica GESTIX Ltda', '11223344', 'os@gestix.test',
-                      'Rua das Oficinas, 80', 'Vila Velha - ES']:
+        for texto in ['Assistência Técnica GESTIX Ltda', '11223344', 'os@gestix.test', '(27) 3222-1111']:
             self.assertNotContains(response, texto)
         self.assertContains(response, 'size: A5 landscape')
         self.assertContains(response, 'margin: 6mm')

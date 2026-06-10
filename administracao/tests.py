@@ -7,6 +7,7 @@ from django.urls import reverse
 from accounts.models import LogAtividade
 
 from .models import ConfiguracaoSistema, Empresa
+from .services import formatar_contato_empresa, formatar_endereco_empresa
 
 
 class AdministracaoAcessoTests(TestCase):
@@ -71,6 +72,28 @@ class AdministracaoAcessoTests(TestCase):
             for nome_url in ['usuarios_permissoes', 'logs_atividade']:
                 response = self.client.get(reverse(f'administracao:{nome_url}'))
                 self.assertRedirects(response, reverse('dashboard'))
+
+    def test_helpers_formatam_endereco_e_contato_da_empresa(self):
+        empresa = Empresa(
+            logradouro='Av. Central', numero='150', bairro='Centro',
+            cidade='Montanha', estado='ES', telefone='(27) 3333-3333',
+            celular='(27) 98888-8888', whatsapp='(27) 99999-9999',
+        )
+
+        self.assertEqual(
+            formatar_endereco_empresa(empresa),
+            'Av. Central, 150 - Centro - Montanha/ES',
+        )
+        self.assertEqual(formatar_contato_empresa(empresa), '(27) 99999-9999')
+
+    def test_helpers_ignoram_campos_vazios_e_aplicam_fallback_de_contato(self):
+        empresa = Empresa(logradouro='Rua Única', cidade='Vitória', telefone='(27) 3333-3333')
+        self.assertEqual(formatar_endereco_empresa(empresa), 'Rua Única - Vitória')
+        self.assertEqual(formatar_contato_empresa(empresa), '(27) 3333-3333')
+
+        empresa.telefone = ''
+        empresa.celular = '(27) 97777-7777'
+        self.assertEqual(formatar_contato_empresa(empresa), '(27) 97777-7777')
 
     def test_administrador_visualiza_e_edita_empresa(self):
         self.client.force_login(self.admin)

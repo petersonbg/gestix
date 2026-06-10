@@ -105,9 +105,13 @@ class ClienteBuscaOrcamentoTests(TestCase):
             bairro='Centro', cidade='São Paulo', estado='SP', cep='01000-000',
         )
         response = self.client.get(reverse('orcamentos:imprimir_orcamento', kwargs={'pk': orcamento.pk}))
-        for texto in ['Empresa Orçamentos', 'Empresa Orçamentos Ltda', '98.765.432/0001-10',
-                      '987654321', '(11) 3333-2222', '(11) 98888-7777',
-                      'orcamentos@empresa.test', 'Rua Comercial, 45', 'São Paulo - SP']:
+        for texto in ['Empresa Orçamentos', '98.765.432/0001-10', '(11) 98888-7777',
+                      'Rua Comercial, 45 - Centro - São Paulo/SP', 'Contato:']:
             self.assertContains(response, texto)
+        for texto in ['Empresa Orçamentos Ltda', '987654321', '(11) 3333-2222', 'orcamentos@empresa.test']:
+            self.assertNotContains(response, texto)
         self.assertContains(response, 'size: A4 portrait')
+        self.assertContains(response, 'margin: 8mm')
+        self.assertContains(response, 'font-size: 9px')
+        self.assertContains(response, 'page-break-inside: avoid')
         self.assertContains(response, 'Orçamento válido por 30 dias')

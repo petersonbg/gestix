@@ -156,10 +156,10 @@ class ClienteBuscaVendaTests(TestCase):
 
         response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
 
-        for texto in ['Loja GESTIX', empresa.cnpj, empresa.telefone, empresa.whatsapp]:
+        for texto in ['Loja GESTIX', empresa.cnpj, empresa.whatsapp,
+                      'Avenida Central, 250 - Centro - Vitória/ES', 'Contato:']:
             self.assertContains(response, texto)
-        for texto in ['GESTIX Comércio Ltda', empresa.inscricao_estadual, empresa.email,
-                      'Avenida Central, 250', 'Vitória - ES']:
+        for texto in ['GESTIX Comércio Ltda', empresa.inscricao_estadual, empresa.email, empresa.telefone]:
             self.assertNotContains(response, texto)
         self.assertContains(response, empresa.logo_impressao.url)
 
