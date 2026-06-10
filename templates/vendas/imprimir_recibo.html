@@ -25,9 +25,15 @@
         <section class="info-grid section page-break">
             <div class="info-box compact-text">
                 <div class="section-title">Cliente</div>
-                <strong>{{ venda.cliente.nome|default:'Não informado' }}</strong><br>
-                CPF/CNPJ: {{ venda.cliente.cpf_cnpj|default:'Não informado' }}
-                <span class="company-separator">Tel.: {{ venda.cliente.telefone|default:'Não informado' }}</span>
+                <strong>Nome:</strong> {{ venda.cliente.nome|default:'Não informado' }}<br>
+                <strong>CPF/CNPJ:</strong> {{ venda.cliente.cpf_cnpj|default:'Não informado' }}<br>
+                <strong>Telefone:</strong> {{ venda.cliente.telefone|default:'Não informado' }}
+                {% if venda.cliente.endereco or venda.cliente.email %}
+                    <div class="optional-client-details">
+                        {% if venda.cliente.endereco %}<strong>Endereço:</strong> {{ venda.cliente.endereco }}<br>{% endif %}
+                        {% if venda.cliente.email %}<strong>E-mail:</strong> {{ venda.cliente.email }}{% endif %}
+                    </div>
+                {% endif %}
             </div>
             <div class="info-box compact-text">
                 <div class="section-title">Venda</div>
@@ -93,7 +99,6 @@
         {% if configuracao_sistema.mostrar_assinatura_cliente %}
             <section class="signature-grid page-break">
                 <div class="signature"><div class="signature-line">Assinatura do Cliente</div></div>
-                <div></div>
             </section>
         {% endif %}
         <footer class="footer">{{ configuracao_sistema.mensagem_rodape_documentos }} Emitido em {% now "d/m/Y H:i" %}.</footer>

@@ -32,9 +32,15 @@
             </div>
             <div class="info-box compact-text">
                 <div class="section-title">Cliente</div>
-                <strong>{{ ordem.cliente.nome }}</strong><br>
-                CPF/CNPJ: {{ ordem.cliente.cpf_cnpj|default:'Não informado' }}
-                <span class="company-separator">Tel.: {{ ordem.cliente.telefone|default:'Não informado' }}</span>
+                <strong>Nome:</strong> {{ ordem.cliente.nome }}<br>
+                <strong>CPF/CNPJ:</strong> {{ ordem.cliente.cpf_cnpj|default:'Não informado' }}<br>
+                <strong>Telefone:</strong> {{ ordem.cliente.telefone|default:'Não informado' }}
+                {% if ordem.cliente.endereco or ordem.cliente.email %}
+                    <div class="optional-client-details">
+                        {% if ordem.cliente.endereco %}<strong>Endereço:</strong> {{ ordem.cliente.endereco }}<br>{% endif %}
+                        {% if ordem.cliente.email %}<strong>E-mail:</strong> {{ ordem.cliente.email }}{% endif %}
+                    </div>
+                {% endif %}
             </div>
         </section>
 

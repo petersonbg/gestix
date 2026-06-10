@@ -93,7 +93,7 @@ class ClienteBuscaOrcamentoTests(TestCase):
         self.assertContains(response, 'Cliente Impressão')
         self.assertContains(response, '44455566677')
         self.assertContains(response, 'Rua Central, 100')
-        self.assertNotContains(response, 'cliente.impressão@example.com')
+        self.assertContains(response, 'cliente.impressão@example.com')
         self.assertNotContains(response, 'ISENTO')
         self.assertContains(response, 'ORÇAMENTO VÁLIDO POR 30 DIAS')
 
@@ -110,18 +110,18 @@ class ClienteBuscaOrcamentoTests(TestCase):
             self.assertContains(response, texto)
         for texto in ['Empresa Orçamentos Ltda', '987654321', '(11) 3333-2222', 'orcamentos@empresa.test']:
             self.assertNotContains(response, texto)
-        self.assertContains(response, 'size: 210mm 140mm')
+        self.assertContains(response, 'size: 140mm 210mm')
         self.assertContains(response, 'margin: 5mm')
         self.assertContains(response, 'font-size: 8px')
         self.assertContains(response, 'page-break-inside: avoid')
         self.assertContains(response, 'ORÇAMENTO VÁLIDO POR 30 DIAS')
-        self.assertContains(response, 'width: 200mm')
+        self.assertContains(response, 'width: 130mm')
         self.assertContains(response, 'print-compact')
 
-    def test_impressao_orcamento_com_quinze_itens(self):
+    def test_impressao_orcamento_com_vinte_itens(self):
         cliente = self.criar_cliente('Cliente Quinze Itens', '55566677788')
         orcamento = Orcamento.objects.create(cliente=cliente, usuario=self.user)
-        for indice in range(15):
+        for indice in range(20):
             produto = Produto.objects.create(
                 nome=f'Produto compacto {indice + 1:02d}',
                 codigo_interno=f'ORC-{indice + 1:02d}',
@@ -141,6 +141,6 @@ class ClienteBuscaOrcamentoTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.count(b'Produto compacto'), 15)
-        self.assertContains(response, 'R$ 150,00')
+        self.assertEqual(response.content.count(b'Produto compacto'), 20)
+        self.assertContains(response, 'R$ 200,00')
         self.assertContains(response, 'allow-page-overflow')

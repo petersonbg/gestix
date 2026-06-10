@@ -1,6 +1,6 @@
 <style>
     @page {
-        size: 210mm 140mm;
+        size: 140mm 210mm;
         margin: 5mm;
     }
 
@@ -11,7 +11,7 @@
         color: #202428;
         font-family: Arial, Helvetica, sans-serif;
         font-size: 8px;
-        line-height: 1.1;
+        line-height: 1.15;
     }
     h1, h2, p { margin: 0; }
     h1, .document-title { font-size: 11px; line-height: 1.05; font-weight: 700; }
@@ -27,8 +27,9 @@
     th { background: #edf0f2; font-weight: 700; }
     .no-print { display: block; }
     .print-container {
-        width: 200mm;
-        height: 130mm;
+        width: 130mm;
+        min-height: 200mm;
+        height: 200mm;
         overflow: hidden;
         margin: 0 auto;
         padding: 3mm;
@@ -40,7 +41,7 @@
         justify-content: space-between;
         align-items: flex-start;
         gap: 3mm;
-        max-height: 24mm;
+        max-height: 32mm;
         overflow: hidden;
         padding-bottom: 1.5mm;
         border-bottom: 1.2px solid #212529;
@@ -51,13 +52,13 @@
         align-items: flex-start !important;
         gap: 2mm !important;
         min-width: 0;
-        max-height: 21mm;
+        max-height: 29mm;
         overflow: hidden;
     }
     .company-header-logo {
         flex: 0 0 auto;
-        max-width: 30mm;
-        max-height: 18mm;
+        max-width: 24mm;
+        max-height: 22mm;
         object-fit: contain;
     }
     .company-details { min-width: 0; font-size: 8px; line-height: 1.08; }
@@ -83,7 +84,7 @@
         font-weight: 700;
         text-transform: uppercase;
     }
-    .info-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2mm; }
+    .info-grid { display: grid; grid-template-columns: 1fr; gap: 1.5mm; }
     .info-box, .compact-card {
         padding: 1mm 1.5mm;
         border: 1px solid #adb5bd;
@@ -92,10 +93,11 @@
     }
     .compact-text { font-size: 8px; line-height: 1.08; }
     .company-separator::before { content: " | "; }
+    .optional-client-details { margin-top: .5mm; }
     .right, .text-end { text-align: right; }
     .nowrap { white-space: nowrap; }
     .description-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .summary, .totals { width: 40%; margin-left: auto; }
+    .summary, .totals { width: 55%; margin-left: auto; }
     .summary td, .totals td { padding: 1px 2px; border: 0; }
     .summary .total td, .totals .grand-total td {
         border-top: 1px solid #212529;
@@ -104,8 +106,8 @@
     }
     .signature-grid, .signatures {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12mm;
+        grid-template-columns: 1fr;
+        gap: 3mm;
         margin-top: 2mm;
     }
     .signature { min-height: 9mm; padding-top: 5mm; text-align: center; }
@@ -141,8 +143,8 @@
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 4;
     }
-    .service-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5mm; }
-    .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm; align-items: start; }
+    .service-notes { display: grid; grid-template-columns: 1fr; gap: 1mm; }
+    .tables-grid { display: grid; grid-template-columns: 1fr; gap: 2mm; align-items: start; }
     .credit-info { display: flex; gap: 5mm; margin-bottom: .7mm; }
     .page-break, .section, table, tr, td, th {
         page-break-inside: avoid;
@@ -151,8 +153,8 @@
 
     .print-container.print-compact { font-size: 7px; line-height: 1.02; }
     .print-container.print-compact .section { margin-bottom: 1mm; }
-    .print-container.print-compact .document-header { max-height: 20mm; padding-bottom: .8mm; }
-    .print-container.print-compact .company-identity { max-height: 18mm; }
+    .print-container.print-compact .document-header { max-height: 27mm; padding-bottom: .8mm; }
+    .print-container.print-compact .company-identity { max-height: 24mm; }
     .print-container.print-compact .company-header-logo { max-height: 15mm; }
     .print-container.print-compact .company-details,
     .print-container.print-compact .compact-text,
@@ -167,6 +169,7 @@
     .print-container.print-compact .compact-card { padding: .7mm 1mm; }
     .print-container.print-compact .signature { min-height: 7mm; padding-top: 4mm; }
     .print-container.print-compact .limited-text { max-height: 7mm; -webkit-line-clamp: 3; }
+    .print-container.print-compact .optional-client-details { display: none; }
 
     .print-container.print-ultra-compact .section { margin-bottom: .6mm; }
     .print-container.print-ultra-compact table td,
@@ -177,14 +180,14 @@
     .print-container.allow-page-overflow { height: auto; overflow: visible; }
 
     @media print {
-        html, body { width: 210mm; height: 140mm; margin: 0; padding: 0; }
+        html, body { width: 140mm; height: 210mm; margin: 0; padding: 0; }
         body {
             background: #fff !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
         .no-print { display: none !important; }
-        .print-container { width: 200mm; height: 130mm; margin: 0; padding: 0; }
+        .print-container { width: 130mm; min-height: 200mm; height: 200mm; margin: 0; padding: 0; }
         .page-break, .section, table, tr, td, th {
             page-break-before: avoid;
             page-break-after: avoid;

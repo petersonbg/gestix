@@ -275,11 +275,11 @@ class OrdemServicoTests(TestCase):
             self.assertContains(response, texto)
         for texto in ['Assistência Técnica GESTIX Ltda', '11223344', 'os@gestix.test', '(27) 3222-1111']:
             self.assertNotContains(response, texto)
-        self.assertContains(response, 'size: 210mm 140mm')
+        self.assertContains(response, 'size: 140mm 210mm')
         self.assertContains(response, 'margin: 5mm')
-        self.assertContains(response, 'height: 130mm')
+        self.assertContains(response, 'height: 200mm')
         self.assertContains(response, 'Assinatura do Cliente')
-        self.assertContains(response, 'width: 200mm')
+        self.assertContains(response, 'width: 130mm')
         self.assertContains(response, 'print-compact')
         self.assertContains(response, 'Descrição')
 

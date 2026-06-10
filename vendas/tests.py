@@ -122,25 +122,25 @@ class ClienteBuscaVendaTests(TestCase):
         self.assertContains(response, 'Cliente Recibo')
         self.assertContains(response, '77788899900')
         self.assertContains(response, '2744445555')
-        self.assertNotContains(response, 'cliente.recibo@example.com')
-        self.assertNotContains(response, 'Rua das Vendas, 10')
+        self.assertContains(response, 'cliente.recibo@example.com')
+        self.assertContains(response, 'Rua das Vendas, 10')
         self.assertNotContains(response, 'ISENTO')
         self.assertContains(response, 'GESTIX')
-        self.assertContains(response, 'size: 210mm 140mm')
+        self.assertContains(response, 'size: 140mm 210mm')
         self.assertContains(response, 'margin: 5mm')
-        self.assertContains(response, 'height: 130mm')
+        self.assertContains(response, 'height: 200mm')
         self.assertContains(response, 'Assinatura do Cliente')
-        self.assertContains(response, 'width: 200mm')
+        self.assertContains(response, 'width: 130mm')
         self.assertContains(response, 'print-compact')
 
-    def test_recibo_renderiza_muitos_produtos_sem_ocultar_itens(self):
+    def test_recibo_renderiza_vinte_produtos_sem_ocultar_itens(self):
         cliente = self.criar_cliente('Cliente Muitos Produtos', '66677788899')
         venda = Venda.objects.create(
             cliente=cliente,
             usuario=self.user,
             forma_pagamento=Venda.FormaPagamento.DINHEIRO,
         )
-        for indice in range(12):
+        for indice in range(20):
             produto = Produto.objects.create(
                 nome=f'Item de venda {indice + 1:02d}',
                 codigo_interno=f'VEN-{indice + 1:02d}',
@@ -158,8 +158,8 @@ class ClienteBuscaVendaTests(TestCase):
         response = self.client.get(reverse('vendas:imprimir', kwargs={'pk': venda.pk}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.count(b'Item de venda'), 12)
-        self.assertContains(response, 'R$ 60,00')
+        self.assertEqual(response.content.count(b'Item de venda'), 20)
+        self.assertContains(response, 'R$ 100,00')
         self.assertContains(response, 'allow-page-overflow')
 
     def test_recibo_exibe_cabecalho_da_empresa_e_respeita_logo(self):
