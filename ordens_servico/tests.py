@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
@@ -146,7 +147,72 @@ class OrdemServicoTests(TestCase):
         self.produto.refresh_from_db()
         self.assertEqual(self.produto.estoque_atual, 3)
         self.assertTrue(MovimentacaoEstoque.objects.filter(origem='ORDEM_SERVICO', quantidade=2).exists())
-        self.assertTrue(HistoricoOrdemServico.objects.filter(ordem_servico=ordem, acao='CONCLUSAO').exists())
+        ordem.refresh_from_db()
+        self.assertIsNotNone(ordem.data_finalizacao)
+        historico = HistoricoOrdemServico.objects.get(ordem_servico=ordem, acao='CONCLUSAO')
+        self.assertEqual(historico.usuario, self.user)
+        self.assertIn('Status alterado de Aberta para Concluída', historico.descricao)
+        self.assertIn('OS finalizada em', historico.descricao)
+
+    def test_os_finalizada_nao_pode_ser_editada_via_get(self):
+        ordem = self.criar_os()
+        ordem.concluir(self.user)
+        response = self.client.get(reverse('ordens_servico:update', args=[ordem.pk]), follow=True)
+        self.assertRedirects(response, ordem.get_absolute_url())
+        self.assertContains(response, 'Esta ordem de serviço já foi finalizada e não pode ser editada.')
+
+    def test_os_finalizada_nao_pode_ser_alterada_via_post(self):
+        ordem = self.criar_os(descricao_problema='Descrição original')
+        ordem.concluir(self.user)
+        response = self.client.post(
+            reverse('ordens_servico:update', args=[ordem.pk]),
+            {'descricao_problema': 'Descrição adulterada'},
+            follow=True,
+        )
+        self.assertRedirects(response, ordem.get_absolute_url())
+        ordem.refresh_from_db()
+        self.assertEqual(ordem.descricao_problema, 'Descrição original')
+        self.assertContains(response, 'Esta ordem de serviço já foi finalizada e não pode ser editada.')
+
+    def test_os_finalizada_nao_pode_retornar_a_status_editavel(self):
+        ordem = self.criar_os()
+        ordem.concluir(self.user)
+        response = self.client.post(
+            reverse('ordens_servico:status', args=[ordem.pk]),
+            {'status': OrdemServico.Status.EM_ANDAMENTO},
+            follow=True,
+        )
+        ordem.refresh_from_db()
+        self.assertEqual(ordem.status, OrdemServico.Status.CONCLUIDA)
+        self.assertContains(response, 'Esta ordem de serviço já foi finalizada e não pode ser editada.')
+
+    def test_admin_torna_os_finalizada_somente_leitura(self):
+        ordem = self.criar_os()
+        ordem.concluir(self.user)
+        model_admin = admin.site._registry[OrdemServico]
+        readonly_fields = model_admin.get_readonly_fields(None, ordem)
+        for field_name in ('status', 'data_abertura', 'data_finalizacao', 'responsavel', 'responsavel_execucao'):
+            self.assertIn(field_name, readonly_fields)
+
+    def test_detalhes_ocultam_edicao_e_exibem_data_finalizacao(self):
+        ordem = self.criar_os()
+        ordem.concluir(self.user)
+        response = self.client.get(ordem.get_absolute_url())
+        self.assertNotContains(response, reverse('ordens_servico:update', args=[ordem.pk]))
+        self.assertContains(response, 'Data de finalização')
+        self.assertContains(response, timezone.localtime(ordem.data_finalizacao).strftime('%d/%m/%Y %H:%M'))
+
+    def test_impressao_exibe_data_finalizacao(self):
+        ordem = self.criar_os()
+        ordem.concluir(self.user)
+        response = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
+        self.assertContains(response, 'Finalização:')
+        self.assertContains(response, timezone.localtime(ordem.data_finalizacao).strftime('%d/%m/%Y %H:%M'))
+
+    def test_impressao_exibe_nao_finalizada_quando_aberta(self):
+        ordem = self.criar_os()
+        response = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
+        self.assertContains(response, 'Não finalizada')
 
     def test_bloqueia_conclusao_sem_estoque(self):
         ordem = self.criar_os()

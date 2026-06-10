@@ -80,7 +80,8 @@
                 <strong>Status:</strong> {{ ordem.get_status_display }}<br>
                 <strong>Abertura/gestão:</strong> {{ ordem.nome_responsavel }}<br>
                 <strong>Execução:</strong> {{ ordem.nome_responsavel_execucao }}<br>
-                <strong>Previsão:</strong> {{ ordem.data_previsao|date:'d/m/Y'|default:'Não informada' }}
+                <strong>Previsão:</strong> {{ ordem.data_previsao|date:'d/m/Y'|default:'Não informada' }}<br>
+                <strong>Finalização:</strong> {% if ordem.data_finalizacao %}{{ ordem.data_finalizacao|date:'d/m/Y H:i' }}{% else %}Não finalizada{% endif %}
             </div>
             <div class="info-box compact-text">
                 <div class="section-title">Cliente</div>

@@ -51,7 +51,7 @@ class OrdemServico(models.Model):
     cliente = models.ForeignKey('clientes.Cliente', on_delete=models.PROTECT, related_name='ordens_servico')
     data_abertura = models.DateTimeField(default=timezone.now)
     data_previsao = models.DateField('data de previsão', blank=True, null=True)
-    data_finalizacao = models.DateTimeField(blank=True, null=True)
+    data_finalizacao = models.DateTimeField('Data de Finalização', blank=True, null=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ABERTA)
     responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='ordens_servico_responsavel', blank=True, null=True)
     responsavel_execucao = models.ForeignKey(
@@ -141,6 +141,10 @@ class OrdemServico(models.Model):
         return self.nome_usuario(self.responsavel_execucao)
 
     @property
+    def finalizada(self):
+        return self.status in {self.Status.CONCLUIDA, self.Status.ENTREGUE}
+
+    @property
     def saldo(self):
         return max(self.total - self.valor_pago, Decimal('0.00'))
 
@@ -162,18 +166,32 @@ class OrdemServico(models.Model):
         return HistoricoOrdemServico.objects.create(ordem_servico=self, usuario=usuario, acao=acao, descricao=descricao)
 
     def alterar_status(self, novo_status, usuario):
-        if self.status == self.Status.ENTREGUE and not (usuario.is_superuser or usuario.groups.filter(name='Administrador').exists()):
-            raise ValidationError('Ordens entregues só podem ser alteradas por administradores.')
+        if self.finalizada:
+            if self.status == self.Status.CONCLUIDA and novo_status == self.Status.ENTREGUE:
+                anterior = self.status
+                self.status = novo_status
+                self.save(update_fields=['status', 'atualizado_em'])
+                self.registrar_historico(
+                    usuario,
+                    'MUDANCA_STATUS',
+                    f'Status alterado de {self.Status(anterior).label} para {self.Status(novo_status).label}.',
+                )
+                return self
+            raise ValidationError('Esta ordem de serviço já foi finalizada e não pode ser editada.')
         if novo_status == self.Status.CONCLUIDA:
             return self.concluir(usuario)
         if novo_status == self.Status.CANCELADA:
             return self.cancelar(usuario)
-        if novo_status == self.Status.ENTREGUE and self.status != self.Status.CONCLUIDA:
+        if novo_status == self.Status.ENTREGUE:
             raise ValidationError('A ordem deve estar concluída antes da entrega.')
         anterior = self.status
         self.status = novo_status
         self.save(update_fields=['status', 'atualizado_em'])
-        self.registrar_historico(usuario, 'MUDANCA_STATUS', f'Status alterado de {anterior} para {novo_status}.')
+        self.registrar_historico(
+            usuario,
+            'MUDANCA_STATUS',
+            f'Status alterado de {self.Status(anterior).label} para {self.Status(novo_status).label}.',
+        )
         return self
 
     def concluir(self, usuario):
@@ -184,8 +202,8 @@ class OrdemServico(models.Model):
             ordem = OrdemServico.objects.select_for_update().get(pk=self.pk)
             if ordem.status == self.Status.CANCELADA:
                 raise ValidationError('Ordem de serviço cancelada não pode ser concluída.')
-            if ordem.status == self.Status.ENTREGUE:
-                raise ValidationError('Ordem de serviço entregue não pode ser concluída novamente.')
+            if ordem.finalizada:
+                raise ValidationError('Esta ordem de serviço já foi finalizada e não pode ser editada.')
             itens = list(ordem.itens_produto.select_related('produto'))
             produtos = {
                 produto.pk: produto
@@ -205,14 +223,27 @@ class OrdemServico(models.Model):
                         usuario=usuario,
                     )
                 ordem.estoque_baixado = True
+            status_anterior = ordem.status
             ordem.status = self.Status.CONCLUIDA
             ordem.data_finalizacao = timezone.now()
             ordem.save(update_fields=['status', 'data_finalizacao', 'estoque_baixado', 'atualizado_em'])
-            ordem.registrar_historico(usuario, 'CONCLUSAO', 'Ordem de serviço concluída e estoque baixado.')
+            data_local = timezone.localtime(ordem.data_finalizacao)
+            ordem.registrar_historico(
+                usuario,
+                'CONCLUSAO',
+                (
+                    f'OS finalizada em {data_local:%d/%m/%Y %H:%M:%S} por '
+                    f'{self.nome_usuario(usuario)}. Status alterado de '
+                    f'{self.Status(status_anterior).label} para {self.Status.CONCLUIDA.label}. '
+                    'Estoque baixado.'
+                ),
+            )
             self.refresh_from_db()
             return ordem
 
     def cancelar(self, usuario):
+        if self.finalizada:
+            raise ValidationError('Esta ordem de serviço já foi finalizada e não pode ser editada.')
         if self.estoque_baixado:
             raise ValidationError('A OS já baixou estoque. Faça o estorno antes de cancelar.')
         if self.status == self.Status.ENTREGUE:

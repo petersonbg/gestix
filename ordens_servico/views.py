@@ -20,6 +20,9 @@ from .forms import AlterarStatusForm, OrdemServicoForm, PagamentoOSForm, Produto
 from .models import OrdemServico, Servico
 
 
+MENSAGEM_OS_FINALIZADA = 'Esta ordem de serviço já foi finalizada e não pode ser editada.'
+
+
 def grupos_usuario(user):
     return set(user.groups.values_list('name', flat=True)) if user.is_authenticated else set()
 
@@ -92,7 +95,10 @@ class OrdemServicoDetailView(OrdemServicoPermissaoMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['status_form'] = AlterarStatusForm(initial={'status': self.object.status})
         context['pagamento_form'] = PagamentoOSForm(initial={'valor': self.object.saldo})
-        context['pode_editar'] = pode_editar(self.request.user) and (self.object.status != OrdemServico.Status.ENTREGUE or self.request.user.is_superuser or self.request.user.groups.filter(name='Administrador').exists())
+        usuario_pode_editar = pode_editar(self.request.user)
+        context['pode_editar'] = usuario_pode_editar and not self.object.finalizada
+        context['pode_entregar'] = usuario_pode_editar and self.object.status == OrdemServico.Status.CONCLUIDA
+        context['pode_registrar_pagamento'] = usuario_pode_editar
         context['pode_gerenciar'] = pode_gerenciar(self.request.user)
         return context
 
@@ -116,9 +122,11 @@ class OrdemServicoFormView(OrdemServicoPermissaoMixin, View):
 
     def post(self, request, *args, **kwargs):
         ordem = self.get_instance() or OrdemServico()
-        if ordem.pk and ordem.status == OrdemServico.Status.ENTREGUE and not (request.user.is_superuser or request.user.groups.filter(name='Administrador').exists()):
-            messages.error(request, 'Ordens entregues só podem ser alteradas por administradores.')
-            return redirect(ordem)
+        if ordem.pk:
+            ordem.refresh_from_db(fields=['status'])
+            if ordem.finalizada:
+                messages.error(request, MENSAGEM_OS_FINALIZADA)
+                return redirect(ordem)
         dados_anteriores = {
             'valor_deslocamento': ordem.valor_deslocamento if ordem.pk else 0,
             'responsavel_execucao_id': ordem.responsavel_execucao_id if ordem.pk else None,
@@ -176,6 +184,9 @@ class OrdemServicoCreateView(OrdemServicoFormView):
 class OrdemServicoUpdateView(OrdemServicoFormView):
     def dispatch(self, request, *args, **kwargs):
         self.instance = get_object_or_404(OrdemServico, pk=kwargs['pk'])
+        if self.instance.finalizada:
+            messages.error(request, MENSAGEM_OS_FINALIZADA)
+            return redirect(self.instance)
         return super().dispatch(request, *args, **kwargs)
 
 
