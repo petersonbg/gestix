@@ -1,0 +1,146 @@
+from datetime import timedelta
+from unittest.mock import patch
+
+from django.contrib.auth import get_user_model
+from django.db.utils import OperationalError
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
+from django.utils import timezone
+
+from administracao.models import ConfiguracaoSistema
+
+from .middleware import ULTIMA_ATIVIDADE_SESSAO
+
+
+class LogoutInatividadeTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_superuser(
+            username='admin-timeout',
+            password='senha',
+            email='timeout@gestix.test',
+        )
+        self.client.login(username='admin-timeout', password='senha')
+
+    def definir_ultima_atividade(self, instante):
+        session = self.client.session
+        session[ULTIMA_ATIVIDADE_SESSAO] = instante.timestamp()
+        session.save()
+
+    def test_backend_aplica_tempo_configurado_em_minutos(self):
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.tempo_logout_inatividade = 30
+        configuracao.save()
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(ULTIMA_ATIVIDADE_SESSAO, self.client.session)
+        self.assertGreaterEqual(self.client.session.get_expiry_age(), 1798)
+        self.assertLessEqual(self.client.session.get_expiry_age(), 1800)
+
+    def test_sessao_expirada_redireciona_para_login(self):
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.tempo_logout_inatividade = 1
+        configuracao.save()
+        self.definir_ultima_atividade(timezone.now() - timedelta(seconds=61))
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertRedirects(response, reverse('login'))
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_sem_configuracao_cria_padrao_de_quinze_minutos(self):
+        ConfiguracaoSistema.objects.all().delete()
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        configuracao = ConfiguracaoSistema.objects.get(pk=1)
+        self.assertEqual(configuracao.tempo_logout_inatividade, 15)
+        self.assertGreaterEqual(self.client.session.get_expiry_age(), 898)
+        self.assertLessEqual(self.client.session.get_expiry_age(), 900)
+
+    def test_javascript_recebe_tempo_configurado(self):
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.tempo_logout_inatividade = 27
+        configuracao.save()
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertContains(response, 'const timeoutMinutes = Number(27);')
+        self.assertContains(response, reverse('session_keepalive'))
+        self.assertContains(response, "window.location.replace(loginPath)")
+
+    def test_keepalive_exige_login_e_renova_atividade(self):
+        configuracao = ConfiguracaoSistema.get_solo()
+        configuracao.tempo_logout_inatividade = 15
+        configuracao.save()
+        instante_antigo = timezone.now() - timedelta(minutes=5)
+        self.definir_ultima_atividade(instante_antigo)
+
+        response = self.client.post(reverse('session_keepalive'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'ativa': True})
+        self.assertGreater(self.client.session[ULTIMA_ATIVIDADE_SESSAO], instante_antigo.timestamp())
+
+        self.client.logout()
+        response = self.client.post(reverse('session_keepalive'))
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('session_keepalive')}",
+            fetch_redirect_response=False,
+        )
+
+
+class HomeRouteTests(SimpleTestCase):
+    @override_settings(DEBUG=False, ALLOWED_HOSTS=['testserver'])
+    def test_rota_inicial_renderiza_sem_banco_e_sem_manifesto_estatico(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'GESTIX')
+        self.assertContains(response, '/static/css/home.css')
+
+    @patch('administracao.services.ConfiguracaoSistema.get_solo', side_effect=OperationalError)
+    def test_configuracao_usa_valores_padrao_se_tabela_ainda_nao_existe(self, get_solo):
+        from administracao.services import obter_configuracao_sistema
+
+        configuracao = obter_configuracao_sistema()
+
+        get_solo.assert_called_once_with()
+        self.assertIsNone(configuracao.pk)
+        self.assertEqual(configuracao.tempo_logout_inatividade, 15)
+        self.assertTrue(configuracao.notificacoes_aniversario_ativas)
+
+
+class ArquivosEstaticosAdminTests(SimpleTestCase):
+    def test_configuracao_estatica_tem_fallback_quando_whitenoise_nao_esta_instalado(self):
+        from django.conf import settings
+
+        self.assertEqual(settings.STATIC_URL, '/static/')
+        self.assertEqual(settings.STATIC_ROOT, settings.BASE_DIR / 'staticfiles')
+        self.assertIn(settings.BASE_DIR / 'static', settings.STATICFILES_DIRS)
+        security_index = settings.MIDDLEWARE.index('django.middleware.security.SecurityMiddleware')
+
+        if settings.WHITENOISE_AVAILABLE:
+            self.assertEqual(
+                settings.STORAGES['staticfiles']['BACKEND'],
+                'whitenoise.storage.CompressedManifestStaticFilesStorage',
+            )
+            self.assertEqual(
+                settings.MIDDLEWARE[security_index + 1],
+                'whitenoise.middleware.WhiteNoiseMiddleware',
+            )
+        else:
+            self.assertEqual(
+                settings.STORAGES['staticfiles']['BACKEND'],
+                'django.contrib.staticfiles.storage.StaticFilesStorage',
+            )
+            self.assertNotIn('whitenoise.middleware.WhiteNoiseMiddleware', settings.MIDDLEWARE)
+
+    def test_django_encontra_css_do_admin_e_estaticos_do_projeto(self):
+        from django.contrib.staticfiles import finders
+
+        self.assertIsNotNone(finders.find('admin/css/base.css'))
+        self.assertIsNotNone(finders.find('css/home.css'))
