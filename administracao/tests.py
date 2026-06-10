@@ -1,14 +1,132 @@
+from io import BytesIO
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
 from accounts.models import LogAtividade
 
+from .forms import EmpresaForm
 from .models import ConfiguracaoSistema, Empresa
 from .services import formatar_contato_empresa, formatar_endereco_empresa
 
+
+
+
+class EmpresaLogotiposTests(TestCase):
+    @staticmethod
+    def imagem_raster(nome='logo.png', formato='PNG', tamanho=(32, 32)):
+        conteudo = BytesIO()
+        Image.new('RGBA' if formato == 'PNG' else 'RGB', tamanho, '#0d6efd').save(
+            conteudo, format=formato
+        )
+        return SimpleUploadedFile(
+            nome,
+            conteudo.getvalue(),
+            content_type='image/png' if formato == 'PNG' else 'image/jpeg',
+        )
+
+    @staticmethod
+    def svg(nome='logo.svg', conteudo=None):
+        conteudo = conteudo or (
+            b'<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400">'
+            b'<rect width="1200" height="400" fill="#0d6efd"/></svg>'
+        )
+        return SimpleUploadedFile(nome, conteudo, content_type='image/svg+xml')
+
+    def formulario(self, *, logo=None, logo_impressao=None):
+        arquivos = {}
+        if logo is not None:
+            arquivos['logo'] = logo
+        if logo_impressao is not None:
+            arquivos['logo_impressao'] = logo_impressao
+        return EmpresaForm(
+            data={'cor_primaria': '#0D6EFD', 'cor_secundaria': '#6C757D'},
+            files=arquivos,
+            instance=Empresa(pk=1),
+        )
+
+    def test_logo_sistema_aceita_png_jpg_jpeg_e_svg_validos(self):
+        arquivos = [
+            self.imagem_raster('logo.png'),
+            self.imagem_raster('logo.jpg', formato='JPEG'),
+            self.imagem_raster('logo.jpeg', formato='JPEG'),
+            self.svg(),
+        ]
+
+        for arquivo in arquivos:
+            with self.subTest(nome=arquivo.name):
+                formulario = self.formulario(logo=arquivo)
+                self.assertTrue(formulario.is_valid(), formulario.errors)
+
+    def test_logo_impressao_aceita_somente_png_e_svg_validos(self):
+        for arquivo in [self.imagem_raster('impressao.png'), self.svg('impressao.svg')]:
+            with self.subTest(nome=arquivo.name):
+                formulario = self.formulario(logo_impressao=arquivo)
+                self.assertTrue(formulario.is_valid(), formulario.errors)
+
+        formulario = self.formulario(
+            logo_impressao=self.imagem_raster('impressao.jpg', formato='JPEG')
+        )
+        self.assertFalse(formulario.is_valid())
+        self.assertIn('Formato não permitido', formulario.errors['logo_impressao'][0])
+
+    def test_rejeita_extensoes_nao_permitidas_e_conteudo_disfarcado(self):
+        formulario_webp = self.formulario(
+            logo=SimpleUploadedFile('logo.webp', b'arquivo', content_type='image/webp')
+        )
+        formulario_png_disfarcado = self.formulario(
+            logo=self.imagem_raster('logo.png', formato='JPEG')
+        )
+
+        self.assertFalse(formulario_webp.is_valid())
+        self.assertIn('Formato não permitido', formulario_webp.errors['logo'][0])
+        self.assertFalse(formulario_png_disfarcado.is_valid())
+        self.assertIn('corrompido', formulario_png_disfarcado.errors['logo'][0])
+
+    def test_rejeita_logos_acima_dos_limites(self):
+        logo_sistema = SimpleUploadedFile('logo.png', b'0' * (2 * 1024 * 1024 + 1))
+        logo_impressao = SimpleUploadedFile('logo.svg', b'0' * (5 * 1024 * 1024 + 1))
+
+        formulario = self.formulario(logo=logo_sistema, logo_impressao=logo_impressao)
+
+        self.assertFalse(formulario.is_valid())
+        self.assertIn('no máximo 2 MB', formulario.errors['logo'][0])
+        self.assertIn('no máximo 5 MB', formulario.errors['logo_impressao'][0])
+
+    def test_rejeita_imagem_raster_e_svg_corrompidos(self):
+        raster = SimpleUploadedFile('logo.png', b'nao-e-uma-imagem', content_type='image/png')
+        svg = self.svg('impressao.svg', b'<svg><elemento-incompleto></svg')
+
+        formulario = self.formulario(logo=raster, logo_impressao=svg)
+
+        self.assertFalse(formulario.is_valid())
+        self.assertIn('imagem está corrompido', formulario.errors['logo'][0])
+        self.assertIn('SVG está corrompido', formulario.errors['logo_impressao'][0])
+
+    def test_formulario_exibe_ajudas_e_restricoes_de_selecao(self):
+        formulario = EmpresaForm(instance=Empresa(pk=1))
+
+        self.assertEqual(formulario.fields['logo'].label, 'Logo do Sistema')
+        self.assertEqual(formulario.fields['logo_impressao'].label, 'Logo de Impressão')
+        self.assertEqual(
+            formulario.fields['logo'].help_text,
+            'Recomendado: PNG transparente 512x512',
+        )
+        self.assertEqual(
+            formulario.fields['logo_impressao'].help_text,
+            'Recomendado: PNG ou SVG horizontal 1200x400',
+        )
+        self.assertEqual(
+            formulario.fields['logo'].widget.attrs['accept'], '.png,.jpg,.jpeg,.svg'
+        )
+        self.assertEqual(
+            formulario.fields['logo_impressao'].widget.attrs['accept'], '.png,.svg'
+        )
 
 class AdministracaoAcessoTests(TestCase):
     @classmethod
@@ -94,6 +212,16 @@ class AdministracaoAcessoTests(TestCase):
         empresa.telefone = ''
         empresa.celular = '(27) 97777-7777'
         self.assertEqual(formatar_contato_empresa(empresa), '(27) 97777-7777')
+
+    def test_formulario_empresa_exibe_ajuda_dos_logotipos(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse('administracao:dados_empresa_editar'))
+
+        self.assertContains(response, 'Recomendado: PNG transparente 512x512')
+        self.assertContains(response, 'Recomendado: PNG ou SVG horizontal 1200x400')
+        self.assertContains(response, 'accept=".png,.jpg,.jpeg,.svg"')
+        self.assertContains(response, 'accept=".png,.svg"')
 
     def test_administrador_visualiza_e_edita_empresa(self):
         self.client.force_login(self.admin)

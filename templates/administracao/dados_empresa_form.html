@@ -31,8 +31,8 @@
     </div></div></div>
 
     <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Identidade visual</h2></div><div class="card-body"><div class="row g-3">
-        <div class="col-md-6"><label class="form-label" for="{{ form.logo.id_for_label }}">{{ form.logo.label }}</label>{{ form.logo }}<div class="form-text">PNG, JPG, WEBP ou SVG.</div>{{ form.logo.errors }}</div>
-        <div class="col-md-6"><label class="form-label" for="{{ form.logo_impressao.id_for_label }}">{{ form.logo_impressao.label }}</label>{{ form.logo_impressao }}<div class="form-text">Versão indicada para recibos e documentos.</div>{{ form.logo_impressao.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.logo.id_for_label }}">{{ form.logo.label }}</label>{{ form.logo }}{% if form.logo.help_text %}<div class="form-text">{{ form.logo.help_text }}</div>{% endif %}{{ form.logo.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.logo_impressao.id_for_label }}">{{ form.logo_impressao.label }}</label>{{ form.logo_impressao }}{% if form.logo_impressao.help_text %}<div class="form-text">{{ form.logo_impressao.help_text }}</div>{% endif %}{{ form.logo_impressao.errors }}</div>
         <div class="col-md-3"><label class="form-label" for="{{ form.cor_primaria.id_for_label }}">{{ form.cor_primaria.label }}</label>{{ form.cor_primaria }}{{ form.cor_primaria.errors }}</div>
         <div class="col-md-3"><label class="form-label" for="{{ form.cor_secundaria.id_for_label }}">{{ form.cor_secundaria.label }}</label>{{ form.cor_secundaria }}{{ form.cor_secundaria.errors }}</div>
     </div></div></div>

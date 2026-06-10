@@ -1,14 +1,15 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
+
+from .validators import validador_logo_impressao, validador_logo_sistema
 
 
 validador_cor_hexadecimal = RegexValidator(
     regex=r'^#[0-9A-Fa-f]{6}$',
     message='Informe uma cor hexadecimal no formato #RRGGBB.',
 )
-validador_imagem = FileExtensionValidator(['png', 'jpg', 'jpeg', 'webp', 'svg'])
 
 
 class Empresa(models.Model):
@@ -32,12 +33,19 @@ class Empresa(models.Model):
     email = models.EmailField(blank=True)
     site = models.URLField(blank=True)
 
-    logo = models.FileField(upload_to='empresa/logos/', blank=True, validators=[validador_imagem])
+    logo = models.FileField(
+        'logo do sistema',
+        upload_to='empresa/logos/',
+        blank=True,
+        validators=[validador_logo_sistema],
+        help_text='Recomendado: PNG transparente 512x512',
+    )
     logo_impressao = models.FileField(
         'logo para impressão',
         upload_to='empresa/logos/impressao/',
         blank=True,
-        validators=[validador_imagem],
+        validators=[validador_logo_impressao],
+        help_text='Recomendado: PNG ou SVG horizontal 1200x400',
     )
     cor_primaria = models.CharField(
         'cor primária', max_length=7, default='#0D6EFD', validators=[validador_cor_hexadecimal]

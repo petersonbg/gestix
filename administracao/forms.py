@@ -26,11 +26,17 @@ class EmpresaForm(BootstrapModelFormMixin, forms.ModelForm):
             'logo', 'logo_impressao', 'cor_primaria', 'cor_secundaria',
             'responsavel', 'observacoes',
         ]
+        labels = {
+            'logo': 'Logo do Sistema',
+            'logo_impressao': 'Logo de Impressão',
+        }
         widgets = {
             'estado': forms.TextInput(attrs={'maxlength': 2, 'style': 'text-transform: uppercase'}),
             'cor_primaria': forms.TextInput(attrs={'type': 'color'}),
             'cor_secundaria': forms.TextInput(attrs={'type': 'color'}),
             'observacoes': forms.Textarea(attrs={'rows': 4}),
+            'logo': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg,.svg'}),
+            'logo_impressao': forms.ClearableFileInput(attrs={'accept': '.png,.svg'}),
         }
 
     def __init__(self, *args, **kwargs):
