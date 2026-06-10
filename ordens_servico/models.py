@@ -54,12 +54,33 @@ class OrdemServico(models.Model):
     data_finalizacao = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ABERTA)
     responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='ordens_servico_responsavel', blank=True, null=True)
+    responsavel_execucao = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='ordens_servico_executadas',
+        verbose_name='Responsável pela Execução',
+        blank=True,
+        null=True,
+    )
+    assinatura_responsavel_execucao = models.ImageField(
+        'Assinatura do Responsável pela Execução',
+        upload_to='assinaturas_os/',
+        blank=True,
+        null=True,
+    )
     descricao_problema = models.TextField('descrição do problema')
     diagnostico = models.TextField('diagnóstico', blank=True)
     solucao = models.TextField('solução', blank=True)
     observacoes = models.TextField('observações', blank=True)
     subtotal_servicos = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     subtotal_produtos = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    valor_deslocamento = models.DecimalField(
+        'Valor do Deslocamento',
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+    )
     desconto = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     estoque_baixado = models.BooleanField(default=False, editable=False)
@@ -70,6 +91,12 @@ class OrdemServico(models.Model):
 
     class Meta:
         ordering = ['-data_abertura']
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(valor_deslocamento__gte=0),
+                name='os_valor_deslocamento_nao_negativo',
+            ),
+        ]
         verbose_name = 'ordem de serviço'
         verbose_name_plural = 'ordens de serviço'
 
@@ -87,13 +114,31 @@ class OrdemServico(models.Model):
 
     def clean(self):
         super().clean()
+        if self.valor_deslocamento is not None and self.valor_deslocamento < 0:
+            raise ValidationError({'valor_deslocamento': 'O valor do deslocamento não pode ser negativo.'})
+        if self.responsavel_execucao_id and not self.responsavel_execucao.is_active:
+            raise ValidationError({'responsavel_execucao': 'Selecione um usuário ativo para executar a OS.'})
         if self.desconto is not None and self.desconto < 0:
             raise ValidationError({'desconto': 'O desconto não pode ser negativo.'})
-        bruto = (self.subtotal_servicos or 0) + (self.subtotal_produtos or 0)
+        bruto = (self.subtotal_servicos or 0) + (self.subtotal_produtos or 0) + (self.valor_deslocamento or 0)
         if bruto > 0 and self.desconto is not None and self.desconto > bruto:
             raise ValidationError({'desconto': 'O desconto não pode ser maior que o total da OS.'})
         if self.valor_pago is not None and self.valor_pago > self.total:
             raise ValidationError({'valor_pago': 'O valor pago não pode ser maior que o total da OS.'})
+
+    @staticmethod
+    def nome_usuario(usuario):
+        if not usuario:
+            return 'Não informado'
+        return usuario.get_full_name().strip() or usuario.get_username()
+
+    @property
+    def nome_responsavel(self):
+        return self.nome_usuario(self.responsavel)
+
+    @property
+    def nome_responsavel_execucao(self):
+        return self.nome_usuario(self.responsavel_execucao)
 
     @property
     def saldo(self):
@@ -108,7 +153,7 @@ class OrdemServico(models.Model):
     def recalcular_totais(self, salvar=True):
         self.subtotal_servicos = self.itens_servico.aggregate(total=Sum('subtotal'))['total'] or Decimal('0.00')
         self.subtotal_produtos = self.itens_produto.aggregate(total=Sum('subtotal'))['total'] or Decimal('0.00')
-        self.total = max(self.subtotal_servicos + self.subtotal_produtos - self.desconto, Decimal('0.00')).quantize(CENTAVO)
+        self.total = max(self.subtotal_servicos + self.subtotal_produtos + self.valor_deslocamento - self.desconto, Decimal('0.00')).quantize(CENTAVO)
         if salvar:
             self.save(update_fields=['subtotal_servicos', 'subtotal_produtos', 'total', 'atualizado_em'])
         return self.total

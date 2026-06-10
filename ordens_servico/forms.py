@@ -1,23 +1,45 @@
 from decimal import Decimal
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.forms import inlineformset_factory
 
 from .models import ItemProdutoOS, ItemServicoOS, OrdemServico
 
 
+class UsuarioAtivoChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, usuario):
+        return usuario.get_full_name().strip() or usuario.get_username()
+
+
 class OrdemServicoForm(forms.ModelForm):
+    responsavel = UsuarioAtivoChoiceField(
+        label='Responsável pela abertura/gerenciamento',
+        queryset=get_user_model().objects.filter(is_active=True).order_by('first_name', 'last_name', 'username'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    responsavel_execucao = UsuarioAtivoChoiceField(
+        label='Responsável pela Execução',
+        queryset=get_user_model().objects.filter(is_active=True).order_by('first_name', 'last_name', 'username'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
     class Meta:
         model = OrdemServico
-        fields = ['cliente', 'data_previsao', 'responsavel', 'descricao_problema', 'diagnostico', 'solucao', 'observacoes', 'desconto']
+        fields = ['cliente', 'data_previsao', 'responsavel', 'responsavel_execucao', 'assinatura_responsavel_execucao', 'descricao_problema', 'diagnostico', 'solucao', 'observacoes', 'valor_deslocamento', 'desconto']
         widgets = {
             'cliente': forms.HiddenInput(),
             'data_previsao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'responsavel': forms.Select(attrs={'class': 'form-select'}),
+            'responsavel_execucao': forms.Select(attrs={'class': 'form-select'}),
+            'assinatura_responsavel_execucao': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'descricao_problema': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'diagnostico': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'solucao': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'valor_deslocamento': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
         }
 

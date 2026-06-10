@@ -42,7 +42,9 @@
         .totals { width: 42%; margin-left: auto; }
         .totals td { border: 0; padding: 1px 3px; }
         .totals .grand-total td { border-top: 1px solid #212529; font-size: 9px; font-weight: 700; }
-        .signature { text-align: center; margin: 4mm auto 0; width: 55mm; }
+        .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; margin: 3mm auto 0; }
+        .signature { text-align: center; min-height: 12mm; }
+        .signature-image { display: block; max-width: 52mm; max-height: 9mm; object-fit: contain; margin: 0 auto 1mm; }
         .signature-line { border-top: 1px solid #222; padding-top: 1mm; font-size: 8px; }
         .footer { margin-top: 2mm; border-top: 1px solid #ced4da; padding-top: 1mm; text-align: center; color: #6c757d; font-size: 7px; }
         .page-break, table, tr, td, th { page-break-inside: avoid; }
@@ -76,7 +78,8 @@
             <div class="info-box compact-text">
                 <div class="section-title">Ordem</div>
                 <strong>Status:</strong> {{ ordem.get_status_display }}<br>
-                <strong>Responsável:</strong> {{ ordem.responsavel|default:'Não informado' }}<br>
+                <strong>Abertura/gestão:</strong> {{ ordem.nome_responsavel }}<br>
+                <strong>Execução:</strong> {{ ordem.nome_responsavel_execucao }}<br>
                 <strong>Previsão:</strong> {{ ordem.data_previsao|date:'d/m/Y'|default:'Não informada' }}
             </div>
             <div class="info-box compact-text">
@@ -126,14 +129,27 @@
             <table class="totals">
                 <tr><td>Serviços</td><td class="right">R$ {{ ordem.subtotal_servicos }}</td></tr>
                 <tr><td>Produtos</td><td class="right">R$ {{ ordem.subtotal_produtos }}</td></tr>
+                <tr><td>Deslocamento</td><td class="right">R$ {{ ordem.valor_deslocamento }}</td></tr>
                 <tr><td>Desconto</td><td class="right">R$ {{ ordem.desconto }}</td></tr>
                 <tr class="grand-total"><td>Total</td><td class="right">R$ {{ ordem.total }}</td></tr>
             </table>
         </section>
 
-        {% if configuracao_sistema.mostrar_assinatura_cliente %}
-            <div class="signature page-break"><div class="signature-line">Assinatura do Cliente</div></div>
-        {% endif %}
+        <section class="signatures page-break">
+            {% if configuracao_sistema.mostrar_assinatura_cliente %}
+                <div class="signature"><div class="signature-line">Assinatura do Cliente</div></div>
+            {% else %}<div></div>{% endif %}
+            <div class="signature">
+                {% if ordem.assinatura_responsavel_execucao %}
+                    <img class="signature-image" src="{{ ordem.assinatura_responsavel_execucao.url }}" alt="Assinatura de {{ ordem.nome_responsavel_execucao }}">
+                    <div>{{ ordem.nome_responsavel_execucao }}</div>
+                    <div>Assinatura do Responsável pela Execução</div>
+                {% else %}
+                    <div class="signature-line">Assinatura do Responsável pela Execução</div>
+                    {% if ordem.responsavel_execucao %}<div>{{ ordem.nome_responsavel_execucao }}</div>{% endif %}
+                {% endif %}
+            </div>
+        </section>
         <footer class="footer">{{ configuracao_sistema.mensagem_rodape_documentos }}</footer>
     </main>
     <script>window.addEventListener('load', () => window.print())</script>

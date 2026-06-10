@@ -56,7 +56,7 @@ class OrdemServicoListView(OrdemServicoPermissaoMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = OrdemServico.objects.select_related('cliente', 'responsavel')
+        qs = OrdemServico.objects.select_related('cliente', 'responsavel', 'responsavel_execucao')
         filtros = self.request.GET
         if filtros.get('cliente'):
             qs = qs.filter(Q(cliente__nome__icontains=filtros['cliente']) | Q(cliente__cpf_cnpj__icontains=filtros['cliente']))
@@ -86,7 +86,7 @@ class OrdemServicoDetailView(OrdemServicoPermissaoMixin, DetailView):
     context_object_name = 'ordem'
 
     def get_queryset(self):
-        return OrdemServico.objects.select_related('cliente', 'responsavel').prefetch_related('itens_servico__servico', 'itens_produto__produto', 'historico__usuario')
+        return OrdemServico.objects.select_related('cliente', 'responsavel', 'responsavel_execucao').prefetch_related('itens_servico__servico', 'itens_produto__produto', 'historico__usuario')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -119,13 +119,20 @@ class OrdemServicoFormView(OrdemServicoPermissaoMixin, View):
         if ordem.pk and ordem.status == OrdemServico.Status.ENTREGUE and not (request.user.is_superuser or request.user.groups.filter(name='Administrador').exists()):
             messages.error(request, 'Ordens entregues só podem ser alteradas por administradores.')
             return redirect(ordem)
-        form = OrdemServicoForm(request.POST, instance=ordem)
+        dados_anteriores = {
+            'valor_deslocamento': ordem.valor_deslocamento if ordem.pk else 0,
+            'responsavel_execucao_id': ordem.responsavel_execucao_id if ordem.pk else None,
+            'responsavel_execucao_nome': ordem.nome_responsavel_execucao if ordem.pk else 'Não informado',
+            'assinatura': ordem.assinatura_responsavel_execucao.name if ordem.pk and ordem.assinatura_responsavel_execucao else '',
+        }
+        form = OrdemServicoForm(request.POST, request.FILES, instance=ordem)
         servicos_formset = ServicoFormSet(request.POST, instance=ordem, prefix='servicos')
         produtos_formset = ProdutoFormSet(request.POST, instance=ordem, prefix='produtos')
         if form.is_valid() and servicos_formset.is_valid() and produtos_formset.is_valid():
             subtotal_servicos = sum((item.get('quantidade', 0) * item.get('valor_unitario', 0)) for item in servicos_formset.cleaned_data if item and not item.get('DELETE'))
             subtotal_produtos = sum((item.get('quantidade', 0) * item.get('valor_unitario', 0)) for item in produtos_formset.cleaned_data if item and not item.get('DELETE'))
-            if form.cleaned_data.get('desconto', 0) > subtotal_servicos + subtotal_produtos:
+            valor_deslocamento = form.cleaned_data.get('valor_deslocamento', 0) or 0
+            if form.cleaned_data.get('desconto', 0) > subtotal_servicos + subtotal_produtos + valor_deslocamento:
                 form.add_error('desconto', 'O desconto não pode ser maior que o total da OS.')
                 return render(request, self.template_name, {'form': form, 'servicos_formset': servicos_formset, 'produtos_formset': produtos_formset, 'ordem': ordem})
             with transaction.atomic():
@@ -137,6 +144,25 @@ class OrdemServicoFormView(OrdemServicoPermissaoMixin, View):
                 produtos_formset.save()
                 ordem.recalcular_totais()
                 ordem.registrar_historico(request.user, 'CRIACAO' if nova else 'EDICAO', 'Ordem de serviço criada.' if nova else 'Ordem de serviço editada.')
+                if dados_anteriores['valor_deslocamento'] != ordem.valor_deslocamento:
+                    ordem.registrar_historico(
+                        request.user,
+                        'ALTERACAO_DESLOCAMENTO',
+                        f"Valor do deslocamento alterado de R$ {dados_anteriores['valor_deslocamento']} para R$ {ordem.valor_deslocamento}.",
+                    )
+                if dados_anteriores['responsavel_execucao_id'] != ordem.responsavel_execucao_id:
+                    ordem.registrar_historico(
+                        request.user,
+                        'ALTERACAO_EXECUTOR',
+                        f"Responsável pela execução alterado de {dados_anteriores['responsavel_execucao_nome']} para {ordem.nome_responsavel_execucao}.",
+                    )
+                assinatura_atual = ordem.assinatura_responsavel_execucao.name if ordem.assinatura_responsavel_execucao else ''
+                if dados_anteriores['assinatura'] != assinatura_atual:
+                    ordem.registrar_historico(
+                        request.user,
+                        'ALTERACAO_ASSINATURA_EXECUTOR',
+                        'Assinatura do responsável pela execução incluída ou alterada.' if assinatura_atual else 'Assinatura do responsável pela execução removida.',
+                    )
                 registrar_log(request.user, 'criação de OS' if nova else 'edição de OS', 'ordens_servico', f'OS {ordem.numero}.', request=request)
             messages.success(request, 'Ordem de serviço salva com sucesso.')
             return redirect(ordem)
@@ -286,7 +312,7 @@ def registrar_pagamento(request, pk):
 @login_required
 @require_http_methods(['GET'])
 def imprimir(request, pk):
-    ordem = get_object_or_404(OrdemServico.objects.select_related('cliente', 'responsavel').prefetch_related('itens_servico__servico', 'itens_produto__produto'), pk=pk)
+    ordem = get_object_or_404(OrdemServico.objects.select_related('cliente', 'responsavel', 'responsavel_execucao').prefetch_related('itens_servico__servico', 'itens_produto__produto'), pk=pk)
     if not pode_acessar(request.user):
         messages.error(request, 'Você não possui permissão para imprimir esta OS.')
         return redirect('dashboard')

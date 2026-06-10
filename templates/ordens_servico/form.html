@@ -2,7 +2,7 @@
 {% block title %}{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova OS{% endif %} | GESTIX{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between border-bottom pb-3 mb-4"><div><h1 class="h2">{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova ordem de serviço{% endif %}</h1></div><a class="btn btn-outline-secondary" href="{% if ordem.pk %}{{ ordem.get_absolute_url }}{% else %}{% url 'ordens_servico:list' %}{% endif %}">Voltar</a></div>
-<form method="post" id="os-form" novalidate>{% csrf_token %}
+<form method="post" enctype="multipart/form-data" id="os-form" novalidate>{% csrf_token %}
 {{ form.cliente }}
 {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
 <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Cliente</h2></div><div class="card-body">
@@ -12,7 +12,12 @@
   {% if form.cliente.errors %}<div class="text-danger">{{ form.cliente.errors }}</div>{% endif %}
 </div></div>
 <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div class="row g-3">
-  <div class="col-md-4"><label class="form-label">Previsão</label>{{ form.data_previsao }}{{ form.data_previsao.errors }}</div><div class="col-md-4"><label class="form-label">Responsável</label>{{ form.responsavel }}</div><div class="col-md-4"><label class="form-label">Desconto</label>{{ form.desconto }}</div>
+  <div class="col-md-4"><label class="form-label">Previsão</label>{{ form.data_previsao }}{{ form.data_previsao.errors }}</div>
+  <div class="col-md-4"><label class="form-label">Responsável pela abertura/gestão</label>{{ form.responsavel }}{{ form.responsavel.errors }}</div>
+  <div class="col-md-4"><label class="form-label">Responsável pela execução</label>{{ form.responsavel_execucao }}{{ form.responsavel_execucao.errors }}</div>
+  <div class="col-md-4"><label class="form-label">Valor do deslocamento</label>{{ form.valor_deslocamento }}{{ form.valor_deslocamento.errors }}</div>
+  <div class="col-md-4"><label class="form-label">Desconto</label>{{ form.desconto }}{{ form.desconto.errors }}</div>
+  <div class="col-md-4"><label class="form-label">Assinatura do responsável pela execução</label>{{ form.assinatura_responsavel_execucao }}{{ form.assinatura_responsavel_execucao.errors }}</div>
   <div class="col-12"><label class="form-label">Descrição do problema</label>{{ form.descricao_problema }}{{ form.descricao_problema.errors }}</div><div class="col-md-6"><label class="form-label">Diagnóstico</label>{{ form.diagnostico }}</div><div class="col-md-6"><label class="form-label">Solução</label>{{ form.solucao }}</div><div class="col-12"><label class="form-label">Observações</label>{{ form.observacoes }}</div>
 </div></div></div>
 <div class="row g-4">
@@ -32,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
  function addItem(prefix,container,data,isServico){const total=document.getElementById(`id_${prefix}-TOTAL_FORMS`),i=Number(total.value),row=document.createElement('div');row.className='item-row border rounded p-2 mb-2';row.innerHTML=`<input type="hidden" name="${prefix}-${i}-${isServico?'servico':'produto'}" value="${data.id}"><strong></strong><div class="row g-2 mt-1">${isServico?`<div class="col-5"><input class="form-control" name="${prefix}-${i}-descricao" value="${data.nome}"></div>`:''}<div class="${isServico?'col-2':'col-4'}"><input class="form-control item-quantidade" type="number" min="1" name="${prefix}-${i}-quantidade" value="1"></div><div class="${isServico?'col-3':'col-5'}"><input class="form-control item-valor" type="number" min="0" step="0.01" name="${prefix}-${i}-valor_unitario" value="${isServico?data.valor_padrao:data.preco_venda}"></div><div class="${isServico?'col-2':'col-3'}"><button class="btn btn-outline-danger btn-sm remove-item" type="button">Remover</button></div></div>`;row.querySelector('strong').textContent=data.nome+(isServico?'':` (estoque: ${data.estoque_atual})`);row.querySelector('.remove-item').onclick=()=>{row.remove();calcular()};container.appendChild(row);total.value=i+1;row.querySelectorAll('input').forEach(x=>x.addEventListener('input',calcular));calcular();}
  fetchResults(document.getElementById('servico-busca'),document.getElementById('servico-resultados'),'{% url "ordens_servico:buscar_servicos" %}',s=>button(`${s.nome} · R$ ${s.valor_padrao}`,()=>{addItem('servicos',document.getElementById('servicos-itens'),s,true);document.getElementById('servico-resultados').innerHTML='';}));
  fetchResults(document.getElementById('produto-busca'),document.getElementById('produto-resultados'),'{% url "ordens_servico:buscar_produtos" %}',p=>button(`${p.nome} · ${p.codigo_interno} · R$ ${p.preco_venda} · estoque ${p.estoque_atual}`,()=>{addItem('produtos',document.getElementById('produtos-itens'),p,false);document.getElementById('produto-resultados').innerHTML='';}));
- function calcular(){let total=0;document.querySelectorAll('.item-row').forEach(r=>{const del=r.querySelector('input[name$="-DELETE"]');if(del&&del.checked)return;total+=(Number(r.querySelector('.item-quantidade')?.value)||0)*(Number(r.querySelector('.item-valor')?.value)||0)});total-=Number(document.getElementById('id_desconto').value)||0;document.getElementById('total-os').textContent=total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
- document.querySelectorAll('.item-quantidade,.item-valor,#id_desconto').forEach(x=>x.addEventListener('input',calcular));calcular();
+ function calcular(){let total=0;document.querySelectorAll('.item-row').forEach(r=>{const del=r.querySelector('input[name$="-DELETE"]');if(del&&del.checked)return;total+=(Number(r.querySelector('.item-quantidade')?.value)||0)*(Number(r.querySelector('.item-valor')?.value)||0)});total+=Number(document.getElementById('id_valor_deslocamento').value)||0;total-=Number(document.getElementById('id_desconto').value)||0;document.getElementById('total-os').textContent=total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+ document.querySelectorAll('.item-quantidade,.item-valor,#id_valor_deslocamento,#id_desconto').forEach(x=>x.addEventListener('input',calcular));calcular();
 });
 </script>
 {% endblock %}
