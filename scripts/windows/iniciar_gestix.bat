@@ -25,4 +25,5 @@ if errorlevel 1 (
 timeout /t 8 /nobreak >nul
 start "" "http://localhost:8000"
 echo GESTIX iniciado em http://localhost:8000
+echo Outros dispositivos podem acessar http://IP-DO-SERVIDOR:8000
 pause

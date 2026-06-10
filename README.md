@@ -69,13 +69,91 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 7. Inicie o servidor de desenvolvimento:
 
    ```bash
-   python manage.py runserver
+   python manage.py runserver 0.0.0.0:8000
    ```
 
 8. Acesse a aplicação em <http://127.0.0.1:8000/>.
 
 
 
+
+## Como acessar o GESTIX pela rede
+
+O GESTIX pode ser acessado por computadores, tablets e celulares conectados à **mesma rede local** do servidor. Esta configuração não deve ser usada para publicar o sistema diretamente na internet.
+
+### 1. Descobrir o IP do servidor
+
+No computador Windows que executa o GESTIX, abra o Prompt de Comando e execute:
+
+```bat
+ipconfig
+```
+
+Procure o endereço **IPv4** da placa de rede em uso. No Linux, utilize:
+
+```bash
+hostname -I
+```
+
+Nos exemplos abaixo o servidor usa `192.168.1.50`. Substitua esse endereço pelo IP real do servidor, preferencialmente configurando uma reserva de IP no roteador para evitar mudanças.
+
+### 2. Configurar o arquivo `.env`
+
+```env
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.50
+CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://192.168.1.50:8000
+USE_HTTPS=False
+GESTIX_NETWORK_URL=http://192.168.1.50:8000
+```
+
+Reinicie o container web após alterar o arquivo:
+
+```bash
+docker compose up -d --force-recreate web
+```
+
+O Docker publica a porta `8000` do container e inicia o Django em `0.0.0.0:8000`, permitindo conexões vindas da rede local.
+
+### 3. Liberar a porta 8000 no firewall
+
+No Windows, execute o PowerShell ou Prompt de Comando **como Administrador**:
+
+```bat
+netsh advfirewall firewall add rule name="GESTIX - Rede Local" dir=in action=allow protocol=TCP localport=8000 profile=private
+```
+
+Confirme também que a conexão do Windows está marcada como **Rede privada**. No Linux com UFW:
+
+```bash
+sudo ufw allow from 192.168.1.0/24 to any port 8000 proto tcp
+```
+
+Ajuste `192.168.1.0/24` para a faixa da rede local. Não crie redirecionamento da porta 8000 no roteador e não use perfil público no firewall.
+
+### 4. Acessar de outro dispositivo
+
+Com o servidor e o Docker em execução, abra no navegador de outro dispositivo conectado à mesma rede:
+
+```text
+http://IP-DO-SERVIDOR:8000
+```
+
+Exemplo:
+
+```text
+http://192.168.1.50:8000
+```
+
+O launcher e os atalhos continuam abrindo `http://localhost:8000` no próprio servidor. A mensagem do launcher também informa o endereço configurado para os demais dispositivos da rede.
+
+### 5. Diagnóstico rápido
+
+- Confirme que os dispositivos estão na mesma rede e não em uma rede de convidados isolada.
+- Execute `docker compose ps` e confirme que o serviço `web` publica `0.0.0.0:8000->8000/tcp`.
+- Teste no servidor primeiro com `http://localhost:8000`.
+- Depois teste em outro dispositivo com o IP do servidor.
+- Se o IP mudar, atualize `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` e `GESTIX_NETWORK_URL` no `.env` e reinicie o serviço web.
 
 ## Arquivos estáticos e Django Admin
 

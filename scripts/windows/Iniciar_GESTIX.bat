@@ -40,5 +40,6 @@ start "" "http://localhost:8000"
 
 echo.
 echo GESTIX iniciado com sucesso em http://localhost:8000
+echo Outros dispositivos podem acessar http://IP-DO-SERVIDOR:8000
 echo.
 pause

@@ -1,4 +1,6 @@
 from datetime import timedelta
+import os
+from pathlib import Path
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -144,3 +146,38 @@ class ArquivosEstaticosAdminTests(SimpleTestCase):
 
         self.assertIsNotNone(finders.find('admin/css/base.css'))
         self.assertIsNotNone(finders.find('css/home.css'))
+
+
+class ConfiguracaoRedeLocalTests(SimpleTestCase):
+    def test_exemplo_de_ambiente_configura_host_e_origem_da_rede(self):
+        env_example = (Path(__file__).resolve().parents[1] / '.env.example').read_text(encoding='utf-8')
+
+        self.assertIn('ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.50', env_example)
+        self.assertIn('http://192.168.1.50:8000', env_example)
+        self.assertIn('USE_HTTPS=False', env_example)
+
+    @override_settings(ALLOWED_HOSTS=['192.168.1.50'])
+    def test_rota_inicial_aceita_host_da_rede_local(self):
+        response = self.client.get('/', HTTP_HOST='192.168.1.50')
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_listas_de_rede_sao_lidas_do_ambiente(self):
+        from gestix.settings import env_list
+
+        with patch.dict(os.environ, {'GESTIX_TEST_HOSTS': '10.0.0.10, servidor.local ,'}):
+            self.assertEqual(env_list('GESTIX_TEST_HOSTS'), ['10.0.0.10', 'servidor.local'])
+
+    def test_docker_publica_porta_e_escuta_em_todas_as_interfaces(self):
+        compose = (Path(__file__).resolve().parents[1] / 'docker-compose.yml').read_text(encoding='utf-8')
+
+        self.assertIn('python manage.py runserver 0.0.0.0:8000', compose)
+        self.assertIn('- "8000:8000"', compose)
+        self.assertIn('CSRF_TRUSTED_ORIGINS:', compose)
+
+    def test_launcher_mantem_localhost_e_informa_endereco_de_rede(self):
+        launcher = (Path(__file__).resolve().parents[1] / 'launcher' / 'gestix_launcher.py').read_text(encoding='utf-8')
+
+        self.assertIn("APP_URL = 'http://localhost:8000'", launcher)
+        self.assertIn("GESTIX_NETWORK_URL", launcher)
+        self.assertIn('Outros dispositivos da rede', launcher)

@@ -80,3 +80,28 @@ Acesse manualmente <http://localhost:8000> no navegador.
 ### Porta 8000 em uso
 
 Feche outro serviço que esteja usando a porta 8000 ou ajuste o mapeamento de porta no `docker-compose.yml`.
+
+## Acesso pela rede local
+
+Para acessar o GESTIX a partir de outros computadores, tablets ou celulares da mesma rede:
+
+1. Descubra o IPv4 do servidor executando `ipconfig` no Prompt de Comando.
+2. Atualize o `.env`, substituindo `192.168.1.50` pelo IP real:
+
+   ```env
+   ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.50
+   CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://192.168.1.50:8000
+   USE_HTTPS=False
+   GESTIX_NETWORK_URL=http://192.168.1.50:8000
+   ```
+
+3. Em um terminal executado como Administrador, libere apenas a porta TCP 8000 no perfil privado do Windows:
+
+   ```bat
+   netsh advfirewall firewall add rule name="GESTIX - Rede Local" dir=in action=allow protocol=TCP localport=8000 profile=private
+   ```
+
+4. Recrie o serviço web com `docker compose up -d --force-recreate web`.
+5. Em outro dispositivo da mesma rede, acesse `http://IP-DO-SERVIDOR:8000`.
+
+O launcher continua abrindo `http://localhost:8000` no servidor. Não encaminhe a porta 8000 no roteador e não exponha esta instalação diretamente à internet.

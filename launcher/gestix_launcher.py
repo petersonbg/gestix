@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 import time
@@ -6,6 +7,7 @@ from pathlib import Path
 from tkinter import messagebox
 
 APP_URL = 'http://localhost:8000'
+DEFAULT_NETWORK_URL = 'http://192.168.1.50:8000'
 STARTUP_DELAY_SECONDS = 8
 
 
@@ -13,6 +15,18 @@ def base_dir():
     if getattr(sys, 'frozen', False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent.parent
+
+
+def configured_network_url(install_dir):
+    if os.getenv('GESTIX_NETWORK_URL'):
+        return os.environ['GESTIX_NETWORK_URL']
+    env_file = install_dir / '.env'
+    if env_file.exists():
+        for line in env_file.read_text(encoding='utf-8').splitlines():
+            key, separator, value = line.partition('=')
+            if separator and key.strip() == 'GESTIX_NETWORK_URL' and value.strip():
+                return value.strip().strip('"').strip("'")
+    return DEFAULT_NETWORK_URL
 
 
 def creation_flags():
@@ -64,7 +78,12 @@ def main():
 
     time.sleep(STARTUP_DELAY_SECONDS)
     webbrowser.open(APP_URL)
-    show_info(f'GESTIX iniciado com sucesso.\n\nAcesse: {APP_URL}')
+    show_info(
+        f'GESTIX iniciado com sucesso.\n\n'
+        f'Neste servidor: {APP_URL}\n'
+        f'Outros dispositivos da rede: {configured_network_url(install_dir)}\n\n'
+        'Ajuste o IP no arquivo .env e libere a porta TCP 8000 no firewall.'
+    )
     return 0
 
 
