@@ -1,0 +1,98 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Vendas | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Vendas</h1>
+        <p class="text-secondary mb-0">Acompanhe as vendas registradas no GESTIX.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'vendas:create' %}">Nova venda</a>
+</div>
+
+<form method="get" class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <label for="search" class="form-label">Buscar vendas</label>
+        <div class="input-group">
+            <input type="search" id="search" name="q" value="{{ query }}" class="form-control" placeholder="Busque por cliente ou número da venda">
+            <select class="form-select" name="status" aria-label="Situação das vendas">
+                <option value="ativas" {% if status_filtro == 'ativas' %}selected{% endif %}>Vendas ativas</option>
+                <option value="canceladas" {% if status_filtro == 'canceladas' %}selected{% endif %}>Canceladas</option>
+                <option value="todas" {% if status_filtro == 'todas' %}selected{% endif %}>Todas</option>
+            </select>
+            <button class="btn btn-outline-primary" type="submit">Buscar</button>
+            {% if query %}
+                <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Limpar</a>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Número</th>
+                    <th>Cliente</th>
+                    <th>Data</th>
+                    <th>Subtotal</th>
+                    <th>Desconto</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venda in vendas %}
+                    <tr>
+                        <td>#{{ venda.pk }}</td>
+                        <td class="fw-semibold">{{ venda.cliente }}</td>
+                        <td>{{ venda.data|date:'d/m/Y H:i' }}</td>
+                        <td>R$ {{ venda.subtotal }}</td>
+                        <td>R$ {{ venda.desconto }}</td>
+                        <td>R$ {{ venda.total }}</td>
+                        <td>
+                            {% if venda.status == 'FINALIZADA' %}
+                                <span class="badge text-bg-success">FINALIZADA</span>
+                            {% elif venda.status == 'CANCELADA' %}
+                                <span class="badge text-bg-danger">CANCELADA</span>
+                            {% else %}
+                                <span class="badge text-bg-warning">RASCUNHO</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-outline-primary" href="{% url 'vendas:detail' venda.pk %}">Detalhes</a>
+                                {% if venda.status == 'RASCUNHO' %}
+                                    <a class="btn btn-outline-secondary" href="{% url 'vendas:update' venda.pk %}">Editar</a>
+                                    <a class="btn btn-outline-danger" href="{% url 'vendas:cancelar' venda.pk %}">Cancelar</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-secondary py-4">Nenhuma venda encontrada.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+    <nav class="mt-4" aria-label="Paginação de vendas">
+        <ul class="pagination justify-content-end">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filtro }}{% if query %}&q={{ query }}{% endif %}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active" aria-current="page"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filtro }}{% if query %}&q={{ query }}{% endif %}">Próxima</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

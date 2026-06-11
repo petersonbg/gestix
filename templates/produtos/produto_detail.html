@@ -1,0 +1,46 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}{{ produto.nome }} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">{{ produto.nome }}</h1>
+        <p class="text-secondary mb-0">Detalhes do produto.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'produtos:list' %}">Voltar</a>
+        <a class="btn btn-outline-primary" href="{% url 'estoque:produto_historico' produto.pk %}">Histórico de estoque</a>
+        <a class="btn btn-primary" href="{% url 'produtos:update' produto.pk %}">Editar</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-6"><span class="text-secondary small">Nome</span><div class="fw-semibold">{{ produto.nome }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Fornecedor</span><div>{{ produto.fornecedor|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Código interno</span><div class="fw-semibold">{{ produto.codigo_interno }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Código de barras</span><div>{{ produto.codigo_barras|default:'-' }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Categoria</span><div>{{ produto.categoria|default:'-' }}</div></div>
+            {% if produto.categoria.tipo == 'VEICULOS' %}<div class="col-md-4"><span class="text-secondary small">Chassi</span><div>{{ produto.chassi|default:'-' }}</div></div>{% endif %}
+            <div class="col-md-4"><span class="text-secondary small">Unidade de medida</span><div>{{ produto.unidade_medida }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">NCM</span><div>{{ produto.ncm|default:'-' }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Preço de custo</span><div>R$ {{ produto.preco_custo|default_if_none:"0,00" }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Preço de venda</span><div>R$ {{ produto.preco_venda }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Estoque atual</span><div>{{ produto.estoque_atual }}</div></div>
+            <div class="col-md-4"><span class="text-secondary small">Estoque mínimo</span><div>{{ produto.estoque_minimo }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Criado em</span><div>{{ produto.criado_em|date:'d/m/Y H:i' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Atualizado em</span><div>{{ produto.atualizado_em|date:'d/m/Y H:i' }}</div></div>
+            <div class="col-12"><span class="text-secondary small">Descrição</span><div>{{ produto.descricao|linebreaksbr|default:'-' }}</div></div>
+            <div class="col-12">
+                {% if produto.ativo %}
+                    <span class="badge text-bg-success">Ativo</span>
+                {% else %}
+                    <span class="badge text-bg-secondary">Inativo</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
