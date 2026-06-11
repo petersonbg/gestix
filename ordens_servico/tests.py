@@ -323,3 +323,131 @@ class OrdemServicoTests(TestCase):
         self.criar_os(data_previsao=timezone.localdate() - timedelta(days=1))
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.context['os_atrasadas_qtd'], 1)
+
+
+class ServicoDinamicoOSTests(TestCase):
+    def setUp(self):
+        self.usuario = get_user_model().objects.create_superuser(
+            username='admin-servicos-dinamicos', password='senha', email='admin-os@example.com'
+        )
+        self.client.force_login(self.usuario)
+        self.cliente = Cliente.objects.create(nome='Cliente Serviços', cpf_cnpj='12345678901')
+        self.ativo = Servico.objects.create(
+            nome='Alinhamento técnico', descricao='Ajuste e calibração',
+            valor_padrao=Decimal('80.00'), ativo=True,
+        )
+        self.inativo = Servico.objects.create(
+            nome='Serviço desativado', descricao='Não deve aparecer',
+            valor_padrao=Decimal('10.00'), ativo=False,
+        )
+
+    def dados_os(self, **alteracoes):
+        dados = {
+            'cliente': self.cliente.pk,
+            'data_previsao': '',
+            'responsavel': self.usuario.pk,
+            'responsavel_execucao': '',
+            'descricao_problema': 'Necessita manutenção.',
+            'diagnostico': '',
+            'solucao': '',
+            'observacoes': '',
+            'valor_deslocamento': '20.00',
+            'desconto': '10.00',
+            'servicos-TOTAL_FORMS': '1',
+            'servicos-INITIAL_FORMS': '0',
+            'servicos-MIN_NUM_FORMS': '0',
+            'servicos-MAX_NUM_FORMS': '1000',
+            'servicos-0-servico': self.ativo.pk,
+            'servicos-0-descricao': 'Alinhamento completo',
+            'servicos-0-quantidade': '2',
+            'servicos-0-valor_unitario': '75.00',
+            'produtos-TOTAL_FORMS': '0',
+            'produtos-INITIAL_FORMS': '0',
+            'produtos-MIN_NUM_FORMS': '0',
+            'produtos-MAX_NUM_FORMS': '1000',
+        }
+        dados.update(alteracoes)
+        return dados
+
+    def test_busca_retorna_somente_servicos_ativos_por_nome_ou_descricao(self):
+        por_nome = self.client.get(reverse('ordens_servico:buscar_servicos'), {'q': 'Alinhamento'})
+        por_descricao = self.client.get(reverse('ordens_servico:buscar_servicos'), {'q': 'calibração'})
+        inativo = self.client.get(reverse('ordens_servico:buscar_servicos'), {'q': 'desativado'})
+
+        self.assertEqual(por_nome.json()['resultados'][0]['id'], self.ativo.pk)
+        self.assertEqual(por_descricao.json()['resultados'][0]['id'], self.ativo.pk)
+        self.assertEqual(inativo.json()['resultados'], [])
+
+    def test_cria_os_com_servico_dinamico_e_calcula_total(self):
+        resposta = self.client.post(reverse('ordens_servico:create'), self.dados_os())
+        self.assertEqual(resposta.status_code, 302)
+        ordem = OrdemServico.objects.latest('pk')
+        item = ordem.itens_servico.get()
+        self.assertEqual(item.quantidade, 2)
+        self.assertEqual(item.valor_unitario, Decimal('75.00'))
+        self.assertEqual(item.subtotal, Decimal('150.00'))
+        self.assertEqual(ordem.subtotal_servicos, Decimal('150.00'))
+        self.assertEqual(ordem.total, Decimal('160.00'))
+
+    def test_rejeita_quantidade_zero_e_valor_negativo(self):
+        quantidade = self.client.post(
+            reverse('ordens_servico:create'),
+            self.dados_os(**{'servicos-0-quantidade': '0'}),
+        )
+        valor = self.client.post(
+            reverse('ordens_servico:create'),
+            self.dados_os(**{'servicos-0-valor_unitario': '-0.01'}),
+        )
+        self.assertEqual(quantidade.status_code, 200)
+        self.assertIn('quantidade', quantidade.context['servicos_formset'].forms[0].errors)
+        self.assertEqual(valor.status_code, 200)
+        self.assertIn('valor_unitario', valor.context['servicos_formset'].forms[0].errors)
+        self.assertFalse(OrdemServico.objects.exists())
+
+    def test_servico_nao_movimenta_estoque(self):
+        self.client.post(reverse('ordens_servico:create'), self.dados_os())
+        ordem = OrdemServico.objects.latest('pk')
+        ordem.concluir(self.usuario)
+        self.assertFalse(MovimentacaoEstoque.objects.filter(origem='ORDEM_SERVICO').exists())
+
+    def test_nova_os_exibe_controles_dinamicos_e_subtotais(self):
+        resposta = self.client.get(reverse('ordens_servico:create'))
+        self.assertContains(resposta, 'Pesquisar serviço')
+        self.assertContains(resposta, reverse('ordens_servico:buscar_servicos'))
+        self.assertContains(resposta, 'subtotal-servicos')
+        self.assertContains(resposta, 'item-subtotal')
+        self.assertContains(resposta, 'Serviços + produtos + deslocamento')
+
+    def test_detalhe_e_impressao_exibem_servico_e_subtotal(self):
+        self.client.post(reverse('ordens_servico:create'), self.dados_os())
+        ordem = OrdemServico.objects.latest('pk')
+        detalhe = self.client.get(ordem.get_absolute_url())
+        impressao = self.client.get(reverse('ordens_servico:imprimir', args=[ordem.pk]))
+        for resposta in (detalhe, impressao):
+            self.assertContains(resposta, self.ativo.nome)
+            self.assertContains(resposta, 'Alinhamento completo')
+            self.assertContains(resposta, '150,00')
+
+
+class ServicoCadastroViewsTests(TestCase):
+    def setUp(self):
+        self.usuario = get_user_model().objects.create_superuser(
+            username='admin-cadastro-servicos', password='senha', email='servicos@example.com'
+        )
+        self.client.force_login(self.usuario)
+
+    def test_cadastra_e_edita_servico(self):
+        resposta = self.client.post(reverse('ordens_servico:servico_create'), {
+            'nome': 'Instalação especializada', 'descricao': 'Instalação completa',
+            'valor_padrao': '120.00', 'ativo': 'on',
+        })
+        self.assertRedirects(resposta, reverse('ordens_servico:servicos'))
+        servico = Servico.objects.get(nome='Instalação especializada')
+        resposta = self.client.post(reverse('ordens_servico:servico_update', args=[servico.pk]), {
+            'nome': 'Instalação premium', 'descricao': 'Instalação completa',
+            'valor_padrao': '150.00', 'ativo': 'on',
+        })
+        self.assertRedirects(resposta, reverse('ordens_servico:servicos'))
+        servico.refresh_from_db()
+        self.assertEqual(servico.nome, 'Instalação premium')
+        self.assertEqual(servico.valor_padrao, Decimal('150.00'))

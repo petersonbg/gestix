@@ -4,8 +4,21 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.forms import inlineformset_factory
 
-from .models import ItemProdutoOS, ItemServicoOS, OrdemServico
+from .models import ItemProdutoOS, ItemServicoOS, OrdemServico, Servico
 
+
+class ServicoForm(forms.ModelForm):
+    class Meta:
+        model = Servico
+        fields = ['nome', 'descricao', 'valor_padrao', 'ativo']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'valor_padrao': forms.NumberInput(
+                attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}
+            ),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 class UsuarioAtivoChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, usuario):

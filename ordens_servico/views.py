@@ -9,14 +9,17 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.decorators.http import require_http_methods
-from django.views.generic import DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from accounts.utils import registrar_log
 from administracao.services import contexto_documento_impresso
 from clientes.models import Cliente
 from produtos.models import Produto
 
-from .forms import AlterarStatusForm, OrdemServicoForm, PagamentoOSForm, ProdutoFormSet, ServicoFormSet
+from .forms import (
+    AlterarStatusForm, OrdemServicoForm, PagamentoOSForm, ProdutoFormSet,
+    ServicoForm, ServicoFormSet,
+)
 from .models import OrdemServico, Servico
 
 
@@ -80,7 +83,52 @@ class OrdemServicoListView(OrdemServicoPermissaoMixin, ListView):
         context['status_choices'] = OrdemServico.Status.choices
         context['filtros'] = self.request.GET
         context['pode_criar'] = pode_editar(self.request.user)
+        context['pode_gerenciar_servicos'] = pode_gerenciar(self.request.user)
         return context
+
+
+class ServicoListView(OrdemServicoPermissaoMixin, ListView):
+    model = Servico
+    template_name = 'ordens_servico/servicos/list.html'
+    context_object_name = 'servicos'
+    paginate_by = 25
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            queryset = queryset.filter(Q(nome__icontains=query) | Q(descricao__icontains=query))
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '').strip()
+        context['pode_editar'] = pode_gerenciar(self.request.user)
+        return context
+
+
+class ServicoCreateView(OrdemServicoPermissaoMixin, CreateView):
+    model = Servico
+    form_class = ServicoForm
+    template_name = 'ordens_servico/servicos/form.html'
+    success_url = reverse_lazy('ordens_servico:servicos')
+    permissao = staticmethod(pode_gerenciar)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Serviço cadastrado com sucesso.')
+        return super().form_valid(form)
+
+
+class ServicoUpdateView(OrdemServicoPermissaoMixin, UpdateView):
+    model = Servico
+    form_class = ServicoForm
+    template_name = 'ordens_servico/servicos/form.html'
+    success_url = reverse_lazy('ordens_servico:servicos')
+    permissao = staticmethod(pode_gerenciar)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Serviço atualizado com sucesso.')
+        return super().form_valid(form)
 
 
 class OrdemServicoDetailView(OrdemServicoPermissaoMixin, DetailView):

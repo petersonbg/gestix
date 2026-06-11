@@ -22,6 +22,12 @@ class Servico(models.Model):
 
     class Meta:
         ordering = ['nome']
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(valor_padrao__gte=0),
+                name='servico_valor_padrao_nao_negativo',
+            ),
+        ]
         verbose_name = 'serviço'
         verbose_name_plural = 'serviços'
 
@@ -298,6 +304,27 @@ class ItemServicoOS(models.Model):
     quantidade = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     valor_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), editable=False)
+
+    class Meta:
+        verbose_name = 'item de serviço da OS'
+        verbose_name_plural = 'itens de serviço da OS'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(quantidade__gt=0),
+                name='item_servico_os_quantidade_positiva',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(valor_unitario__gte=0),
+                name='item_servico_os_valor_nao_negativo',
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.quantidade is None or self.quantidade <= 0:
+            raise ValidationError({'quantidade': 'A quantidade deve ser maior que zero.'})
+        if self.valor_unitario is None or self.valor_unitario < 0:
+            raise ValidationError({'valor_unitario': 'O valor unitário não pode ser negativo.'})
 
     def save(self, *args, **kwargs):
         self.subtotal = (Decimal(self.quantidade) * self.valor_unitario).quantize(CENTAVO)

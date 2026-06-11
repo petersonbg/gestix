@@ -57,7 +57,7 @@
                     <thead><tr><th>Descrição</th><th class="right" style="width: 11%;">Qtd.</th><th class="right" style="width: 19%;">Unit.</th><th class="right" style="width: 19%;">Total</th></tr></thead>
                     <tbody>
                         {% for item in ordem.itens_servico.all %}
-                            <tr><td class="description-cell">{{ item.descricao }}</td><td class="right">{{ item.quantidade }}</td><td class="right nowrap">R$ {{ item.valor_unitario }}</td><td class="right nowrap">R$ {{ item.subtotal }}</td></tr>
+                            <tr><td class="description-cell"><strong>{{ item.servico.nome }}</strong>{% if item.descricao and item.descricao != item.servico.nome %}<br>{{ item.descricao }}{% endif %}</td><td class="right">{{ item.quantidade }}</td><td class="right nowrap">R$ {{ item.valor_unitario }}</td><td class="right nowrap">R$ {{ item.subtotal }}</td></tr>
                         {% empty %}<tr><td colspan="4">Nenhum serviço.</td></tr>{% endfor %}
                     </tbody>
                 </table>
