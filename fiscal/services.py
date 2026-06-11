@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from administracao.models import CategoriaProduto
 from estoque.models import MovimentacaoEstoque
 from fornecedores.models import Fornecedor
 from produtos.models import Produto
@@ -162,6 +163,11 @@ def confirmar_nota(nota, item_bindings, usuario=None):
     if nota.status == NotaFiscalEntrada.Status.CONFIRMADA:
         return nota
 
+    categoria_importacao, _ = CategoriaProduto.objects.get_or_create(
+        nome='Importado NF-e',
+        defaults={'tipo': CategoriaProduto.Tipo.GERAL},
+    )
+
     for item in nota.itens.select_for_update():
         binding = item_bindings.get(item.pk, {})
         produto = binding.get('produto')
@@ -172,7 +178,7 @@ def confirmar_nota(nota, item_bindings, usuario=None):
                 descricao=f'Produto criado a partir da NF-e {nota.numero}/{nota.serie}.',
                 codigo_interno=codigo_interno,
                 codigo_barras=None,
-                categoria='Importado NF-e',
+                categoria=categoria_importacao,
                 unidade_medida=item.unidade_medida or 'UN',
                 preco_custo=item.valor_unitario,
                 preco_venda=item.valor_unitario,

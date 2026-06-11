@@ -4,12 +4,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Group
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, ListView, TemplateView, UpdateView
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
 from accounts.models import LogAtividade
 
-from .forms import ConfiguracaoSistemaAdministracaoForm, EmpresaForm
-from .models import ConfiguracaoSistema, Empresa
+from .forms import CategoriaProdutoForm, ConfiguracaoSistemaAdministracaoForm, EmpresaForm
+from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 
 
 def usuario_administrador(user):
@@ -47,6 +47,8 @@ class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
         context['usuarios_ativos'] = get_user_model().objects.filter(is_active=True).count()
         context['grupos_total'] = Group.objects.count()
         context['logs_total'] = LogAtividade.objects.count()
+        context['categorias_produtos_total'] = CategoriaProduto.objects.count()
+        context['categorias_produtos_ativas'] = CategoriaProduto.objects.filter(ativo=True).count()
         context['ultimo_log'] = LogAtividade.objects.select_related('usuario').first()
         return context
 
@@ -138,4 +140,54 @@ class ConfiguracaoSistemaView(AdministracaoPermissaoMixin, UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, 'Configurações do sistema atualizadas com sucesso.')
+        return super().form_valid(form)
+
+
+class CategoriaProdutoListView(AdministracaoPermissaoMixin, ListView):
+    model = CategoriaProduto
+    template_name = 'administracao/categorias_produtos/lista.html'
+    context_object_name = 'categorias'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class CategoriaProdutoDetailView(AdministracaoPermissaoMixin, DetailView):
+    model = CategoriaProduto
+    template_name = 'administracao/categorias_produtos/detalhe.html'
+    context_object_name = 'categoria'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class CategoriaProdutoCreateView(AdministracaoPermissaoMixin, CreateView):
+    model = CategoriaProduto
+    form_class = CategoriaProdutoForm
+    template_name = 'administracao/categorias_produtos/form.html'
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Categoria de produto criada com sucesso.')
+        return super().form_valid(form)
+
+
+class CategoriaProdutoUpdateView(AdministracaoPermissaoMixin, UpdateView):
+    model = CategoriaProduto
+    form_class = CategoriaProdutoForm
+    template_name = 'administracao/categorias_produtos/form.html'
+    context_object_name = 'categoria'
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Categoria de produto atualizada com sucesso.')
         return super().form_valid(form)

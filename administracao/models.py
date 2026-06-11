@@ -137,6 +137,30 @@ class Empresa(models.Model):
         return arquivo.url if arquivo else ''
 
 
+class CategoriaProduto(models.Model):
+    class Tipo(models.TextChoices):
+        GERAL = 'GERAL', 'Geral'
+        VEICULOS = 'VEICULOS', 'Veículos'
+
+    nome = models.CharField(max_length=100, unique=True)
+    descricao = models.TextField('descrição', blank=True)
+    tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.GERAL)
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'categoria de produto'
+        verbose_name_plural = 'categorias de produtos'
+
+    def __str__(self):
+        return self.nome
+
+    def get_absolute_url(self):
+        return reverse('administracao:categoria_produto_detalhe', kwargs={'pk': self.pk})
+
+
 class ConfiguracaoSistema(models.Model):
     notificacoes_aniversario_ativas = models.BooleanField(
         'ativar notificações de aniversário',

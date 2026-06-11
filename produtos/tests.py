@@ -161,3 +161,85 @@ class ProdutoViewsTests(TestCase):
         self.produto.refresh_from_db()
         self.assertEqual(self.produto.codigo_interno, codigo_original)
         self.assertEqual(self.produto.preco_custo, Decimal('0.00'))
+
+
+class ProdutoCategoriaChassiTests(TestCase):
+    def setUp(self):
+        from administracao.models import CategoriaProduto
+
+        self.geral = CategoriaProduto.objects.create(nome='Peças', tipo='GERAL')
+        self.veiculos = CategoriaProduto.objects.create(nome='Veículos', tipo='VEICULOS')
+        self.inativa = CategoriaProduto.objects.create(nome='Inativa', ativo=False)
+
+    def dados_formulario(self, categoria, chassi=''):
+        return {
+            'nome': 'Produto categorizado',
+            'descricao': '',
+            'codigo_barras': '',
+            'categoria': str(categoria.pk),
+            'chassi': chassi,
+            'unidade_medida': 'UN',
+            'preco_custo': '1.00',
+            'preco_venda': '2.00',
+            'estoque_minimo': '0',
+            'fornecedor': '',
+            'ncm': '',
+            'ativo': 'on',
+        }
+
+    def test_produto_geral_descarta_chassi_no_backend(self):
+        formulario = ProdutoForm(data=self.dados_formulario(self.geral, 'CHASSI-INDEVIDO'))
+        self.assertTrue(formulario.is_valid(), formulario.errors)
+        produto = formulario.save()
+        self.assertIsNone(produto.chassi)
+
+    def test_produto_veiculo_aceita_chassi(self):
+        formulario = ProdutoForm(data=self.dados_formulario(self.veiculos, '9BWZZZ377VT004251'))
+        self.assertTrue(formulario.is_valid(), formulario.errors)
+        produto = formulario.save()
+        self.assertEqual(produto.chassi, '9BWZZZ377VT004251')
+
+    def test_modelo_descarta_chassi_de_produto_nao_veiculo(self):
+        produto = Produto.objects.create(
+            nome='Peça', categoria=self.geral, chassi='NAO-DEVE-SALVAR',
+            unidade_medida='UN', preco_venda=Decimal('10.00'),
+        )
+        self.assertIsNone(produto.chassi)
+
+    def test_formulario_lista_somente_categorias_ativas(self):
+        formulario = ProdutoForm()
+        self.assertQuerySetEqual(
+            formulario.fields['categoria'].queryset,
+            [self.geral, self.veiculos],
+        )
+
+
+class ProdutoFiltroCategoriaTests(TestCase):
+    def setUp(self):
+        from administracao.models import CategoriaProduto
+
+        self.usuario = get_user_model().objects.create_user('filtro', password='senha')
+        self.client.force_login(self.usuario)
+        self.geral = CategoriaProduto.objects.create(nome='Geral')
+        self.veiculos = CategoriaProduto.objects.create(nome='Veículos', tipo='VEICULOS')
+        self.peca = Produto.objects.create(
+            nome='Filtro de óleo', categoria=self.geral, unidade_medida='UN',
+            preco_venda=Decimal('20.00'),
+        )
+        self.carro = Produto.objects.create(
+            nome='Automóvel', categoria=self.veiculos, chassi='CHASSI-BUSCAVEL',
+            unidade_medida='UN', preco_venda=Decimal('50000.00'),
+        )
+
+    def test_filtra_produtos_por_categoria(self):
+        resposta = self.client.get(reverse('produtos:list'), {'categoria': self.veiculos.pk})
+        self.assertContains(resposta, self.carro.nome)
+        self.assertNotContains(resposta, self.peca.nome)
+
+    def test_combina_categoria_com_busca_e_busca_por_chassi(self):
+        resposta = self.client.get(
+            reverse('produtos:list'),
+            {'categoria': self.veiculos.pk, 'q': 'CHASSI-BUSCAVEL'},
+        )
+        self.assertContains(resposta, self.carro.nome)
+        self.assertNotContains(resposta, self.peca.nome)

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ConfiguracaoSistema, Empresa
+from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 
 
 @admin.register(Empresa)
@@ -46,3 +46,25 @@ class ConfiguracaoSistemaAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(CategoriaProduto)
+class CategoriaProdutoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'tipo', 'ativo', 'atualizado_em')
+    list_filter = ('tipo', 'ativo')
+    search_fields = ('nome', 'descricao')
+    readonly_fields = ('criado_em', 'atualizado_em')
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.groups.filter(
+            name__in=('Administrador', 'Gerente')
+        ).exists()
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser or request.user.groups.filter(name='Administrador').exists()
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_add_permission(request)

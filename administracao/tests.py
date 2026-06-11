@@ -11,7 +11,7 @@ from PIL import Image
 from accounts.models import LogAtividade
 
 from .forms import EmpresaForm
-from .models import ConfiguracaoSistema, Empresa
+from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 from .services import formatar_contato_empresa, formatar_endereco_empresa
 
 
@@ -316,3 +316,59 @@ class AdministracaoAcessoTests(TestCase):
         self.client.force_login(self.admin)
         response = self.client.get('/configuracoes/')
         self.assertRedirects(response, reverse('administracao:configuracoes_sistema'), fetch_redirect_response=False)
+
+
+class CategoriaProdutoTests(TestCase):
+    def setUp(self):
+        self.administrador = get_user_model().objects.create_user(
+            username='admin-categorias', password='senha'
+        )
+        self.gerente = get_user_model().objects.create_user(
+            username='gerente-categorias', password='senha'
+        )
+        self.vendedor = get_user_model().objects.create_user(
+            username='vendedor-categorias', password='senha'
+        )
+        grupo_admin, _ = Group.objects.get_or_create(name='Administrador')
+        grupo_gerente, _ = Group.objects.get_or_create(name='Gerente')
+        grupo_vendedor, _ = Group.objects.get_or_create(name='Vendedor')
+        self.administrador.groups.add(grupo_admin)
+        self.gerente.groups.add(grupo_gerente)
+        self.vendedor.groups.add(grupo_vendedor)
+
+    def test_administrador_cria_categorias_geral_e_veiculos(self):
+        self.client.force_login(self.administrador)
+        for nome, tipo in [('Peças', 'GERAL'), ('Veículos', 'VEICULOS')]:
+            resposta = self.client.post(
+                reverse('administracao:categoria_produto_criar'),
+                {'nome': nome, 'descricao': '', 'tipo': tipo, 'ativo': 'on'},
+            )
+            self.assertEqual(resposta.status_code, 302)
+
+        self.assertTrue(CategoriaProduto.objects.filter(nome='Peças', tipo='GERAL').exists())
+        self.assertTrue(
+            CategoriaProduto.objects.filter(nome='Veículos', tipo='VEICULOS').exists()
+        )
+
+    def test_nome_da_categoria_e_unico(self):
+        CategoriaProduto.objects.create(nome='Duplicada')
+        categoria = CategoriaProduto(nome='Duplicada')
+        with self.assertRaises(ValidationError):
+            categoria.full_clean()
+
+    def test_gerente_visualiza_mas_nao_edita_categoria(self):
+        categoria = CategoriaProduto.objects.create(nome='Somente leitura')
+        self.client.force_login(self.gerente)
+        self.assertEqual(
+            self.client.get(reverse('administracao:categorias_produtos')).status_code,
+            200,
+        )
+        resposta = self.client.get(
+            reverse('administracao:categoria_produto_editar', kwargs={'pk': categoria.pk})
+        )
+        self.assertEqual(resposta.status_code, 302)
+
+    def test_vendedor_nao_acessa_cadastro_de_categorias(self):
+        self.client.force_login(self.vendedor)
+        resposta = self.client.get(reverse('administracao:categorias_produtos'))
+        self.assertEqual(resposta.status_code, 302)

@@ -41,4 +41,20 @@
         <button class="btn btn-primary" type="submit">Salvar</button>
     </div>
 </form>
+<script>
+(function () {
+    const categoria = document.getElementById('id_categoria');
+    const chassi = document.getElementById('id_chassi');
+    if (!categoria || !chassi) return;
+    function ajustarChassi() {
+        const option = categoria.options[categoria.selectedIndex];
+        const veiculo = option && option.dataset.tipo === 'VEICULOS';
+        chassi.disabled = !veiculo;
+        chassi.classList.toggle('bg-light', !veiculo);
+        if (!veiculo) chassi.value = '';
+    }
+    categoria.addEventListener('change', ajustarChassi);
+    ajustarChassi();
+})();
+</script>
 {% endblock %}

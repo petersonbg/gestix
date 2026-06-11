@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import ConfiguracaoSistema, Empresa
+from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 
 
 class BootstrapModelFormMixin:
@@ -45,6 +45,21 @@ class EmpresaForm(BootstrapModelFormMixin, forms.ModelForm):
 
     def clean_estado(self):
         return self.cleaned_data.get('estado', '').strip().upper()
+
+
+class CategoriaProdutoForm(BootstrapModelFormMixin, forms.ModelForm):
+    class Meta:
+        model = CategoriaProduto
+        fields = ['nome', 'descricao', 'tipo', 'ativo']
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 4}),
+            'tipo': forms.Select(),
+            'ativo': forms.CheckboxInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.aplicar_bootstrap()
 
 
 class ConfiguracaoSistemaAdministracaoForm(BootstrapModelFormMixin, forms.ModelForm):

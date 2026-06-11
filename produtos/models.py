@@ -27,7 +27,20 @@ class Produto(models.Model):
     descricao = models.TextField('descrição', blank=True)
     codigo_interno = models.CharField('código interno', max_length=50, unique=True, blank=True)
     codigo_barras = models.CharField('código de barras', max_length=50, blank=True, null=True, unique=True)
-    categoria = models.CharField(max_length=100, blank=True)
+    categoria = models.ForeignKey(
+        'administracao.CategoriaProduto',
+        on_delete=models.PROTECT,
+        related_name='produtos',
+        blank=True,
+        null=True,
+    )
+    chassi = models.CharField(
+        'Chassi',
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text='Disponível apenas para produtos da categoria Veículos.',
+    )
     unidade_medida = models.CharField('unidade de medida', max_length=20)
     preco_custo = models.DecimalField(
         'preço de custo',
@@ -109,6 +122,12 @@ class Produto(models.Model):
                 sequencia.save(update_fields=['ultimo_numero'])
 
     def save(self, *args, **kwargs):
+        limpar_chassi = not self.categoria_id or self.categoria.tipo != 'VEICULOS'
+        if limpar_chassi:
+            self.chassi = None
+            if kwargs.get('update_fields') is not None:
+                kwargs['update_fields'] = set(kwargs['update_fields']) | {'chassi'}
+
         codigo_informado = (self.codigo_interno or '').strip()
         codigo_gerado = not codigo_informado
         if codigo_gerado:
@@ -123,6 +142,8 @@ class Produto(models.Model):
 
     def clean(self):
         super().clean()
+        if self.categoria_id and self.categoria.tipo != 'VEICULOS':
+            self.chassi = None
         if self.preco_custo is not None and self.preco_custo < Decimal('0.00'):
             raise ValidationError({'preco_custo': 'O preço de custo não pode ser negativo.'})
         if self.preco_venda is not None and self.preco_venda < Decimal('0.00'):
