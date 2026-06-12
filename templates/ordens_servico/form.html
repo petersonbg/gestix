@@ -1,0 +1,113 @@
+{% extends 'layouts/internal.html' %}
+{% block title %}{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova OS{% endif %} | GESTIX{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+  <div><h1 class="h2 mb-1">{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova ordem de serviço{% endif %}</h1><p class="text-secondary mb-0">Pesquise e adicione serviços e peças ao atendimento.</p></div>
+  <a class="btn btn-outline-secondary" href="{% if ordem.pk %}{{ ordem.get_absolute_url }}{% else %}{% url 'ordens_servico:list' %}{% endif %}">Voltar</a>
+</div>
+<form method="post" enctype="multipart/form-data" id="os-form" novalidate>{% csrf_token %}
+  {{ form.cliente }}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h5 mb-0">Cliente</h2></div><div class="card-body">
+    <label class="form-label" for="cliente-busca">Pesquisar por nome, CPF/CNPJ ou telefone</label>
+    <input id="cliente-busca" class="form-control" autocomplete="off" placeholder="Digite pelo menos 2 caracteres">
+    <div id="cliente-resultados" class="list-group mt-2" aria-live="polite"></div>
+    <div id="cliente-selecionado" class="alert alert-info mt-3 {% if not form.instance.cliente_id %}d-none{% endif %}"><strong>Cliente selecionado:</strong> <span>{% if form.instance.cliente_id %}{{ form.instance.cliente.nome }} · {{ form.instance.cliente.cpf_cnpj }} · {{ form.instance.cliente.telefone }}{% endif %}</span><button class="btn btn-sm btn-outline-dark float-end" type="button" id="trocar-cliente">Trocar</button></div>
+    {% if form.cliente.errors %}<div class="text-danger">{{ form.cliente.errors }}</div>{% endif %}
+  </div></div>
+
+  <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div class="row g-3">
+    <div class="col-md-4"><label class="form-label">Previsão</label>{{ form.data_previsao }}{{ form.data_previsao.errors }}</div>
+    <div class="col-md-4"><label class="form-label">Responsável pela abertura/gestão</label>{{ form.responsavel }}{{ form.responsavel.errors }}</div>
+    <div class="col-md-4"><label class="form-label">Responsável pela execução</label>{{ form.responsavel_execucao }}{{ form.responsavel_execucao.errors }}</div>
+    <div class="col-md-4"><label class="form-label">Valor do deslocamento</label>{{ form.valor_deslocamento }}{{ form.valor_deslocamento.errors }}</div>
+    <div class="col-md-4"><label class="form-label">Desconto</label>{{ form.desconto }}{{ form.desconto.errors }}</div>
+    <div class="col-md-4"><label class="form-label">Assinatura do responsável pela execução</label>{{ form.assinatura_responsavel_execucao }}{{ form.assinatura_responsavel_execucao.errors }}</div>
+    <div class="col-12"><label class="form-label">Descrição do problema</label>{{ form.descricao_problema }}{{ form.descricao_problema.errors }}</div>
+    <div class="col-md-6"><label class="form-label">Diagnóstico</label>{{ form.diagnostico }}{{ form.diagnostico.errors }}</div>
+    <div class="col-md-6"><label class="form-label">Solução</label>{{ form.solucao }}{{ form.solucao.errors }}</div>
+    <div class="col-12"><label class="form-label">Observações</label>{{ form.observacoes }}{{ form.observacoes.errors }}</div>
+  </div></div></div>
+
+  <div class="row g-4">
+    <div class="col-xl-6"><div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white"><h2 class="h5 mb-2">Serviços</h2><label class="form-label small" for="servico-busca">Pesquisar serviço</label><input id="servico-busca" class="form-control" autocomplete="off" placeholder="Nome ou descrição"><div id="servico-resultados" class="list-group mt-2" aria-live="polite"></div></div>
+      <div class="card-body"><div id="servicos-itens">{{ servicos_formset.management_form }}
+        {% for item in servicos_formset %}<div class="item-row border rounded p-3 mb-3" data-kind="servico">{{ item.id }}{{ item.servico }}<div class="d-flex justify-content-between gap-2 mb-2"><strong class="item-name">{{ item.instance.servico.nome|default:'Serviço' }}</strong><button class="btn btn-sm btn-outline-danger remove-item" type="button">Remover</button></div><div class="row g-2"><div class="col-md-5"><label class="form-label small">Descrição</label>{{ item.descricao }}</div><div class="col-3 col-md-2"><label class="form-label small">Qtd.</label>{{ item.quantidade }}</div><div class="col-5 col-md-3"><label class="form-label small">Vlr. unit.</label>{{ item.valor_unitario }}</div><div class="col-4 col-md-2 text-end"><span class="form-label small d-block">Subtotal</span><strong class="item-subtotal">R$ 0,00</strong></div></div>{% for field in item.visible_fields %}{% for error in field.errors %}<div class="text-danger small mt-1">{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}{{ item.DELETE }}{% for error in item.non_field_errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}</div>{% endfor %}
+      </div></div><div class="card-footer bg-white d-flex justify-content-between"><span>Subtotal dos serviços</span><strong id="subtotal-servicos">R$ 0,00</strong></div>
+    </div></div>
+
+    <div class="col-xl-6"><div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white"><h2 class="h5 mb-2">Produtos/peças</h2><label class="form-label small" for="produto-busca">Pesquisar produto</label><input id="produto-busca" class="form-control" autocomplete="off" placeholder="Nome, código interno ou barras"><div id="produto-resultados" class="list-group mt-2" aria-live="polite"></div></div>
+      <div class="card-body"><div id="produtos-itens">{{ produtos_formset.management_form }}
+        {% for item in produtos_formset %}<div class="item-row border rounded p-3 mb-3" data-kind="produto">{{ item.id }}{{ item.produto }}<div class="d-flex justify-content-between gap-2 mb-2"><strong class="item-name">{{ item.instance.produto.nome|default:'Produto' }}</strong><button class="btn btn-sm btn-outline-danger remove-item" type="button">Remover</button></div><div class="row g-2"><div class="col-3"><label class="form-label small">Qtd.</label>{{ item.quantidade }}</div><div class="col-5"><label class="form-label small">Vlr. unit.</label>{{ item.valor_unitario }}</div><div class="col-4 text-end"><span class="form-label small d-block">Subtotal</span><strong class="item-subtotal">R$ 0,00</strong></div></div>{% for field in item.visible_fields %}{% for error in field.errors %}<div class="text-danger small mt-1">{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}{{ item.DELETE }}{% for error in item.non_field_errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}</div>{% endfor %}
+      </div></div><div class="card-footer bg-white d-flex justify-content-between"><span>Subtotal dos produtos</span><strong id="subtotal-produtos">R$ 0,00</strong></div>
+    </div></div>
+  </div>
+
+  <div class="card border-0 shadow-sm mt-4"><div class="card-body d-flex justify-content-between align-items-center"><div><span class="text-secondary">Total estimado</span><div class="h3 mb-0" id="total-os">R$ 0,00</div><small class="text-secondary">Serviços + produtos + deslocamento − desconto</small></div><button class="btn btn-success btn-lg" type="submit">Salvar ordem de serviço</button></div></div>
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const money = value => Number(value || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+  const numberValue = input => Math.max(0, Number.parseFloat(input?.value || '0') || 0);
+  const debounce = (fn, delay = 300) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); }; };
+  const resultButton = (primary, secondary, action) => {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'list-group-item list-group-item-action';
+    const title = document.createElement('span'); title.className = 'fw-semibold d-block'; title.textContent = primary; button.appendChild(title);
+    if (secondary) { const detail = document.createElement('small'); detail.className = 'text-secondary'; detail.textContent = secondary; button.appendChild(detail); }
+    button.addEventListener('click', action); return button;
+  };
+  const attachSearch = (input, box, url, render) => input.addEventListener('input', debounce(async () => {
+    const query = input.value.trim(); box.replaceChildren(); if (query.length < 2) return;
+    box.innerHTML = '<div class="list-group-item text-secondary">Buscando...</div>';
+    try { const response = await fetch(`${url}?q=${encodeURIComponent(query)}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}}); if (!response.ok) throw new Error(); const data = await response.json(); box.replaceChildren(); if (!data.resultados.length) box.innerHTML = '<div class="list-group-item text-secondary">Nenhum resultado ativo encontrado.</div>'; else data.resultados.forEach(item => box.appendChild(render(item))); }
+    catch { box.innerHTML = '<div class="list-group-item text-danger">Não foi possível realizar a busca.</div>'; }
+  }));
+
+  const clienteInput = document.getElementById('id_cliente');
+  const clienteSearch = document.getElementById('cliente-busca');
+  const clienteBox = document.getElementById('cliente-resultados');
+  const clienteCard = document.getElementById('cliente-selecionado');
+  const clienteText = clienteCard.querySelector('span');
+  attachSearch(clienteSearch, clienteBox, '{% url "ordens_servico:buscar_clientes" %}', cliente => resultButton(cliente.nome, [cliente.cpf_cnpj, cliente.telefone].filter(Boolean).join(' · '), () => { clienteInput.value = cliente.id; clienteText.textContent = [cliente.nome, cliente.cpf_cnpj, cliente.telefone].filter(Boolean).join(' · '); clienteCard.classList.remove('d-none'); clienteBox.replaceChildren(); clienteSearch.value = ''; }));
+  document.getElementById('trocar-cliente').addEventListener('click', () => { clienteInput.value = ''; clienteCard.classList.add('d-none'); clienteSearch.focus(); });
+
+  function inputField(type, name, value, className = '') { const input = document.createElement('input'); input.type = type; input.name = name; input.value = value ?? ''; input.className = `form-control ${className}`.trim(); return input; }
+  function fieldColumn(labelText, input, className) { const col = document.createElement('div'); col.className = className; const label = document.createElement('label'); label.className = 'form-label small'; label.textContent = labelText; col.append(label, input); return col; }
+  function addItem(prefix, container, data, kind) {
+    const totalInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`); const index = Number(totalInput.value);
+    const row = document.createElement('div'); row.className = 'item-row border rounded p-3 mb-3'; row.dataset.kind = kind;
+    const relation = inputField('hidden', `${prefix}-${index}-${kind}`, data.id); relation.className = '';
+    const removeFlag = inputField('checkbox', `${prefix}-${index}-DELETE`, 'on'); removeFlag.className = 'd-none'; removeFlag.checked = false;
+    const heading = document.createElement('div'); heading.className = 'd-flex justify-content-between gap-2 mb-2';
+    const name = document.createElement('strong'); name.className = 'item-name'; name.textContent = data.nome;
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn btn-sm btn-outline-danger remove-item'; remove.textContent = 'Remover'; heading.append(name, remove);
+    const fields = document.createElement('div'); fields.className = 'row g-2';
+    if (kind === 'servico') fields.appendChild(fieldColumn('Descrição', inputField('text', `${prefix}-${index}-descricao`, data.nome), 'col-md-5'));
+    const quantity = inputField('number', `${prefix}-${index}-quantidade`, '1', 'item-quantidade'); quantity.min = '1'; quantity.step = '1';
+    const unit = inputField('number', `${prefix}-${index}-valor_unitario`, kind === 'servico' ? data.valor_padrao : data.preco_venda, 'item-valor'); unit.min = '0'; unit.step = '0.01';
+    fields.appendChild(fieldColumn('Qtd.', quantity, kind === 'servico' ? 'col-3 col-md-2' : 'col-3'));
+    fields.appendChild(fieldColumn('Vlr. unit.', unit, kind === 'servico' ? 'col-5 col-md-3' : 'col-5'));
+    const subtotalCol = document.createElement('div'); subtotalCol.className = kind === 'servico' ? 'col-4 col-md-2 text-end' : 'col-4 text-end'; subtotalCol.innerHTML = '<span class="form-label small d-block">Subtotal</span><strong class="item-subtotal">R$ 0,00</strong>'; fields.appendChild(subtotalCol);
+    row.append(relation, removeFlag, heading, fields); container.appendChild(row); totalInput.value = index + 1; bindRow(row); calculateTotals();
+  }
+  function bindRow(row) {
+    const deleteInput = row.querySelector('input[name$="-DELETE"]'); if (deleteInput) { deleteInput.classList.add('d-none'); if (deleteInput.checked) row.classList.add('d-none'); }
+    row.querySelector('.remove-item')?.addEventListener('click', () => { if (deleteInput) deleteInput.checked = true; row.classList.add('d-none'); calculateTotals(); });
+    row.querySelectorAll('.item-quantidade,.item-valor').forEach(input => input.addEventListener('input', calculateTotals));
+  }
+  function calculateTotals() {
+    let services = 0, products = 0;
+    document.querySelectorAll('.item-row').forEach(row => { const deleted = row.querySelector('input[name$="-DELETE"]')?.checked; if (deleted) return; const subtotal = numberValue(row.querySelector('.item-quantidade')) * numberValue(row.querySelector('.item-valor')); row.querySelector('.item-subtotal').textContent = money(subtotal); if (row.dataset.kind === 'servico') services += subtotal; else products += subtotal; });
+    const travel = numberValue(document.getElementById('id_valor_deslocamento')); const discount = numberValue(document.getElementById('id_desconto'));
+    document.getElementById('subtotal-servicos').textContent = money(services); document.getElementById('subtotal-produtos').textContent = money(products); document.getElementById('total-os').textContent = money(Math.max(0, services + products + travel - discount));
+  }
+  document.querySelectorAll('.item-row').forEach(bindRow);
+  ['id_valor_deslocamento', 'id_desconto'].forEach(id => document.getElementById(id)?.addEventListener('input', calculateTotals));
+  attachSearch(document.getElementById('servico-busca'), document.getElementById('servico-resultados'), '{% url "ordens_servico:buscar_servicos" %}', service => resultButton(service.nome, `${service.descricao || 'Sem descrição'} · ${money(service.valor_padrao)}`, () => { addItem('servicos', document.getElementById('servicos-itens'), service, 'servico'); document.getElementById('servico-resultados').replaceChildren(); document.getElementById('servico-busca').value = ''; }));
+  attachSearch(document.getElementById('produto-busca'), document.getElementById('produto-resultados'), '{% url "ordens_servico:buscar_produtos" %}', product => resultButton(product.nome, `${product.codigo_interno} · ${money(product.preco_venda)} · estoque ${product.estoque_atual}`, () => { addItem('produtos', document.getElementById('produtos-itens'), product, 'produto'); document.getElementById('produto-resultados').replaceChildren(); document.getElementById('produto-busca').value = ''; }));
+  calculateTotals();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}{% if object %}Editar produto{% else %}Novo produto{% endif %} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">{% if object %}Editar produto{% else %}Novo produto{% endif %}</h1>
+        <p class="text-secondary mb-0">Preencha os dados cadastrais, fiscais e comerciais do produto.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'produtos:list' %}">Voltar</a>
+</div>
+
+<form method="post" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="{% if field.name == 'descricao' %}col-12{% elif field.name == 'ativo' %}col-12{% else %}col-md-6{% endif %}">
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        <div class="form-check mt-4">
+                            {{ field }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        </div>
+                    {% else %}
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'produtos:list' %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Salvar</button>
+    </div>
+</form>
+<script>
+(function () {
+    const categoria = document.getElementById('id_categoria');
+    const chassi = document.getElementById('id_chassi');
+    if (!categoria || !chassi) return;
+    function ajustarChassi() {
+        const option = categoria.options[categoria.selectedIndex];
+        const veiculo = option && option.dataset.tipo === 'VEICULOS';
+        chassi.disabled = !veiculo;
+        chassi.classList.toggle('bg-light', !veiculo);
+        if (!veiculo) chassi.value = '';
+    }
+    categoria.addEventListener('change', ajustarChassi);
+    ajustarChassi();
+})();
+</script>
+{% endblock %}

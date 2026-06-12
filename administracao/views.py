@@ -1,0 +1,276 @@
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import Group
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
+
+from accounts.models import LogAtividade
+from ordens_servico.models import Servico
+
+from .forms import (
+    CategoriaProdutoForm, ConfiguracaoSistemaAdministracaoForm, EmpresaForm, ServicoForm,
+)
+from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
+
+
+def usuario_administrador(user):
+    return user.is_authenticated and (user.is_superuser or user.groups.filter(name='Administrador').exists())
+
+
+def usuario_gerente(user):
+    return user.is_authenticated and user.groups.filter(name='Gerente').exists()
+
+
+def usuario_pode_visualizar_administracao(user):
+    return usuario_administrador(user) or usuario_gerente(user)
+
+
+class AdministracaoPermissaoMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return usuario_pode_visualizar_administracao(self.request.user)
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+        messages.error(self.request, 'Você não possui permissão para acessar a Administração.')
+        return redirect('dashboard')
+
+
+class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
+    template_name = 'administracao/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        context['empresa'] = Empresa.get_solo()
+        context['configuracao'] = ConfiguracaoSistema.get_solo()
+        context['usuarios_total'] = get_user_model().objects.count()
+        context['usuarios_ativos'] = get_user_model().objects.filter(is_active=True).count()
+        context['grupos_total'] = Group.objects.count()
+        context['logs_total'] = LogAtividade.objects.count()
+        context['categorias_produtos_total'] = CategoriaProduto.objects.count()
+        context['categorias_produtos_ativas'] = CategoriaProduto.objects.filter(ativo=True).count()
+        context['servicos_total'] = Servico.objects.count()
+        context['servicos_ativos'] = Servico.objects.filter(ativo=True).count()
+        context['ultimo_log'] = LogAtividade.objects.select_related('usuario').first()
+        return context
+
+
+class UsuariosPermissoesView(AdministracaoPermissaoMixin, ListView):
+    template_name = 'administracao/usuarios_permissoes.html'
+    context_object_name = 'usuarios'
+    paginate_by = 25
+
+    def get_queryset(self):
+        return get_user_model().objects.prefetch_related('groups').order_by('username')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['grupos'] = Group.objects.order_by('name')
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class LogsAtividadeView(AdministracaoPermissaoMixin, ListView):
+    template_name = 'administracao/logs_atividade.html'
+    context_object_name = 'logs'
+    paginate_by = 50
+
+    def get_queryset(self):
+        return LogAtividade.objects.select_related('usuario').all()
+
+
+class EmpresaDetailView(AdministracaoPermissaoMixin, DetailView):
+    model = Empresa
+    template_name = 'administracao/dados_empresa.html'
+    context_object_name = 'empresa'
+
+    def get_object(self, queryset=None):
+        return Empresa.get_solo()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class EmpresaUpdateView(AdministracaoPermissaoMixin, UpdateView):
+    model = Empresa
+    form_class = EmpresaForm
+    template_name = 'administracao/dados_empresa_form.html'
+    context_object_name = 'empresa'
+    success_url = reverse_lazy('administracao:dados_empresa')
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def get_object(self, queryset=None):
+        return Empresa.get_solo()
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Dados da empresa atualizados com sucesso.')
+        return super().form_valid(form)
+
+
+class ConfiguracaoSistemaView(AdministracaoPermissaoMixin, UpdateView):
+    model = ConfiguracaoSistema
+    form_class = ConfiguracaoSistemaAdministracaoForm
+    template_name = 'administracao/configuracoes_sistema.html'
+    context_object_name = 'configuracao'
+    success_url = reverse_lazy('administracao:configuracoes_sistema')
+
+    def pode_editar(self):
+        return usuario_administrador(self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['somente_leitura'] = not self.pode_editar()
+        return kwargs
+
+    def get_object(self, queryset=None):
+        return ConfiguracaoSistema.get_solo()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = self.pode_editar()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not self.pode_editar():
+            messages.error(request, 'Apenas administradores podem alterar estas configurações.')
+            return redirect(self.success_url)
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Configurações do sistema atualizadas com sucesso.')
+        return super().form_valid(form)
+
+
+class CategoriaProdutoListView(AdministracaoPermissaoMixin, ListView):
+    model = CategoriaProduto
+    template_name = 'administracao/categorias_produtos/lista.html'
+    context_object_name = 'categorias'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class CategoriaProdutoDetailView(AdministracaoPermissaoMixin, DetailView):
+    model = CategoriaProduto
+    template_name = 'administracao/categorias_produtos/detalhe.html'
+    context_object_name = 'categoria'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class CategoriaProdutoCreateView(AdministracaoPermissaoMixin, CreateView):
+    model = CategoriaProduto
+    form_class = CategoriaProdutoForm
+    template_name = 'administracao/categorias_produtos/form.html'
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Categoria de produto criada com sucesso.')
+        return super().form_valid(form)
+
+
+class CategoriaProdutoUpdateView(AdministracaoPermissaoMixin, UpdateView):
+    model = CategoriaProduto
+    form_class = CategoriaProdutoForm
+    template_name = 'administracao/categorias_produtos/form.html'
+    context_object_name = 'categoria'
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Categoria de produto atualizada com sucesso.')
+        return super().form_valid(form)
+
+
+class ServicoListView(AdministracaoPermissaoMixin, ListView):
+    model = Servico
+    template_name = 'administracao/servicos/lista.html'
+    context_object_name = 'servicos'
+    paginate_by = 25
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            queryset = queryset.filter(Q(nome__icontains=query) | Q(descricao__icontains=query))
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '').strip()
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class ServicoDetailView(AdministracaoPermissaoMixin, DetailView):
+    model = Servico
+    template_name = 'administracao/servicos/detalhe.html'
+    context_object_name = 'servico'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class ServicoCreateView(AdministracaoPermissaoMixin, CreateView):
+    model = Servico
+    form_class = ServicoForm
+    template_name = 'administracao/servicos/form.html'
+    success_url = reverse_lazy('administracao:servicos')
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Serviço cadastrado com sucesso.')
+        return super().form_valid(form)
+
+
+class ServicoUpdateView(AdministracaoPermissaoMixin, UpdateView):
+    model = Servico
+    form_class = ServicoForm
+    template_name = 'administracao/servicos/form.html'
+    context_object_name = 'servico'
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Serviço atualizado com sucesso.')
+        return super().form_valid(form)
+
+
+@login_required
+@require_POST
+def servico_alterar_ativo(request, pk):
+    if not usuario_administrador(request.user):
+        messages.error(request, 'Apenas administradores podem ativar ou inativar serviços.')
+        return redirect('administracao:servicos')
+    servico = get_object_or_404(Servico, pk=pk)
+    servico.ativo = not servico.ativo
+    servico.save(update_fields=['ativo', 'atualizado_em'])
+    messages.success(
+        request,
+        f'Serviço {"ativado" if servico.ativo else "inativado"} com sucesso.',
+    )
+    return redirect(servico.get_absolute_url())
