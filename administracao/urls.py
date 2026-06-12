@@ -10,6 +10,11 @@ from .views import (
     EmpresaDetailView,
     EmpresaUpdateView,
     LogsAtividadeView,
+    ServicoCreateView,
+    ServicoDetailView,
+    ServicoListView,
+    ServicoUpdateView,
+    servico_alterar_ativo,
     UsuariosPermissoesView,
 )
 
@@ -17,6 +22,11 @@ app_name = 'administracao'
 
 urlpatterns = [
     path('', AdministracaoHomeView.as_view(), name='home'),
+    path('servicos/', ServicoListView.as_view(), name='servicos'),
+    path('servicos/novo/', ServicoCreateView.as_view(), name='servico_criar'),
+    path('servicos/<int:pk>/', ServicoDetailView.as_view(), name='servico_detalhe'),
+    path('servicos/<int:pk>/editar/', ServicoUpdateView.as_view(), name='servico_editar'),
+    path('servicos/<int:pk>/inativar/', servico_alterar_ativo, name='servico_alterar_ativo'),
     path('categorias-produtos/', CategoriaProdutoListView.as_view(), name='categorias_produtos'),
     path('categorias-produtos/nova/', CategoriaProdutoCreateView.as_view(), name='categoria_produto_criar'),
     path('categorias-produtos/<int:pk>/', CategoriaProdutoDetailView.as_view(), name='categoria_produto_detalhe'),

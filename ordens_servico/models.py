@@ -15,7 +15,7 @@ CENTAVO = Decimal('0.01')
 class Servico(models.Model):
     nome = models.CharField(max_length=150)
     descricao = models.TextField('descrição', blank=True)
-    valor_padrao = models.DecimalField('valor padrão', max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
+    valor_padrao = models.DecimalField('valor padrão', max_digits=12, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -33,6 +33,9 @@ class Servico(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def get_absolute_url(self):
+        return reverse('administracao:servico_detalhe', kwargs={'pk': self.pk})
 
 
 class OrdemServico(models.Model):

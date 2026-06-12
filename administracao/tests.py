@@ -9,6 +9,7 @@ from django.urls import reverse
 from PIL import Image
 
 from accounts.models import LogAtividade
+from ordens_servico.models import Servico
 
 from .forms import EmpresaForm
 from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
@@ -372,3 +373,106 @@ class CategoriaProdutoTests(TestCase):
         self.client.force_login(self.vendedor)
         resposta = self.client.get(reverse('administracao:categorias_produtos'))
         self.assertEqual(resposta.status_code, 302)
+
+
+class ServicoAdministracaoTests(TestCase):
+    def setUp(self):
+        self.administrador = get_user_model().objects.create_user(
+            username='admin-servicos', password='senha'
+        )
+        self.gerente = get_user_model().objects.create_user(
+            username='gerente-servicos', password='senha'
+        )
+        self.vendedor = get_user_model().objects.create_user(
+            username='vendedor-servicos', password='senha'
+        )
+        self.estoquista = get_user_model().objects.create_user(
+            username='estoquista-servicos', password='senha'
+        )
+        for usuario, grupo in (
+            (self.administrador, 'Administrador'),
+            (self.gerente, 'Gerente'),
+            (self.vendedor, 'Vendedor'),
+            (self.estoquista, 'Estoquista'),
+        ):
+            usuario.groups.add(Group.objects.get_or_create(name=grupo)[0])
+        self.servico = Servico.objects.create(
+            nome='Revisão administrativa',
+            descricao='Serviço gerenciado pela Administração.',
+            valor_padrao='100.00',
+        )
+
+    def test_administrador_cadastra_edita_visualiza_e_inativa_servico(self):
+        self.client.force_login(self.administrador)
+        resposta = self.client.post(reverse('administracao:servico_criar'), {
+            'nome': 'Instalação administrativa',
+            'descricao': 'Instalação completa',
+            'valor_padrao': '120.00',
+            'ativo': 'on',
+        })
+        self.assertRedirects(resposta, reverse('administracao:servicos'))
+        servico = Servico.objects.get(nome='Instalação administrativa')
+        self.assertEqual(
+            self.client.get(reverse('administracao:servico_detalhe', args=[servico.pk])).status_code,
+            200,
+        )
+        resposta = self.client.post(reverse('administracao:servico_editar', args=[servico.pk]), {
+            'nome': 'Instalação atualizada',
+            'descricao': 'Instalação completa',
+            'valor_padrao': '150.00',
+            'ativo': 'on',
+        })
+        self.assertRedirects(resposta, reverse('administracao:servico_detalhe', args=[servico.pk]))
+        resposta = self.client.post(
+            reverse('administracao:servico_alterar_ativo', args=[servico.pk])
+        )
+        self.assertRedirects(resposta, reverse('administracao:servico_detalhe', args=[servico.pk]))
+        servico.refresh_from_db()
+        self.assertFalse(servico.ativo)
+
+    def test_gerente_visualiza_mas_nao_cadastra_edita_ou_inativa(self):
+        self.client.force_login(self.gerente)
+        self.assertEqual(self.client.get(reverse('administracao:servicos')).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse('administracao:servico_detalhe', args=[self.servico.pk])).status_code,
+            200,
+        )
+        for url in (
+            reverse('administracao:servico_criar'),
+            reverse('administracao:servico_editar', args=[self.servico.pk]),
+        ):
+            self.assertEqual(self.client.get(url).status_code, 302)
+        self.client.post(reverse('administracao:servico_alterar_ativo', args=[self.servico.pk]))
+        self.servico.refresh_from_db()
+        self.assertTrue(self.servico.ativo)
+
+    def test_vendedor_e_estoquista_nao_acessam_servicos_da_administracao(self):
+        for usuario in (self.vendedor, self.estoquista):
+            self.client.force_login(usuario)
+            self.assertEqual(self.client.get(reverse('administracao:servicos')).status_code, 302)
+
+    def test_servico_administrativo_aparece_na_busca_da_os_somente_quando_ativo(self):
+        self.client.force_login(self.administrador)
+        resposta = self.client.get(
+            reverse('ordens_servico:buscar_servicos'), {'q': 'Revisão administrativa'}
+        )
+        self.assertEqual(resposta.json()['resultados'][0]['id'], self.servico.pk)
+        self.servico.ativo = False
+        self.servico.save(update_fields=['ativo'])
+        resposta = self.client.get(
+            reverse('ordens_servico:buscar_servicos'), {'q': 'Revisão administrativa'}
+        )
+        self.assertEqual(resposta.json()['resultados'], [])
+
+    def test_menu_administracao_exibe_servicos(self):
+        self.client.force_login(self.administrador)
+        resposta = self.client.get(reverse('administracao:home'))
+        self.assertContains(resposta, 'Serviços')
+        self.assertContains(resposta, reverse('administracao:servicos'))
+
+    def test_valor_padrao_tem_default_zero_e_nao_aceita_negativo(self):
+        servico = Servico.objects.create(nome='Sem valor informado')
+        self.assertEqual(servico.valor_padrao, 0)
+        invalido = Servico(nome='Valor negativo', valor_padrao='-0.01')
+        with self.assertRaises(ValidationError):
+            invalido.full_clean()

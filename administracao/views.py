@@ -1,14 +1,20 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Group
-from django.shortcuts import redirect
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
 from accounts.models import LogAtividade
+from ordens_servico.models import Servico
 
-from .forms import CategoriaProdutoForm, ConfiguracaoSistemaAdministracaoForm, EmpresaForm
+from .forms import (
+    CategoriaProdutoForm, ConfiguracaoSistemaAdministracaoForm, EmpresaForm, ServicoForm,
+)
 from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 
 
@@ -49,6 +55,8 @@ class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
         context['logs_total'] = LogAtividade.objects.count()
         context['categorias_produtos_total'] = CategoriaProduto.objects.count()
         context['categorias_produtos_ativas'] = CategoriaProduto.objects.filter(ativo=True).count()
+        context['servicos_total'] = Servico.objects.count()
+        context['servicos_ativos'] = Servico.objects.filter(ativo=True).count()
         context['ultimo_log'] = LogAtividade.objects.select_related('usuario').first()
         return context
 
@@ -191,3 +199,78 @@ class CategoriaProdutoUpdateView(AdministracaoPermissaoMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Categoria de produto atualizada com sucesso.')
         return super().form_valid(form)
+
+
+class ServicoListView(AdministracaoPermissaoMixin, ListView):
+    model = Servico
+    template_name = 'administracao/servicos/lista.html'
+    context_object_name = 'servicos'
+    paginate_by = 25
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            queryset = queryset.filter(Q(nome__icontains=query) | Q(descricao__icontains=query))
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '').strip()
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class ServicoDetailView(AdministracaoPermissaoMixin, DetailView):
+    model = Servico
+    template_name = 'administracao/servicos/detalhe.html'
+    context_object_name = 'servico'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pode_editar'] = usuario_administrador(self.request.user)
+        return context
+
+
+class ServicoCreateView(AdministracaoPermissaoMixin, CreateView):
+    model = Servico
+    form_class = ServicoForm
+    template_name = 'administracao/servicos/form.html'
+    success_url = reverse_lazy('administracao:servicos')
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Serviço cadastrado com sucesso.')
+        return super().form_valid(form)
+
+
+class ServicoUpdateView(AdministracaoPermissaoMixin, UpdateView):
+    model = Servico
+    form_class = ServicoForm
+    template_name = 'administracao/servicos/form.html'
+    context_object_name = 'servico'
+
+    def test_func(self):
+        return usuario_administrador(self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Serviço atualizado com sucesso.')
+        return super().form_valid(form)
+
+
+@login_required
+@require_POST
+def servico_alterar_ativo(request, pk):
+    if not usuario_administrador(request.user):
+        messages.error(request, 'Apenas administradores podem ativar ou inativar serviços.')
+        return redirect('administracao:servicos')
+    servico = get_object_or_404(Servico, pk=pk)
+    servico.ativo = not servico.ativo
+    servico.save(update_fields=['ativo', 'atualizado_em'])
+    messages.success(
+        request,
+        f'Serviço {"ativado" if servico.ativo else "inativado"} com sucesso.',
+    )
+    return redirect(servico.get_absolute_url())

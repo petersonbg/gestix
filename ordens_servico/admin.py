@@ -67,9 +67,26 @@ class OrdemServicoAdmin(admin.ModelAdmin):
 
 @admin.register(Servico)
 class ServicoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'valor_padrao', 'ativo')
+    list_display = ('nome', 'valor_padrao', 'ativo', 'atualizado_em')
     list_filter = ('ativo',)
     search_fields = ('nome', 'descricao')
+    readonly_fields = ('criado_em', 'atualizado_em')
+
+    @staticmethod
+    def usuario_administrador(request):
+        return request.user.is_superuser or request.user.groups.filter(name='Administrador').exists()
+
+    def has_view_permission(self, request, obj=None):
+        return self.usuario_administrador(request) or request.user.groups.filter(name='Gerente').exists()
+
+    def has_add_permission(self, request):
+        return self.usuario_administrador(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.usuario_administrador(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 admin.site.register(ItemServicoOS)

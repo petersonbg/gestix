@@ -429,25 +429,30 @@ class ServicoDinamicoOSTests(TestCase):
             self.assertContains(resposta, '150,00')
 
 
-class ServicoCadastroViewsTests(TestCase):
+class ServicoCatalogoNaOSTests(TestCase):
     def setUp(self):
         self.usuario = get_user_model().objects.create_superuser(
-            username='admin-cadastro-servicos', password='senha', email='servicos@example.com'
+            username='admin-os-sem-catalogo', password='senha', email='os@example.com'
         )
         self.client.force_login(self.usuario)
 
-    def test_cadastra_e_edita_servico(self):
-        resposta = self.client.post(reverse('ordens_servico:servico_create'), {
-            'nome': 'Instalação especializada', 'descricao': 'Instalação completa',
-            'valor_padrao': '120.00', 'ativo': 'on',
-        })
-        self.assertRedirects(resposta, reverse('ordens_servico:servicos'))
-        servico = Servico.objects.get(nome='Instalação especializada')
-        resposta = self.client.post(reverse('ordens_servico:servico_update', args=[servico.pk]), {
-            'nome': 'Instalação premium', 'descricao': 'Instalação completa',
-            'valor_padrao': '150.00', 'ativo': 'on',
-        })
-        self.assertRedirects(resposta, reverse('ordens_servico:servicos'))
-        servico.refresh_from_db()
-        self.assertEqual(servico.nome, 'Instalação premium')
-        self.assertEqual(servico.valor_padrao, Decimal('150.00'))
+    def test_ordens_servico_mantem_apenas_endpoint_de_busca_de_servicos(self):
+        self.assertEqual(
+            reverse('ordens_servico:buscar_servicos'),
+            '/ordens-servico/servicos/buscar/',
+        )
+        for caminho in (
+            '/ordens-servico/servicos/',
+            '/ordens-servico/servicos/novo/',
+            '/ordens-servico/servicos/1/editar/',
+        ):
+            self.assertEqual(self.client.get(caminho).status_code, 404)
+
+    def test_telas_da_os_nao_exibem_cadastro_ou_consulta_de_servicos(self):
+        listagem = self.client.get(reverse('ordens_servico:list'))
+        formulario = self.client.get(reverse('ordens_servico:create'))
+        for resposta in (listagem, formulario):
+            self.assertNotContains(resposta, 'Consultar cadastro')
+            self.assertNotContains(resposta, 'Cadastro de serviços')
+            self.assertNotContains(resposta, 'Novo serviço')
+        self.assertContains(formulario, 'Pesquisar serviço')

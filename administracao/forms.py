@@ -1,5 +1,7 @@
 from django import forms
 
+from ordens_servico.models import Servico
+
 from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 
 
@@ -61,6 +63,20 @@ class CategoriaProdutoForm(BootstrapModelFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.aplicar_bootstrap()
 
+
+class ServicoForm(BootstrapModelFormMixin, forms.ModelForm):
+    class Meta:
+        model = Servico
+        fields = ['nome', 'descricao', 'valor_padrao', 'ativo']
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 4}),
+            'valor_padrao': forms.NumberInput(attrs={'min': 0, 'step': '0.01'}),
+            'ativo': forms.CheckboxInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.aplicar_bootstrap()
 
 class ConfiguracaoSistemaAdministracaoForm(BootstrapModelFormMixin, forms.ModelForm):
     class Meta:
