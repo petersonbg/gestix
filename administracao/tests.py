@@ -451,18 +451,16 @@ class ServicoAdministracaoTests(TestCase):
             self.client.force_login(usuario)
             self.assertEqual(self.client.get(reverse('administracao:servicos')).status_code, 302)
 
-    def test_servico_administrativo_aparece_na_busca_da_os_somente_quando_ativo(self):
+    def test_servico_administrativo_aparece_no_dropdown_da_os_somente_quando_ativo(self):
         self.client.force_login(self.administrador)
-        resposta = self.client.get(
-            reverse('ordens_servico:buscar_servicos'), {'q': 'Revisão administrativa'}
-        )
-        self.assertEqual(resposta.json()['resultados'][0]['id'], self.servico.pk)
+        resposta = self.client.get(reverse('ordens_servico:create'))
+        self.assertContains(resposta, self.servico.nome)
+        self.assertContains(resposta, f'value="{self.servico.pk}"')
+
         self.servico.ativo = False
         self.servico.save(update_fields=['ativo'])
-        resposta = self.client.get(
-            reverse('ordens_servico:buscar_servicos'), {'q': 'Revisão administrativa'}
-        )
-        self.assertEqual(resposta.json()['resultados'], [])
+        resposta = self.client.get(reverse('ordens_servico:create'))
+        self.assertNotContains(resposta, self.servico.nome)
 
     def test_menu_administracao_exibe_servicos(self):
         self.client.force_login(self.administrador)

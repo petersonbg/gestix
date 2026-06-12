@@ -114,14 +114,28 @@ class OrdemServicoFormView(OrdemServicoPermissaoMixin, View):
     def get_instance(self):
         return self.instance
 
+    @staticmethod
+    def contexto_formulario(form, servicos_formset, produtos_formset, ordem):
+        return {
+            'form': form,
+            'servicos_formset': servicos_formset,
+            'produtos_formset': produtos_formset,
+            'servicos_ativos': Servico.objects.filter(ativo=True).order_by('nome'),
+            'ordem': ordem,
+        }
+
     def get(self, request, *args, **kwargs):
         ordem = self.get_instance()
-        return render(request, self.template_name, {
-            'form': OrdemServicoForm(instance=ordem),
-            'servicos_formset': ServicoFormSet(instance=ordem, prefix='servicos'),
-            'produtos_formset': ProdutoFormSet(instance=ordem, prefix='produtos'),
-            'ordem': ordem,
-        })
+        return render(
+            request,
+            self.template_name,
+            self.contexto_formulario(
+                OrdemServicoForm(instance=ordem),
+                ServicoFormSet(instance=ordem, prefix='servicos'),
+                ProdutoFormSet(instance=ordem, prefix='produtos'),
+                ordem,
+            ),
+        )
 
     def post(self, request, *args, **kwargs):
         ordem = self.get_instance() or OrdemServico()
@@ -145,7 +159,10 @@ class OrdemServicoFormView(OrdemServicoPermissaoMixin, View):
             valor_deslocamento = form.cleaned_data.get('valor_deslocamento', 0) or 0
             if form.cleaned_data.get('desconto', 0) > subtotal_servicos + subtotal_produtos + valor_deslocamento:
                 form.add_error('desconto', 'O desconto não pode ser maior que o total da OS.')
-                return render(request, self.template_name, {'form': form, 'servicos_formset': servicos_formset, 'produtos_formset': produtos_formset, 'ordem': ordem})
+                return render(
+                    request, self.template_name,
+                    self.contexto_formulario(form, servicos_formset, produtos_formset, ordem),
+                )
             with transaction.atomic():
                 nova = not ordem.pk
                 ordem = form.save()
@@ -177,7 +194,10 @@ class OrdemServicoFormView(OrdemServicoPermissaoMixin, View):
                 registrar_log(request.user, 'criação de OS' if nova else 'edição de OS', 'ordens_servico', f'OS {ordem.numero}.', request=request)
             messages.success(request, 'Ordem de serviço salva com sucesso.')
             return redirect(ordem)
-        return render(request, self.template_name, {'form': form, 'servicos_formset': servicos_formset, 'produtos_formset': produtos_formset, 'ordem': ordem})
+        return render(
+            request, self.template_name,
+            self.contexto_formulario(form, servicos_formset, produtos_formset, ordem),
+        )
 
 
 class OrdemServicoCreateView(OrdemServicoFormView):
@@ -224,18 +244,6 @@ def buscar_produtos(request):
     produtos = Produto.objects.filter(ativo=True).filter(Q(nome__icontains=q) | Q(codigo_interno__icontains=q) | Q(codigo_barras__icontains=q))[:10]
     return JsonResponse({'resultados': [{'id': p.pk, 'nome': p.nome, 'codigo_interno': p.codigo_interno, 'preco_venda': str(p.preco_venda), 'estoque_atual': p.estoque_atual} for p in produtos]})
 
-
-@login_required
-@require_http_methods(['GET'])
-def buscar_servicos(request):
-    negado = _json_permitido(request)
-    if negado:
-        return negado
-    q = request.GET.get('q', '').strip()
-    if len(q) < 2:
-        return JsonResponse({'resultados': []})
-    servicos = Servico.objects.filter(ativo=True).filter(Q(nome__icontains=q) | Q(descricao__icontains=q))[:10]
-    return JsonResponse({'resultados': [{'id': s.pk, 'nome': s.nome, 'descricao': s.descricao, 'valor_padrao': str(s.valor_padrao)} for s in servicos]})
 
 
 def _ordem_acao(request, pk, permissao=pode_editar):

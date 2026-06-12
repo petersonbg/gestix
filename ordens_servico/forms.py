@@ -2,9 +2,10 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.forms import inlineformset_factory
+from django.db.models import Q
+from django.forms import BaseInlineFormSet, inlineformset_factory
 
-from .models import ItemProdutoOS, ItemServicoOS, OrdemServico
+from .models import ItemProdutoOS, ItemServicoOS, OrdemServico, Servico
 
 
 class UsuarioAtivoChoiceField(forms.ModelChoiceField):
@@ -55,10 +56,41 @@ class ItemServicoOSForm(forms.ModelForm):
         model = ItemServicoOS
         fields = ['servico', 'descricao', 'quantidade', 'valor_unitario']
         widgets = {
-            'servico': forms.HiddenInput(), 'descricao': forms.TextInput(attrs={'class': 'form-control'}),
+            'servico': forms.HiddenInput(),
+            'descricao': forms.HiddenInput(),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control item-quantidade', 'min': 1}),
             'valor_unitario': forms.NumberInput(attrs={'class': 'form-control item-valor', 'min': 0, 'step': '0.01'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        servicos = Servico.objects.filter(ativo=True)
+        if self.instance.pk and self.instance.servico_id:
+            servicos = Servico.objects.filter(
+                Q(ativo=True) | Q(pk=self.instance.servico_id)
+            )
+        self.fields['servico'].queryset = servicos.order_by('nome')
+
+
+class BaseServicoFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+
+        servicos_incluidos = set()
+        for form in self.forms:
+            if not form.cleaned_data or form.cleaned_data.get('DELETE'):
+                continue
+            servico = form.cleaned_data.get('servico')
+            if not servico:
+                continue
+            if servico.pk in servicos_incluidos:
+                raise forms.ValidationError(
+                    'Cada serviço deve aparecer apenas uma vez na ordem de serviço. '
+                    'Ajuste a quantidade do item já adicionado.'
+                )
+            servicos_incluidos.add(servico.pk)
 
 
 class ItemProdutoOSForm(forms.ModelForm):
@@ -72,7 +104,14 @@ class ItemProdutoOSForm(forms.ModelForm):
         }
 
 
-ServicoFormSet = inlineformset_factory(OrdemServico, ItemServicoOS, form=ItemServicoOSForm, extra=0, can_delete=True)
+ServicoFormSet = inlineformset_factory(
+    OrdemServico,
+    ItemServicoOS,
+    form=ItemServicoOSForm,
+    formset=BaseServicoFormSet,
+    extra=0,
+    can_delete=True,
+)
 ProdutoFormSet = inlineformset_factory(OrdemServico, ItemProdutoOS, form=ItemProdutoOSForm, extra=0, can_delete=True)
 
 

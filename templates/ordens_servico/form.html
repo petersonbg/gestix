@@ -1,8 +1,9 @@
 {% extends 'layouts/internal.html' %}
+{% load l10n %}
 {% block title %}{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova OS{% endif %} | GESTIX{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-  <div><h1 class="h2 mb-1">{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova ordem de serviço{% endif %}</h1><p class="text-secondary mb-0">Pesquise e adicione serviços e peças ao atendimento.</p></div>
+  <div><h1 class="h2 mb-1">{% if ordem.pk %}Editar {{ ordem.numero }}{% else %}Nova ordem de serviço{% endif %}</h1><p class="text-secondary mb-0">Selecione serviços e pesquise peças para adicioná-los ao atendimento.</p></div>
   <a class="btn btn-outline-secondary" href="{% if ordem.pk %}{{ ordem.get_absolute_url }}{% else %}{% url 'ordens_servico:list' %}{% endif %}">Voltar</a>
 </div>
 <form method="post" enctype="multipart/form-data" id="os-form" novalidate>{% csrf_token %}
@@ -31,10 +32,44 @@
 
   <div class="row g-4">
     <div class="col-xl-6"><div class="card border-0 shadow-sm h-100">
-      <div class="card-header bg-white"><h2 class="h5 mb-2">Serviços</h2><label class="form-label small" for="servico-busca">Pesquisar serviço</label><input id="servico-busca" class="form-control" autocomplete="off" placeholder="Nome ou descrição"><div id="servico-resultados" class="list-group mt-2" aria-live="polite"></div></div>
-      <div class="card-body"><div id="servicos-itens">{{ servicos_formset.management_form }}
-        {% for item in servicos_formset %}<div class="item-row border rounded p-3 mb-3" data-kind="servico">{{ item.id }}{{ item.servico }}<div class="d-flex justify-content-between gap-2 mb-2"><strong class="item-name">{{ item.instance.servico.nome|default:'Serviço' }}</strong><button class="btn btn-sm btn-outline-danger remove-item" type="button">Remover</button></div><div class="row g-2"><div class="col-md-5"><label class="form-label small">Descrição</label>{{ item.descricao }}</div><div class="col-3 col-md-2"><label class="form-label small">Qtd.</label>{{ item.quantidade }}</div><div class="col-5 col-md-3"><label class="form-label small">Vlr. unit.</label>{{ item.valor_unitario }}</div><div class="col-4 col-md-2 text-end"><span class="form-label small d-block">Subtotal</span><strong class="item-subtotal">R$ 0,00</strong></div></div>{% for field in item.visible_fields %}{% for error in field.errors %}<div class="text-danger small mt-1">{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}{{ item.DELETE }}{% for error in item.non_field_errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}</div>{% endfor %}
-      </div></div><div class="card-footer bg-white d-flex justify-content-between"><span>Subtotal dos serviços</span><strong id="subtotal-servicos">R$ 0,00</strong></div>
+      <div class="card-header bg-white">
+        <h2 class="h5 mb-2">Serviços</h2>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-8">
+            <label class="form-label small" for="servico-select">Serviço</label>
+            <select id="servico-select" class="form-select">
+              <option value="">Selecione um serviço ativo</option>
+              {% for servico in servicos_ativos %}
+                <option value="{{ servico.pk }}" data-nome="{{ servico.nome }}" data-descricao="{{ servico.descricao|default:servico.nome }}" data-valor="{{ servico.valor_padrao|unlocalize }}">{{ servico.nome }} - R$ {{ servico.valor_padrao|floatformat:2 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button id="adicionar-servico" class="btn btn-outline-primary w-100" type="button" disabled>Adicionar Serviço</button>
+          </div>
+        </div>
+        <div id="servico-feedback" class="form-text" aria-live="polite"></div>
+        {% if not servicos_ativos %}<div class="form-text text-warning">Nenhum serviço ativo está cadastrado em Administração → Serviços.</div>{% endif %}
+      </div>
+      <div class="card-body">
+        {% for error in servicos_formset.non_form_errors %}<div class="alert alert-danger py-2">{{ error }}</div>{% endfor %}
+        <div id="servicos-itens">{{ servicos_formset.management_form }}
+          {% for item in servicos_formset %}
+            <div class="item-row border rounded p-3 mb-3" data-kind="servico">
+              {{ item.id }}{{ item.servico }}{{ item.descricao }}
+              {% for field in item.hidden_fields %}{% for error in field.errors %}<div class="alert alert-danger py-1 px-2 small">{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}
+              <div class="d-flex justify-content-between gap-2 mb-2">
+                <div><strong class="item-name">{{ item.instance.servico.nome|default:'Serviço' }}</strong><div class="small text-secondary item-description">{{ item.descricao.value|default:item.instance.servico.descricao|default:'Sem descrição' }}</div></div>
+                <button class="btn btn-sm btn-outline-danger remove-item" type="button">Remover</button>
+              </div>
+              <div class="row g-2"><div class="col-3 col-md-2"><label class="form-label small">Qtd.</label>{{ item.quantidade }}</div><div class="col-5 col-md-3"><label class="form-label small">Vlr. unit.</label>{{ item.valor_unitario }}</div><div class="col-4 col-md-2 text-end"><span class="form-label small d-block">Subtotal</span><strong class="item-subtotal">R$ 0,00</strong></div></div>
+              {% for field in item.visible_fields %}{% for error in field.errors %}<div class="text-danger small mt-1">{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}{{ item.DELETE }}
+              {% for error in item.non_field_errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card-footer bg-white d-flex justify-content-between"><span>Subtotal dos serviços</span><strong id="subtotal-servicos">R$ 0,00</strong></div>
     </div></div>
 
     <div class="col-xl-6"><div class="card border-0 shadow-sm h-100">
@@ -81,10 +116,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const relation = inputField('hidden', `${prefix}-${index}-${kind}`, data.id); relation.className = '';
     const removeFlag = inputField('checkbox', `${prefix}-${index}-DELETE`, 'on'); removeFlag.className = 'd-none'; removeFlag.checked = false;
     const heading = document.createElement('div'); heading.className = 'd-flex justify-content-between gap-2 mb-2';
-    const name = document.createElement('strong'); name.className = 'item-name'; name.textContent = data.nome;
-    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn btn-sm btn-outline-danger remove-item'; remove.textContent = 'Remover'; heading.append(name, remove);
+    const titleBlock = document.createElement('div');
+    const name = document.createElement('strong'); name.className = 'item-name'; name.textContent = data.nome; titleBlock.appendChild(name);
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn btn-sm btn-outline-danger remove-item'; remove.textContent = 'Remover'; heading.append(titleBlock, remove);
     const fields = document.createElement('div'); fields.className = 'row g-2';
-    if (kind === 'servico') fields.appendChild(fieldColumn('Descrição', inputField('text', `${prefix}-${index}-descricao`, data.nome), 'col-md-5'));
+    if (kind === 'servico') {
+      const description = inputField('hidden', `${prefix}-${index}-descricao`, data.descricao || data.nome); description.className = '';
+      row.appendChild(description);
+      const descriptionText = document.createElement('div'); descriptionText.className = 'small text-secondary item-description'; descriptionText.textContent = data.descricao || 'Sem descrição'; titleBlock.appendChild(descriptionText);
+    }
     const quantity = inputField('number', `${prefix}-${index}-quantidade`, '1', 'item-quantidade'); quantity.min = '1'; quantity.step = '1';
     const unit = inputField('number', `${prefix}-${index}-valor_unitario`, kind === 'servico' ? data.valor_padrao : data.preco_venda, 'item-valor'); unit.min = '0'; unit.step = '0.01';
     fields.appendChild(fieldColumn('Qtd.', quantity, kind === 'servico' ? 'col-3 col-md-2' : 'col-3'));
@@ -105,7 +145,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.querySelectorAll('.item-row').forEach(bindRow);
   ['id_valor_deslocamento', 'id_desconto'].forEach(id => document.getElementById(id)?.addEventListener('input', calculateTotals));
-  attachSearch(document.getElementById('servico-busca'), document.getElementById('servico-resultados'), '{% url "ordens_servico:buscar_servicos" %}', service => resultButton(service.nome, `${service.descricao || 'Sem descrição'} · ${money(service.valor_padrao)}`, () => { addItem('servicos', document.getElementById('servicos-itens'), service, 'servico'); document.getElementById('servico-resultados').replaceChildren(); document.getElementById('servico-busca').value = ''; }));
+  const serviceSelect = document.getElementById('servico-select');
+  const addServiceButton = document.getElementById('adicionar-servico');
+  const serviceFeedback = document.getElementById('servico-feedback');
+  const updateServiceButton = () => {
+    addServiceButton.disabled = !serviceSelect.value;
+    if (serviceSelect.value) serviceFeedback.textContent = '';
+  };
+  serviceSelect.addEventListener('change', updateServiceButton);
+  addServiceButton.addEventListener('click', () => {
+    const option = serviceSelect.options[serviceSelect.selectedIndex];
+    if (!option?.value) {
+      serviceFeedback.textContent = 'Selecione um serviço antes de adicionar.';
+      serviceSelect.focus();
+      return;
+    }
+    const existing = Array.from(document.querySelectorAll('#servicos-itens .item-row')).find(row => row.querySelector('input[name$="-servico"]')?.value === option.value);
+    if (existing) {
+      const deleted = existing.querySelector('input[name$="-DELETE"]');
+      if (deleted?.checked) { deleted.checked = false; existing.classList.remove('d-none'); }
+      const quantity = existing.querySelector('.item-quantidade');
+      const currentQuantity = Number.parseInt(quantity.value || '0', 10);
+      quantity.value = (Number.isFinite(currentQuantity) && currentQuantity > 0 ? currentQuantity : 0) + 1;
+      serviceFeedback.textContent = `${option.dataset.nome}: quantidade atualizada.`;
+      calculateTotals();
+    } else {
+      addItem('servicos', document.getElementById('servicos-itens'), {id: option.value, nome: option.dataset.nome, descricao: option.dataset.descricao, valor_padrao: option.dataset.valor}, 'servico');
+      serviceFeedback.textContent = `${option.dataset.nome} adicionado à ordem de serviço.`;
+    }
+    serviceSelect.value = '';
+    updateServiceButton();
+  });
+  updateServiceButton();
   attachSearch(document.getElementById('produto-busca'), document.getElementById('produto-resultados'), '{% url "ordens_servico:buscar_produtos" %}', product => resultButton(product.nome, `${product.codigo_interno} · ${money(product.preco_venda)} · estoque ${product.estoque_atual}`, () => { addItem('produtos', document.getElementById('produtos-itens'), product, 'produto'); document.getElementById('produto-resultados').replaceChildren(); document.getElementById('produto-busca').value = ''; }));
   calculateTotals();
 });

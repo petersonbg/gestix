@@ -7,7 +7,6 @@ urlpatterns = [
     path('nova/', views.OrdemServicoCreateView.as_view(), name='create'),
     path('clientes/buscar/', views.buscar_clientes, name='buscar_clientes'),
     path('produtos/buscar/', views.buscar_produtos, name='buscar_produtos'),
-    path('servicos/buscar/', views.buscar_servicos, name='buscar_servicos'),
     path('<int:pk>/', views.OrdemServicoDetailView.as_view(), name='detail'),
     path('<int:pk>/editar/', views.OrdemServicoUpdateView.as_view(), name='update'),
     path('<int:pk>/status/', views.alterar_status, name='status'),

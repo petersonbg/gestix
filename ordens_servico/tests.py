@@ -292,7 +292,7 @@ class OrdemServicoTests(TestCase):
 
 
     def test_buscas_dinamicas_retornam_registros_ativos(self):
-        for rota, termo in [('buscar_clientes', 'Cliente'), ('buscar_produtos', 'Peça'), ('buscar_servicos', 'Manutenção')]:
+        for rota, termo in [('buscar_clientes', 'Cliente'), ('buscar_produtos', 'Peça')]:
             response = self.client.get(reverse(f'ordens_servico:{rota}'), {'q': termo})
             self.assertEqual(response.status_code, 200)
             self.assertGreaterEqual(len(response.json()['resultados']), 1)
@@ -325,10 +325,10 @@ class OrdemServicoTests(TestCase):
         self.assertEqual(response.context['os_atrasadas_qtd'], 1)
 
 
-class ServicoDinamicoOSTests(TestCase):
+class ServicoDropdownOSTests(TestCase):
     def setUp(self):
         self.usuario = get_user_model().objects.create_superuser(
-            username='admin-servicos-dinamicos', password='senha', email='admin-os@example.com'
+            username='admin-servicos-dropdown', password='senha', email='admin-os@example.com'
         )
         self.client.force_login(self.usuario)
         self.cliente = Cliente.objects.create(nome='Cliente Serviços', cpf_cnpj='12345678901')
@@ -369,16 +369,17 @@ class ServicoDinamicoOSTests(TestCase):
         dados.update(alteracoes)
         return dados
 
-    def test_busca_retorna_somente_servicos_ativos_por_nome_ou_descricao(self):
-        por_nome = self.client.get(reverse('ordens_servico:buscar_servicos'), {'q': 'Alinhamento'})
-        por_descricao = self.client.get(reverse('ordens_servico:buscar_servicos'), {'q': 'calibração'})
-        inativo = self.client.get(reverse('ordens_servico:buscar_servicos'), {'q': 'desativado'})
+    def test_dropdown_lista_somente_servicos_ativos_com_valor_padrao(self):
+        resposta = self.client.get(reverse('ordens_servico:create'))
 
-        self.assertEqual(por_nome.json()['resultados'][0]['id'], self.ativo.pk)
-        self.assertEqual(por_descricao.json()['resultados'][0]['id'], self.ativo.pk)
-        self.assertEqual(inativo.json()['resultados'], [])
+        servicos_ativos = resposta.context['servicos_ativos']
+        self.assertIn(self.ativo, servicos_ativos)
+        self.assertNotIn(self.inativo, servicos_ativos)
+        self.assertContains(resposta, 'Alinhamento técnico - R$ 80,00')
+        self.assertContains(resposta, f'value="{self.ativo.pk}"')
+        self.assertNotContains(resposta, self.inativo.nome)
 
-    def test_cria_os_com_servico_dinamico_e_calcula_total(self):
+    def test_cria_os_com_servico_do_dropdown_e_calcula_total(self):
         resposta = self.client.post(reverse('ordens_servico:create'), self.dados_os())
         self.assertEqual(resposta.status_code, 302)
         ordem = OrdemServico.objects.latest('pk')
@@ -410,13 +411,71 @@ class ServicoDinamicoOSTests(TestCase):
         ordem.concluir(self.usuario)
         self.assertFalse(MovimentacaoEstoque.objects.filter(origem='ORDEM_SERVICO').exists())
 
-    def test_nova_os_exibe_controles_dinamicos_e_subtotais(self):
+    def test_nova_os_exibe_dropdown_e_controles_de_totais(self):
         resposta = self.client.get(reverse('ordens_servico:create'))
-        self.assertContains(resposta, 'Pesquisar serviço')
-        self.assertContains(resposta, reverse('ordens_servico:buscar_servicos'))
+        self.assertContains(resposta, 'id="servico-select"')
+        self.assertContains(resposta, 'Adicionar Serviço')
+        self.assertContains(resposta, 'id="adicionar-servico"')
+        self.assertContains(resposta, 'disabled')
+        self.assertContains(resposta, 'servico-feedback')
+        self.assertNotContains(resposta, 'Pesquisar serviço')
+        self.assertNotContains(resposta, 'servico-resultados')
         self.assertContains(resposta, 'subtotal-servicos')
         self.assertContains(resposta, 'item-subtotal')
         self.assertContains(resposta, 'Serviços + produtos + deslocamento')
+
+    def test_rejeita_servico_duplicado_enviado_manualmente(self):
+        dados = self.dados_os(**{
+            'servicos-TOTAL_FORMS': '2',
+            'servicos-1-servico': self.ativo.pk,
+            'servicos-1-descricao': 'Mesmo serviço novamente',
+            'servicos-1-quantidade': '1',
+            'servicos-1-valor_unitario': '80.00',
+        })
+        resposta = self.client.post(reverse('ordens_servico:create'), dados)
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Cada serviço deve aparecer apenas uma vez')
+        self.assertFalse(OrdemServico.objects.exists())
+
+    def test_erro_de_servico_inativo_fica_visivel_no_formulario(self):
+        resposta = self.client.post(
+            reverse('ordens_servico:create'),
+            self.dados_os(**{'servicos-0-servico': self.inativo.pk}),
+        )
+
+        self.assertContains(resposta, 'Faça uma escolha válida')
+
+    def test_rejeita_servico_inativo_enviado_manualmente(self):
+        resposta = self.client.post(
+            reverse('ordens_servico:create'),
+            self.dados_os(**{'servicos-0-servico': self.inativo.pk}),
+        )
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn('servico', resposta.context['servicos_formset'].forms[0].errors)
+        self.assertFalse(OrdemServico.objects.exists())
+
+    def test_edicao_preserva_servico_que_foi_inativado_depois_da_criacao(self):
+        self.client.post(reverse('ordens_servico:create'), self.dados_os())
+        ordem = OrdemServico.objects.latest('pk')
+        item = ordem.itens_servico.get()
+        self.ativo.ativo = False
+        self.ativo.save(update_fields=['ativo'])
+
+        formulario = self.client.get(reverse('ordens_servico:update', args=[ordem.pk]))
+        self.assertNotIn(self.ativo, formulario.context['servicos_ativos'])
+        resposta = self.client.post(
+            reverse('ordens_servico:update', args=[ordem.pk]),
+            self.dados_os(**{
+                'servicos-INITIAL_FORMS': '1',
+                'servicos-0-id': item.pk,
+            }),
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        item.refresh_from_db()
+        self.assertEqual(item.servico, self.ativo)
 
     def test_detalhe_e_impressao_exibem_servico_e_subtotal(self):
         self.client.post(reverse('ordens_servico:create'), self.dados_os())
@@ -436,12 +495,9 @@ class ServicoCatalogoNaOSTests(TestCase):
         )
         self.client.force_login(self.usuario)
 
-    def test_ordens_servico_mantem_apenas_endpoint_de_busca_de_servicos(self):
-        self.assertEqual(
-            reverse('ordens_servico:buscar_servicos'),
-            '/ordens-servico/servicos/buscar/',
-        )
+    def test_ordens_servico_nao_expoe_catalogo_nem_endpoint_de_busca_de_servicos(self):
         for caminho in (
+            '/ordens-servico/servicos/buscar/',
             '/ordens-servico/servicos/',
             '/ordens-servico/servicos/novo/',
             '/ordens-servico/servicos/1/editar/',
@@ -455,4 +511,6 @@ class ServicoCatalogoNaOSTests(TestCase):
             self.assertNotContains(resposta, 'Consultar cadastro')
             self.assertNotContains(resposta, 'Cadastro de serviços')
             self.assertNotContains(resposta, 'Novo serviço')
-        self.assertContains(formulario, 'Pesquisar serviço')
+        self.assertContains(formulario, 'Adicionar Serviço')
+        self.assertContains(formulario, 'id="servico-select"')
+        self.assertNotContains(formulario, 'Pesquisar serviço')
