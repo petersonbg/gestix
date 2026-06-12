@@ -85,18 +85,20 @@
             </table>
         </section>
 
-        <section class="signatures page-break">
+        <section class="assinaturas{% if not configuracao_sistema.mostrar_assinatura_cliente %} assinaturas--single{% endif %} page-break">
             {% if configuracao_sistema.mostrar_assinatura_cliente %}
-                <div class="signature"><div class="signature-line">Assinatura do Cliente</div></div>
-            {% else %}<div></div>{% endif %}
-            <div class="signature">
+                <div class="assinatura-box">
+                    <div class="linha-assinatura"></div>
+                    <div class="assinatura-label">Assinatura do Cliente</div>
+                </div>
+            {% endif %}
+            <div class="assinatura-box">
                 {% if ordem.assinatura_responsavel_execucao %}
-                    <img class="signature-image" src="{{ ordem.assinatura_responsavel_execucao.url }}" alt="Assinatura de {{ ordem.nome_responsavel_execucao }}">
-                    <div class="signature-line">{{ ordem.nome_responsavel_execucao }} — Responsável pela Execução</div>
-                {% else %}
-                    <div class="signature-line">Assinatura do Responsável pela Execução</div>
-                    {% if ordem.responsavel_execucao %}<div>{{ ordem.nome_responsavel_execucao }}</div>{% endif %}
+                    <img class="assinatura-imagem" src="{{ ordem.assinatura_responsavel_execucao.url }}" alt="Assinatura de {{ ordem.nome_responsavel_execucao }}">
                 {% endif %}
+                <div class="linha-assinatura"></div>
+                {% if ordem.responsavel_execucao %}<div class="assinatura-nome">{{ ordem.nome_responsavel_execucao }}</div>{% endif %}
+                <div class="assinatura-label">Responsável pela Execução</div>
             </div>
         </section>
         <footer class="footer">{{ configuracao_sistema.mensagem_rodape_documentos }}</footer>

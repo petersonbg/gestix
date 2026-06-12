@@ -104,21 +104,56 @@
         font-size: 9px;
         font-weight: 700;
     }
-    .signature-grid, .signatures {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 3mm;
-        margin-top: 2mm;
+    .assinaturas, .signature-grid, .signatures {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 10mm;
+        max-height: 25mm;
+        margin-top: 5mm;
     }
-    .signature { min-height: 9mm; padding-top: 5mm; text-align: center; }
-    .signature-image {
+    .assinatura-box, .signature {
+        display: flex;
+        flex: 0 1 48%;
+        flex-direction: column;
+        justify-content: flex-end;
+        width: 48%;
+        min-height: 12mm;
+        max-height: 25mm;
+        text-align: center;
+    }
+    .assinaturas--single, .signature-grid {
+        justify-content: center;
+    }
+    .assinaturas--single .assinatura-box,
+    .signature-grid .signature {
+        flex-basis: 48%;
+        width: 48%;
+    }
+    .assinatura-imagem, .signature-image {
         display: block;
-        max-width: 48mm;
-        max-height: 8mm;
-        margin: -4mm auto .5mm;
+        max-width: 100%;
+        max-height: 10mm;
+        margin: 0 auto .7mm;
         object-fit: contain;
     }
-    .signature-line { padding-top: .7mm; border-top: 1px solid #222; font-size: 8px; }
+    .linha-assinatura, .signature-line {
+        width: 100%;
+        margin-bottom: 1mm;
+        border-top: 1px solid #222;
+    }
+    .assinatura-nome {
+        overflow: hidden;
+        font-size: 8px;
+        font-weight: 600;
+        line-height: 1.05;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .assinatura-label {
+        font-size: 8px;
+        line-height: 1.05;
+    }
     .footer {
         margin-top: 1mm;
         padding-top: .7mm;
@@ -167,7 +202,13 @@
     .print-container.print-compact table th { padding: 1px; font-size: 7px; }
     .print-container.print-compact .info-box,
     .print-container.print-compact .compact-card { padding: .7mm 1mm; }
-    .print-container.print-compact .signature { min-height: 7mm; padding-top: 4mm; }
+    .print-container.print-compact .assinaturas,
+    .print-container.print-compact .signature-grid,
+    .print-container.print-compact .signatures { gap: 6mm; margin-top: 3mm; }
+    .print-container.print-compact .assinatura-box,
+    .print-container.print-compact .signature { min-height: 10mm; }
+    .print-container.print-compact .assinatura-imagem,
+    .print-container.print-compact .signature-image { max-height: 8mm; }
     .print-container.print-compact .limited-text { max-height: 7mm; -webkit-line-clamp: 3; }
     .print-container.print-compact .optional-client-details { display: none; }
 
@@ -175,8 +216,9 @@
     .print-container.print-ultra-compact table td,
     .print-container.print-ultra-compact table th { padding: .5px 1px; font-size: 6.7px; }
     .print-container.print-ultra-compact .service-notes { gap: .7mm; }
+    .print-container.print-ultra-compact .assinaturas,
     .print-container.print-ultra-compact .signature-grid,
-    .print-container.print-ultra-compact .signatures { margin-top: .7mm; }
+    .print-container.print-ultra-compact .signatures { gap: 4mm; margin-top: 1.5mm; }
     .print-container.allow-page-overflow { height: auto; overflow: visible; }
 
     @media print {

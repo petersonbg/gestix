@@ -97,8 +97,11 @@
         {% endif %}
 
         {% if configuracao_sistema.mostrar_assinatura_cliente %}
-            <section class="signature-grid page-break">
-                <div class="signature"><div class="signature-line">Assinatura do Cliente</div></div>
+            <section class="assinaturas assinaturas--single page-break">
+                <div class="assinatura-box">
+                    <div class="linha-assinatura"></div>
+                    <div class="assinatura-label">Assinatura do Cliente</div>
+                </div>
             </section>
         {% endif %}
         <footer class="footer">{{ configuracao_sistema.mensagem_rodape_documentos }} Emitido em {% now "d/m/Y H:i" %}.</footer>

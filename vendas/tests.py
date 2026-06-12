@@ -130,6 +130,10 @@ class ClienteBuscaVendaTests(TestCase):
         self.assertContains(response, 'margin: 5mm')
         self.assertContains(response, 'height: 200mm')
         self.assertContains(response, 'Assinatura do Cliente')
+        self.assertContains(response, 'assinaturas assinaturas--single')
+        self.assertContains(response, 'assinatura-box')
+        self.assertContains(response, 'linha-assinatura')
+        self.assertContains(response, 'max-height: 25mm')
         self.assertContains(response, 'width: 130mm')
         self.assertContains(response, 'print-compact')
 
