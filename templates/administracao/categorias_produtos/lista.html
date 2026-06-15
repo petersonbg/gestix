@@ -1,0 +1,12 @@
+{% extends 'layouts/internal.html' %}
+{% block title %}Categorias de Produtos | GESTIX{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+  <div><h1 class="h2 mb-1">Categorias de Produtos</h1><p class="text-secondary mb-0">Organize os produtos e identifique categorias de veículos.</p></div>
+  {% if pode_editar %}<a class="btn btn-primary" href="{% url 'administracao:categoria_produto_criar' %}">Nova categoria</a>{% endif %}
+</div>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Nome</th><th>Tipo</th><th>Descrição</th><th>Status</th><th class="text-end">Ações</th></tr></thead>
+<tbody>{% for categoria in categorias %}<tr><td class="fw-semibold">{{ categoria.nome }}</td><td>{{ categoria.get_tipo_display }}</td><td>{{ categoria.descricao|truncatechars:80|default:'-' }}</td><td>{% if categoria.ativo %}<span class="badge text-bg-success">Ativa</span>{% else %}<span class="badge text-bg-secondary">Inativa</span>{% endif %}</td><td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ categoria.get_absolute_url }}">Ver</a>{% if pode_editar %} <a class="btn btn-sm btn-outline-secondary" href="{% url 'administracao:categoria_produto_editar' categoria.pk %}">Editar</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="text-center text-secondary py-4">Nenhuma categoria cadastrada.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

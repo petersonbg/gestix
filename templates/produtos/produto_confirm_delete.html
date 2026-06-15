@@ -1,0 +1,21 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Excluir produto | GESTIX{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-3">Excluir produto</h1>
+                <p class="text-secondary">Tem certeza de que deseja excluir o produto <strong>{{ produto.nome }}</strong>?</p>
+                <form method="post" class="d-flex justify-content-end gap-2">
+                    {% csrf_token %}
+                    <a class="btn btn-outline-secondary" href="{% url 'produtos:detail' produto.pk %}">Cancelar</a>
+                    <button class="btn btn-danger" type="submit">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
