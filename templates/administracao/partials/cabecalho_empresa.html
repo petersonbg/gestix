@@ -1,0 +1,17 @@
+<div class="d-flex align-items-start gap-3 company-identity">
+    {% if logo_empresa_url %}
+        <img src="{{ logo_empresa_url }}" alt="Logo de {{ empresa.nome_fantasia|default:empresa.razao_social }}" class="company-header-logo">
+    {% else %}
+        <span class="brand-mark">GX</span>
+    {% endif %}
+    <div class="company-details">
+        {% if empresa %}
+            <div class="company-name">{{ empresa.nome_fantasia|default:empresa.razao_social }}</div>
+            {% if empresa.cnpj %}<div><strong>CNPJ:</strong> {{ empresa.cnpj }}</div>{% endif %}
+            {% if endereco_empresa_formatado %}<div><strong>Endereço:</strong> {{ endereco_empresa_formatado }}</div>{% endif %}
+            {% if contato_empresa_formatado %}<div><strong>Contato:</strong> {{ contato_empresa_formatado }}</div>{% endif %}
+        {% else %}
+            <div class="company-name">GESTIX</div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,126 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Backup e Restauração | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Backup e Restauração</h1>
+        <p class="text-secondary mb-0">Proteja e recupere os dados do PostgreSQL.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+</div>
+
+<div class="alert alert-warning" role="alert">
+    <strong>Atenção:</strong> a restauração substitui os dados atuais. O GESTIX gera
+    automaticamente um backup de segurança antes de iniciar o processo.
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="h5">Gerar backup</h2>
+                <p class="text-secondary">
+                    Gera um arquivo PostgreSQL no formato custom, armazenado em área privada.
+                </p>
+                <form method="post" action="{% url 'administracao:backup_gerar' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" type="submit">Gerar Backup</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-danger shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 text-danger">Restaurar backup</h2>
+                <p class="text-secondary">
+                    Envie um arquivo <code>.dump</code> ou <code>.backup</code> de até 500 MB.
+                </p>
+                <form method="post" enctype="multipart/form-data"
+                      action="{% url 'administracao:backup_restaurar' %}"
+                      onsubmit="return confirm('A restauração substituirá os dados atuais do sistema. Deseja continuar?');">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form_restauracao.arquivo.id_for_label }}">
+                            {{ form_restauracao.arquivo.label }}
+                        </label>
+                        {{ form_restauracao.arquivo }}
+                        {% for erro in form_restauracao.arquivo.errors %}
+                            <div class="text-danger small mt-1">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ form_restauracao.confirmar }}
+                        <label class="form-check-label" for="{{ form_restauracao.confirmar.id_for_label }}">
+                            {{ form_restauracao.confirmar.label }}
+                        </label>
+                        {% for erro in form_restauracao.confirmar.errors %}
+                            <div class="text-danger small mt-1">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+                    <button class="btn btn-danger" type="submit">Restaurar Backup</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h2 class="h5 mb-0">Histórico de operações</h2>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Data/hora</th>
+                    <th>Tipo</th>
+                    <th>Usuário</th>
+                    <th>Arquivo</th>
+                    <th>Tamanho</th>
+                    <th>Status</th>
+                    <th class="text-end">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                    <tr>
+                        <td>{{ registro.criado_em|date:'d/m/Y H:i:s' }}</td>
+                        <td>{{ registro.get_tipo_display }}</td>
+                        <td>{{ registro.usuario|default:'Terminal/sistema' }}</td>
+                        <td><span title="{{ registro.mensagem }}">{{ registro.nome_arquivo }}</span></td>
+                        <td>{{ registro.tamanho_arquivo|filesizeformat }}</td>
+                        <td>
+                            {% if registro.status == 'SUCESSO' %}
+                                <span class="badge text-bg-success">SUCESSO</span>
+                            {% else %}
+                                <span class="badge text-bg-danger">ERRO</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if registro.tipo == 'BACKUP' and registro.status == 'SUCESSO' and registro.arquivo %}
+                                <a class="btn btn-sm btn-outline-primary"
+                                   href="{% url 'administracao:backup_baixar' registro.pk %}">
+                                    Baixar Backup
+                                </a>
+                            {% else %}
+                                <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td class="text-center text-secondary py-4" colspan="7">Nenhuma operação registrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<p class="small text-secondary mt-3">
+    Em produção, restaurações de bancos grandes devem ser executadas em janela de manutenção,
+    preferencialmente pelo comando administrativo ou por uma fila de tarefas.
+</p>
+{% endblock %}
