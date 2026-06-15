@@ -26,7 +26,14 @@ class ValidadorLogotipo:
                 code='extensao_invalida',
             )
 
-        tamanho = getattr(arquivo, 'size', None)
+        try:
+            tamanho = arquivo.size
+        except (AttributeError, OSError, ValueError):
+            # FieldFile já persistido pode apontar para um arquivo indisponível no
+            # storage durante validações do modelo. O conteúdo foi validado no upload.
+            if getattr(arquivo, '_committed', False):
+                return
+            tamanho = None
         if tamanho is not None and tamanho > self.tamanho_maximo_bytes:
             raise ValidationError(
                 f'O arquivo deve ter no máximo {self.tamanho_maximo_mb} MB.',

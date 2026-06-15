@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Q, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
@@ -38,7 +38,15 @@ class ClienteBuscaView(LoginRequiredMixin, View):
                 Q(nome__icontains=query)
                 | Q(cpf_cnpj__icontains=query)
                 | Q(telefone__icontains=query)
-            )
+            ).annotate(
+                prioridade_busca=Case(
+                    When(nome__iexact=query, then=Value(0)),
+                    When(cpf_cnpj__exact=query, then=Value(0)),
+                    When(telefone__exact=query, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            ).order_by('prioridade_busca', 'nome')
         else:
             clientes = clientes.none()
 
@@ -52,7 +60,7 @@ class ClienteBuscaView(LoginRequiredMixin, View):
                 'endereco': cliente.endereco or '',
                 'inscricao_estadual': cliente.inscricao_estadual or '',
             }
-            for cliente in clientes.order_by('nome')[:10]
+            for cliente in clientes[:10]
         ]
         return JsonResponse({'results': data})
 

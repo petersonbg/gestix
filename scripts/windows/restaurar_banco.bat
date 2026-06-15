@@ -30,7 +30,7 @@ if errorlevel 1 goto erro
 timeout /t 8 /nobreak >nul
 
 echo Restaurando backup...
-type "%BACKUP_FILE%" | docker compose exec -T db sh -c "psql -U "$POSTGRES_USER" "$POSTGRES_DB""
+type "%BACKUP_FILE%" | docker compose exec -T db sh -c "psql -U $POSTGRES_USER $POSTGRES_DB"
 if errorlevel 1 goto erro
 
 echo Backup restaurado com sucesso.

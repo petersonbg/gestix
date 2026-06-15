@@ -10,7 +10,7 @@ for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss
 set "BACKUP_FILE=backups\gestix_%STAMP%.sql"
 
 echo Gerando backup em %BACKUP_FILE%...
-docker compose exec -T db sh -c "pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"" > "%BACKUP_FILE%"
+docker compose exec -T db sh -c "pg_dump -U $POSTGRES_USER $POSTGRES_DB" > "%BACKUP_FILE%"
 if errorlevel 1 (
     echo Nao foi possivel gerar o backup. Verifique se os containers estao em execucao.
     if exist "%BACKUP_FILE%" del "%BACKUP_FILE%"
