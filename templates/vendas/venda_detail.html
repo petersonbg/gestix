@@ -1,0 +1,82 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Venda #{{ venda.pk }} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Venda #{{ venda.pk }}</h1>
+        <p class="text-secondary mb-0">{{ venda.cliente }} — {{ venda.data|date:'d/m/Y H:i' }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
+        {% if venda.status == 'FINALIZADA' %}
+            <button
+                class="btn btn-primary"
+                type="button"
+                onclick="window.open('{% url 'vendas:imprimir' venda.pk %}', 'reciboVenda', 'width=900,height=650');"
+            >
+                Imprimir Recibo
+            </button>
+        {% endif %}
+        {% if venda.status == 'RASCUNHO' %}
+            <a class="btn btn-outline-primary" href="{% url 'vendas:update' venda.pk %}">Editar</a>
+            <a class="btn btn-outline-danger" href="{% url 'vendas:cancelar' venda.pk %}">Cancelar venda</a>
+            <form method="post" action="{% url 'vendas:finalizar' venda.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-primary" type="submit">Finalizar venda</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Subtotal</span><div class="h5 mb-0">R$ {{ venda.subtotal }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Desconto</span><div class="h5 mb-0">R$ {{ venda.desconto }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Total</span><div class="h5 mb-0">R$ {{ venda.total }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Forma de pagamento</span><div class="h5 mb-0">{{ venda.get_forma_pagamento_display }}</div></div></div></div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Status</span><div class="h5 mb-0">
+            {% if venda.status == 'FINALIZADA' %}<span class="badge text-bg-success">FINALIZADA</span>
+            {% elif venda.status == 'CANCELADA' %}<span class="badge text-bg-danger">CANCELADA</span>
+            {% else %}<span class="badge text-bg-warning">RASCUNHO</span>{% endif %}
+        </div></div></div>
+    </div>
+</div>
+
+{% if venda.status == 'CANCELADA' %}
+<div class="alert alert-danger mb-4" role="alert">
+    <h2 class="h6 alert-heading">Venda cancelada</h2>
+    <div><strong>Motivo:</strong> {{ venda.motivo_cancelamento }}</div>
+    <div class="small mt-1">Cancelada em {{ venda.cancelada_em|date:'d/m/Y H:i' }} por {{ venda.usuario_cancelamento|default:'Sistema' }}.</div>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white"><h2 class="h5 mb-0">Itens</h2></div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Valor unitário</th>
+                    <th>Total do item</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in venda.itens.all %}
+                    <tr>
+                        <td class="fw-semibold">{{ item.produto }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>R$ {{ item.valor_unitario }}</td>
+                        <td>R$ {{ item.total_item }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center text-secondary py-4">Nenhum item cadastrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

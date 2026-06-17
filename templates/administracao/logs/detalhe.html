@@ -1,0 +1,36 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Detalhe do Log | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Detalhe do Log</h1>
+        <p class="text-secondary mb-0">Registro completo da ação auditada.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:logs_atividade' %}">Voltar</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Data/hora</dt>
+            <dd class="col-sm-9">{{ log.criado_em|date:'d/m/Y H:i:s' }}</dd>
+            <dt class="col-sm-3">Usuário</dt>
+            <dd class="col-sm-9">{{ log.usuario|default:'Sistema' }}</dd>
+            <dt class="col-sm-3">Ação</dt>
+            <dd class="col-sm-9">{{ log.get_acao_display }} ({{ log.acao }})</dd>
+            <dt class="col-sm-3">Módulo</dt>
+            <dd class="col-sm-9">{{ log.modulo|default:'-' }}</dd>
+            <dt class="col-sm-3">Descrição</dt>
+            <dd class="col-sm-9">{{ log.descricao|default:'-' }}</dd>
+            <dt class="col-sm-3">Objeto</dt>
+            <dd class="col-sm-9">{{ log.objeto_tipo|default:'-' }}{% if log.objeto_id %} #{{ log.objeto_id }}{% endif %}</dd>
+            <dt class="col-sm-3">IP</dt>
+            <dd class="col-sm-9">{{ log.ip_usuario|default:'-' }}</dd>
+            <dt class="col-sm-3">User agent</dt>
+            <dd class="col-sm-9 text-break">{{ log.user_agent|default:'-' }}</dd>
+        </dl>
+    </div>
+</div>
+{% endblock %}

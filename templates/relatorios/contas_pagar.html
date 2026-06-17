@@ -1,0 +1,24 @@
+{% extends 'relatorios/base_relatorio.html' %}
+
+{% block filtros %}
+<form class="card border-0 shadow-sm mb-4" method="get"><div class="card-body row g-3">
+    <div class="col-md-2"><label class="form-label">Data inicial</label><input type="date" name="data_inicial" value="{{ request.GET.data_inicial }}" class="form-control"></div>
+    <div class="col-md-2"><label class="form-label">Data final</label><input type="date" name="data_final" value="{{ request.GET.data_final }}" class="form-control"></div>
+    <div class="col-md-3"><label class="form-label">Fornecedor</label><select name="fornecedor" class="form-select"><option value="">Todos</option>{% for item in fornecedores %}<option value="{{ item.pk }}" {% if request.GET.fornecedor == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.razao_social }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label">Categoria</label><select name="categoria" class="form-select"><option value="">Todas</option>{% for item in categorias %}<option value="{{ item.pk }}" {% if request.GET.categoria == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.nome }}</option>{% endfor %}</select></div>
+    <div class="col-md-1"><label class="form-label">Status</label><select name="status" class="form-select"><option value="">Todos</option>{% for valor,label in status_choices %}<option value="{{ valor }}" {% if request.GET.status == valor %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-1"><label class="form-label">Vencimento</label><select name="vencimento" class="form-select"><option value="">Todos</option><option value="vencidas" {% if request.GET.vencimento == 'vencidas' %}selected{% endif %}>Vencidas</option><option value="hoje" {% if request.GET.vencimento == 'hoje' %}selected{% endif %}>Hoje</option><option value="a_vencer" {% if request.GET.vencimento == 'a_vencer' %}selected{% endif %}>A vencer</option></select></div>
+    <div class="col-md-1 d-flex align-items-end"><button class="btn btn-primary w-100">Filtrar</button></div>
+</div></form>
+{% endblock %}
+
+{% block resumo %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="small text-secondary">Em aberto</span><div class="h4 mb-0">R$ {{ resumo.aberto }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="small text-secondary">Pago</span><div class="h4 mb-0">R$ {{ resumo.pago }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="small text-secondary">Atrasado</span><div class="h4 mb-0">R$ {{ resumo.atrasado }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="small text-secondary">Vencem em 7 dias</span><div class="h4 mb-0">{{ resumo.proximos_7 }}</div></div></div></div>
+</div>
+{% endblock %}
+
+{% block tabela %}{% include 'relatorios/partials/contas_pagar.html' %}{% endblock %}
