@@ -172,6 +172,22 @@ Depois, confirme no navegador que `/static/admin/css/base.css` retorna HTTP 200.
 curl -I http://localhost:8000/static/admin/css/base.css
 ```
 
+## Produção Windows sem Docker
+
+O GESTIX também pode rodar em Windows com PostgreSQL local e Waitress, sem Docker. Use `config/.env` com `DEBUG=False`, `RUNNING_IN_DOCKER=False` e `SERVER_MODE=True`, execute `collectstatic` e inicie com:
+
+```bat
+waitress-serve --listen=0.0.0.0:8000 gestix.wsgi:application
+```
+
+O guia completo está em [docs/INSTALACAO_PRODUCAO_WINDOWS.md](docs/INSTALACAO_PRODUCAO_WINDOWS.md). O diagnóstico do ambiente pode ser executado com:
+
+```bat
+python manage.py verificar_producao_windows
+```
+
+Para empacotamento Windows, use `build_launcher.bat` e `build_instalador.bat`. O checklist de entrega está em [docs/CHECKLIST_EMPACOTAMENTO_WINDOWS.md](docs/CHECKLIST_EMPACOTAMENTO_WINDOWS.md).
+
 ## Módulo clientes
 
 O módulo `clientes` possui CRUD completo protegido por login em `/clientes/`. A listagem permite buscar por nome, CPF/CNPJ ou telefone.

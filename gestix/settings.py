@@ -7,6 +7,11 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / 'config' / '.env', override=True)
+
+
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).lower() in {'1', 'true', 'yes', 'on'}
 
 
 def env_list(*names, default=''):
@@ -14,8 +19,14 @@ def env_list(*names, default=''):
     return [item.strip() for item in value.split(',') if item.strip()]
 
 
+def env_path(name, default):
+    value = Path(os.getenv(name, str(default)))
+    return value if value.is_absolute() else BASE_DIR / value
+
+
+SERVER_MODE = env_bool('SERVER_MODE', False)
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY', 'change-me-in-production')
-DEBUG = (os.getenv('DJANGO_DEBUG') or os.getenv('DEBUG', 'True')).lower() in {'1', 'true', 'yes', 'on'}
+DEBUG = env_bool('DJANGO_DEBUG', env_bool('DEBUG', not SERVER_MODE))
 ALLOWED_HOSTS = env_list(
     'DJANGO_ALLOWED_HOSTS',
     'ALLOWED_HOSTS',
@@ -26,7 +37,7 @@ CSRF_TRUSTED_ORIGINS = env_list(
     'CSRF_TRUSTED_ORIGINS',
     default='http://localhost:8000,http://127.0.0.1:8000,http://192.168.1.50:8000',
 )
-USE_HTTPS = os.getenv('USE_HTTPS', 'False').lower() in {'1', 'true', 'yes', 'on'}
+USE_HTTPS = env_bool('USE_HTTPS', False)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -136,15 +147,18 @@ STORAGES = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-SERVE_MEDIA_FILES = os.getenv('SERVE_MEDIA_FILES', 'True').lower() in {
-    '1', 'true', 'yes', 'on',
-}
+SERVE_MEDIA_FILES = env_bool('SERVE_MEDIA_FILES', True)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-BACKUP_ROOT = Path(os.getenv('BACKUP_ROOT', BASE_DIR / 'backups'))
+BACKUP_ROOT = env_path('BACKUP_ROOT', 'backups')
 BACKUP_MAX_UPLOAD_SIZE = int(os.getenv('BACKUP_MAX_UPLOAD_SIZE', str(500 * 1024 * 1024)))
-RUNNING_IN_DOCKER = os.getenv('RUNNING_IN_DOCKER', 'False').lower() in {'1', 'true', 'yes', 'on'}
+RUNNING_IN_DOCKER = env_bool('RUNNING_IN_DOCKER', False)
+
+LOG_DIR = env_path('LOG_DIR', 'logs')
+CONFIG_DIR = BASE_DIR / 'config'
+for required_dir in (LOG_DIR, BACKUP_ROOT, MEDIA_ROOT, STATIC_ROOT, CONFIG_DIR):
+    required_dir.mkdir(parents=True, exist_ok=True)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -173,3 +187,50 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_HSTS_SECONDS = 31536000 if USE_HTTPS else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = USE_HTTPS
 SECURE_HSTS_PRELOAD = USE_HTTPS
+SECURE_SSL_REDIRECT = USE_HTTPS
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'padrao': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'gestix_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'gestix.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'padrao',
+            'encoding': 'utf-8',
+        },
+        'errors_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'errors.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'padrao',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'padrao',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'gestix_file', 'errors_file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.security': {
+            'handlers': ['console', 'gestix_file', 'errors_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
