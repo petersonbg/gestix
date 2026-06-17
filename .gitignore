@@ -13,7 +13,10 @@ venv/
 # Django
 staticfiles/
 media/
+<<<<<<< HEAD
 backups/
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 # Editors and OS
 .vscode/

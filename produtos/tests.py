@@ -1,7 +1,10 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+<<<<<<< HEAD
 from django.contrib.auth.models import Group
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -220,7 +223,10 @@ class ProdutoFiltroCategoriaTests(TestCase):
         from administracao.models import CategoriaProduto
 
         self.usuario = get_user_model().objects.create_user('filtro', password='senha')
+<<<<<<< HEAD
         self.usuario.groups.add(Group.objects.get_or_create(name='Estoquista')[0])
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         self.client.force_login(self.usuario)
         self.geral = CategoriaProduto.objects.create(nome='Geral')
         self.veiculos = CategoriaProduto.objects.create(nome='Veículos', tipo='VEICULOS')

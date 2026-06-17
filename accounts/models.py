@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 
+<<<<<<< HEAD
 class PerfilUsuario(models.Model):
     class Perfil(models.TextChoices):
         ADMINISTRADOR = 'ADMINISTRADOR', 'Administrador'
@@ -46,6 +47,9 @@ class LogAtividade(models.Model):
         FECHAMENTO_CAIXA = 'FECHAMENTO_CAIXA', 'Fechamento de caixa'
         ERRO = 'ERRO', 'Erro'
 
+=======
+class LogAtividade(models.Model):
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -53,6 +57,7 @@ class LogAtividade(models.Model):
         blank=True,
         null=True,
     )
+<<<<<<< HEAD
     acao = models.CharField(max_length=30, choices=Acao.choices)
     modulo = models.CharField(max_length=80)
     descricao = models.TextField(blank=True)
@@ -60,23 +65,35 @@ class LogAtividade(models.Model):
     objeto_id = models.CharField(max_length=64, blank=True)
     ip_usuario = models.GenericIPAddressField(blank=True, null=True)
     user_agent = models.TextField(blank=True)
+=======
+    acao = models.CharField(max_length=80)
+    modulo = models.CharField(max_length=80)
+    descricao = models.TextField(blank=True)
+    ip = models.GenericIPAddressField(blank=True, null=True)
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-criado_em']
+<<<<<<< HEAD
         indexes = [
             models.Index(fields=['-criado_em']),
             models.Index(fields=['usuario']),
             models.Index(fields=['acao']),
             models.Index(fields=['modulo']),
         ]
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         verbose_name = 'log de atividade'
         verbose_name_plural = 'logs de atividade'
 
     def __str__(self):
         usuario = self.usuario or 'Sistema'
         return f'{self.criado_em:%d/%m/%Y %H:%M} - {usuario} - {self.acao}'
+<<<<<<< HEAD
 
     @property
     def ip(self):
         return self.ip_usuario
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7

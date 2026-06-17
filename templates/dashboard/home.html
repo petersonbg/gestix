@@ -1,5 +1,8 @@
 {% extends 'layouts/internal.html' %}
+<<<<<<< HEAD
 {% load administracao_tags %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 {% block title %}Dashboard | GESTIX{% endblock %}
 
@@ -16,11 +19,22 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <span class="text-secondary small">Perfil</span>
+<<<<<<< HEAD
                 <h2 class="h5 mt-2 mb-0">{{ request.user|perfil_nome }}</h2>
             </div>
         </div>
     </div>
     {% if request.user|pode_acessar_modulo:'clientes' %}
+=======
+                <h2 class="h5 mt-2 mb-0">
+                    {% with request.user.groups.first as group %}
+                        {{ group.name|default:'Sem perfil definido' }}
+                    {% endwith %}
+                </h2>
+            </div>
+        </div>
+    </div>
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -29,8 +43,11 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
     {% if request.user|pode_acessar_modulo:'fornecedores' %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -39,8 +56,11 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
     {% if request.user|pode_acessar_modulo:'produtos' %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -49,8 +69,11 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
     {% if request.user|pode_acessar_modulo:'estoque' %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -59,8 +82,11 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
     {% if request.user|pode_acessar_modulo:'vendas' %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -69,8 +95,11 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
     {% if request.user|pode_acessar_modulo:'orcamentos' %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -79,8 +108,11 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
     {% if request.user|pode_acessar_modulo:'fiscal' %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -89,7 +121,10 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
     {% endif %}
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 </div>
 
 

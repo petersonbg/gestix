@@ -49,7 +49,10 @@ INSTALLED_APPS = [
     'ordens_servico.apps.OrdensServicoConfig',
     'orcamentos',
     'fiscal',
+<<<<<<< HEAD
     'relatorios',
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     'dashboard',
 ]
 
@@ -142,10 +145,13 @@ SERVE_MEDIA_FILES = os.getenv('SERVE_MEDIA_FILES', 'True').lower() in {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+<<<<<<< HEAD
 BACKUP_ROOT = Path(os.getenv('BACKUP_ROOT', BASE_DIR / 'backups'))
 BACKUP_MAX_UPLOAD_SIZE = int(os.getenv('BACKUP_MAX_UPLOAD_SIZE', str(500 * 1024 * 1024)))
 RUNNING_IN_DOCKER = os.getenv('RUNNING_IN_DOCKER', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

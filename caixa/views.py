@@ -99,7 +99,11 @@ class CaixaAbrirView(LoginRequiredMixin, View):
                 form.add_error(None, exc)
             else:
                 messages.success(request, 'Caixa aberto com sucesso.')
+<<<<<<< HEAD
                 registrar_log(request.user, 'abertura de caixa', 'caixa', f'Caixa #{caixa.pk} aberto.', objeto=caixa, request=request)
+=======
+                registrar_log(request.user, 'abertura de caixa', 'caixa', f'Caixa #{caixa.pk} aberto.', request=request)
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
                 return redirect('caixa:atual')
 
         return render(request, self.template_name, {'form': form})
@@ -152,7 +156,11 @@ class CaixaMovimentacaoView(LoginRequiredMixin, View):
                 form.add_error(None, exc)
             else:
                 messages.success(request, self.config['sucesso'])
+<<<<<<< HEAD
                 registrar_log(request.user, self.config['titulo'].lower(), 'caixa', f'Movimentação #{movimentacao.pk} lançada.', objeto=movimentacao, request=request)
+=======
+                registrar_log(request.user, self.config['titulo'].lower(), 'caixa', f'Movimentação #{movimentacao.pk} lançada.', request=request)
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
                 return redirect('caixa:atual')
         return render(request, self.template_name, {'form': form, 'caixa': caixa, 'titulo': self.config['titulo']})
 
@@ -185,7 +193,11 @@ class CaixaFecharView(LoginRequiredMixin, View):
                 form.add_error(None, exc)
             else:
                 messages.success(request, 'Caixa fechado com sucesso.')
+<<<<<<< HEAD
                 registrar_log(request.user, 'fechamento de caixa', 'caixa', f'Caixa #{caixa.pk} fechado.', objeto=caixa, request=request)
+=======
+                registrar_log(request.user, 'fechamento de caixa', 'caixa', f'Caixa #{caixa.pk} fechado.', request=request)
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
                 return redirect('caixa:historico')
         return render(request, self.template_name, {'form': form, 'caixa': caixa, 'saldo_calculado': saldo})
 

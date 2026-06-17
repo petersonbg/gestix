@@ -7,7 +7,11 @@ from django.urls import re_path
 from django.views.static import serve
 from django.views.generic import TemplateView
 
+<<<<<<< HEAD
 from accounts.views import AcessoNegadoView, GestixLoginView, GestixLogoutView, manter_sessao_ativa
+=======
+from accounts.views import GestixLoginView, GestixLogoutView, manter_sessao_ativa
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from dashboard.views import DashboardHomeView
 
 urlpatterns = [
@@ -15,7 +19,10 @@ urlpatterns = [
     path('accounts/login/', GestixLoginView.as_view(), name='login'),
     path('accounts/logout/', GestixLogoutView.as_view(), name='logout'),
     path('accounts/session/keepalive/', manter_sessao_ativa, name='session_keepalive'),
+<<<<<<< HEAD
     path('acesso-negado/', AcessoNegadoView.as_view(), name='acesso_negado'),
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     path('dashboard/', DashboardHomeView.as_view(), name='dashboard'),
     path('configuracoes/', include('dashboard.urls')),
     path('administracao/', include('administracao.urls')),
@@ -30,7 +37,10 @@ urlpatterns = [
     path('ordens-servico/', include('ordens_servico.urls')),
     path('orcamentos/', include('orcamentos.urls')),
     path('fiscal/', include('fiscal.urls')),
+<<<<<<< HEAD
     path('relatorios/', include('relatorios.urls')),
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     path('admin/', admin.site.urls),
 ]
 

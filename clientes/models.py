@@ -5,8 +5,11 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+<<<<<<< HEAD
 from .validators import validar_cpf_ou_cnpj
 
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 class Cliente(models.Model):
     class TipoPessoa(models.TextChoices):
@@ -41,11 +44,14 @@ class Cliente(models.Model):
         if self.data_nascimento and self.data_nascimento > timezone.localdate():
             raise ValidationError({'data_nascimento': 'A data de nascimento não pode ser futura.'})
 
+<<<<<<< HEAD
         try:
             validar_cpf_ou_cnpj(self.cpf_cnpj, self.tipo_pessoa)
         except ValidationError as exc:
             raise ValidationError({'cpf_cnpj': exc.messages}) from exc
 
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         if self.inscricao_estadual:
             inscricao = self.inscricao_estadual.strip()
             if inscricao.upper() != 'ISENTO' and not re.fullmatch(r'[0-9./-]+', inscricao):

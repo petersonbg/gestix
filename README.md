@@ -412,6 +412,7 @@ A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do GESTIX
 - `scripts/windows/restaurar_banco.bat`: restaura um backup `.sql` informado pelo usuário.
 - `scripts/windows/resetar_banco.bat`: recria o banco local após confirmação explícita.
 
+<<<<<<< HEAD
 ## Backup e Restauração
 
 O GESTIX possui uma tela administrativa em **Administração > Backup e Restauração** (`/administracao/backup/`).
@@ -451,6 +452,8 @@ docker compose exec -T db pg_dump -U gestix -d gestix -Fc > backups/gestix_backu
 
 Restauração é uma operação destrutiva: ela substitui os dados atuais. Em produção, faça a restauração preferencialmente em janela de manutenção, por comando administrativo ou fila de tarefas, e valide primeiro em uma base descartável.
 
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 Os arquivos `Iniciar_GESTIX.bat` e `Parar_GESTIX.bat` continuam disponíveis como atalhos compatíveis com a primeira rotina de Docker no Windows.
 
 Como usar:
@@ -510,7 +513,11 @@ O GESTIX possui uma camada inicial de segurança para reduzir uso indevido das t
 - as exceções autorizadas para pop-up são a impressão de recibo de venda e a impressão de orçamento;
 - o controle por perfil segue os grupos `Administrador`, `Gerente`, `Vendedor` e `Estoquista` criados pela migration de `accounts`;
 - usuários sem perfil definido são redirecionados ao dashboard ao tentar acessar módulos operacionais;
+<<<<<<< HEAD
 - ações relevantes são registradas no modelo `LogAtividade`, incluindo login, logout, criação/finalização/cancelamento/impressão de venda, criação/conversão de orçamento, movimentações de estoque, abertura/fechamento de caixa, pagamentos, recebimentos, OS, backup/restauração e exclusões básicas de cadastros.
+=======
+- ações relevantes são registradas no modelo `LogAtividade`, incluindo login, logout, criação/finalização de venda, criação/conversão de orçamento, movimentação manual de estoque e exclusões básicas de cadastros.
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 Perfis de acesso previstos:
 
@@ -596,7 +603,11 @@ Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, vis
 
 O menu **Administração** centraliza configurações gerais do GESTIX e fica disponível somente para os perfis **Administrador** e **Gerente**:
 
+<<<<<<< HEAD
 A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões**, **Backup e Restauração** e **Logs de Atividade**, com resumos e acesso às respectivas consultas.
+=======
+A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões** e **Logs de Atividade**, com resumos e acesso às respectivas consultas.
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 - **Dados da Empresa**: cadastro único com razão social, nome fantasia, CNPJ, inscrições estadual e municipal, endereço completo, contatos, logos, cores institucionais, responsável e observações. Administradores podem editar em `/administracao/dados-empresa/editar/`; Gerentes acessam somente a visualização.
   Esses dados alimentam automaticamente os cabeçalhos do recibo de venda, orçamento e ordem de serviço; quando não há cadastro, os documentos exibem somente a marca GESTIX. A logo obedece à opção **Mostrar logo nas impressões**.
@@ -605,6 +616,7 @@ A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configur
 
 Administradores podem visualizar e alterar os dados. Gerentes possuem acesso somente para consulta, com os campos desabilitados no formulário. Vendedores, Estoquistas e usuários sem perfil não acessam o módulo. A URL anterior `/configuracoes/` é mantida por compatibilidade e redireciona para a nova área administrativa.
 
+<<<<<<< HEAD
 ### Logs e auditoria
 
 Os logs ficam em **Administração > Logs de Atividade** (`/administracao/logs/`).
@@ -617,6 +629,8 @@ Os logs ficam em **Administração > Logs de Atividade** (`/administracao/logs/`
 - A função utilitária `registrar_log(usuario, acao, modulo, descricao, objeto=None, request=None)` captura usuário, IP, user-agent e objeto relacionado sem interromper o fluxo principal se houver falha no registro.
 - Não registre senhas, dados de cartão, tokens ou outros dados sensíveis em `descricao`.
 
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 ### Diagnóstico da rota inicial
 
 A rota `/` não depende de registros de `Empresa` ou `ConfiguracaoSistema` para ser renderizada. Se as migrations de administração ainda estiverem sendo aplicadas, as preferências usam temporariamente os valores padrão e voltam a persistir pelo singleton assim que o banco estiver disponível. O WhiteNoise continua sendo usado nos containers instalados pelo `requirements.txt`; em um ambiente Python incompleto, o projeto usa o armazenamento estático padrão do Django para que a página inicial não falhe com erro 500.

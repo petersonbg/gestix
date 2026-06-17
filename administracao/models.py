@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 from django.conf import settings
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -217,6 +220,7 @@ class ConfiguracaoSistema(models.Model):
     def get_solo(cls):
         configuracao, _ = cls.objects.get_or_create(pk=1)
         return configuracao
+<<<<<<< HEAD
 
 
 class BackupRegistro(models.Model):
@@ -260,3 +264,5 @@ class BackupRegistro(models.Model):
                     return f'{tamanho} bytes'
                 return f'{tamanho:.1f} {unidade}'
             tamanho /= 1024
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7

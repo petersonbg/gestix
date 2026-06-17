@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+<<<<<<< HEAD
 from .models import LogAtividade, PerfilUsuario
 from .permissions import usuario_eh_admin
 
@@ -26,10 +27,14 @@ class PerfilUsuarioAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+=======
+from .models import LogAtividade
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 @admin.register(LogAtividade)
 class LogAtividadeAdmin(admin.ModelAdmin):
+<<<<<<< HEAD
     list_display = ('criado_em', 'usuario', 'acao', 'modulo', 'objeto_tipo', 'objeto_id', 'ip_usuario')
     list_filter = ('acao', 'modulo', 'criado_em')
     search_fields = (
@@ -49,3 +54,9 @@ class LogAtividadeAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+=======
+    list_display = ('criado_em', 'usuario', 'acao', 'modulo', 'ip')
+    list_filter = ('acao', 'modulo', 'criado_em')
+    search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'acao', 'modulo', 'descricao', 'ip')
+    readonly_fields = ('usuario', 'acao', 'modulo', 'descricao', 'ip', 'criado_em')
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7

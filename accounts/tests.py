@@ -1,10 +1,14 @@
 from datetime import timedelta
+<<<<<<< HEAD
 from decimal import Decimal
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 import os
 from pathlib import Path
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+<<<<<<< HEAD
 from django.contrib.auth.models import Group
 from django.db.utils import OperationalError
 from django.http import HttpResponse
@@ -47,6 +51,16 @@ urlpatterns = [
     path('accounts/login/', lambda request: HttpResponse('login'), name='login'),
     path('acesso-negado/', lambda request: HttpResponse('acesso negado'), name='acesso_negado'),
 ]
+=======
+from django.db.utils import OperationalError
+from django.test import SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
+from django.utils import timezone
+
+from administracao.models import ConfiguracaoSistema
+
+from .middleware import ULTIMA_ATIVIDADE_SESSAO
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 class LogoutInatividadeTests(TestCase):
@@ -130,6 +144,7 @@ class LogoutInatividadeTests(TestCase):
         )
 
 
+<<<<<<< HEAD
 class AuditoriaLogsTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -348,6 +363,8 @@ class PermissoesAplicadasModulosTests(TestCase):
         self.assertNotContains(response, 'Contas a pagar')
 
 
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 class HomeRouteTests(SimpleTestCase):
     @override_settings(DEBUG=False, ALLOWED_HOSTS=['testserver'])
     def test_rota_inicial_renderiza_sem_banco_e_sem_manifesto_estatico(self):
@@ -355,7 +372,11 @@ class HomeRouteTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'GESTIX')
+<<<<<<< HEAD
         self.assertRegex(response.content.decode(), r'/static/css/home(\.[0-9a-f]+)?\.css')
+=======
+        self.assertContains(response, '/static/css/home.css')
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
     @patch('administracao.services.ConfiguracaoSistema.get_solo', side_effect=OperationalError)
     def test_configuracao_usa_valores_padrao_se_tabela_ainda_nao_existe(self, get_solo):
@@ -425,7 +446,11 @@ class ConfiguracaoRedeLocalTests(SimpleTestCase):
         compose = (Path(__file__).resolve().parents[1] / 'docker-compose.yml').read_text(encoding='utf-8')
 
         self.assertIn('python manage.py runserver 0.0.0.0:8000', compose)
+<<<<<<< HEAD
         self.assertIn('- "${WEB_PORT:-8000}:8000"', compose)
+=======
+        self.assertIn('- "8000:8000"', compose)
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         self.assertIn('CSRF_TRUSTED_ORIGINS:', compose)
 
     def test_launcher_mantem_localhost_e_informa_endereco_de_rede(self):

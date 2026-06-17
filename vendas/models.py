@@ -223,6 +223,7 @@ class Venda(models.Model):
             self.subtotal = venda.subtotal
             self.total = venda.total
             self.forma_pagamento = venda.forma_pagamento
+<<<<<<< HEAD
             from accounts.utils import registrar_log
 
             registrar_log(
@@ -232,6 +233,8 @@ class Venda(models.Model):
                 f'Venda #{venda.pk} finalizada.',
                 objeto=venda,
             )
+=======
+>>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
     def cancelar(self, usuario, motivo):
         motivo = (motivo or '').strip()
