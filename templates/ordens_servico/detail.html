@@ -1,4 +1,4 @@
-{% extends 'layouts/internal.html' %}
+﻿{% extends 'layouts/internal.html' %}
 {% block title %}{{ ordem.numero }} | GESTIX{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap gap-2 border-bottom pb-3 mb-4"><div><h1 class="h2 mb-1">{{ ordem.numero }}</h1><span class="badge text-bg-primary">{{ ordem.get_status_display }}</span>{% if ordem.atrasada %} <span class="badge text-bg-danger">Previsão atrasada</span>{% endif %}</div><div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{% url 'ordens_servico:list' %}">Voltar</a>{% if pode_editar %}<a class="btn btn-outline-primary" href="{% url 'ordens_servico:update' ordem.pk %}">Editar</a>{% endif %}<a class="btn btn-primary allow-popup" target="_blank" href="{% url 'ordens_servico:imprimir' ordem.pk %}">Imprimir OS</a></div></div>
@@ -12,3 +12,4 @@
 {% if ordem.status == 'CONCLUIDA' or ordem.status == 'ENTREGUE' %}<div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Pagamento</h2></div><div class="card-body"><p>Total: R$ {{ ordem.total }}<br>Recebido: R$ {{ ordem.valor_pago }}<br><strong>Saldo: R$ {{ ordem.saldo }}</strong></p>{% if ordem.saldo > 0 and pode_registrar_pagamento %}<form method="post" action="{% url 'ordens_servico:pagamento' ordem.pk %}">{% csrf_token %}{% for field in pagamento_form %}<div class="mb-2"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endfor %}<button class="btn btn-primary w-100">Registrar pagamento</button></form>{% endif %}</div></div>{% endif %}
 </div></div>
 {% endblock %}
+

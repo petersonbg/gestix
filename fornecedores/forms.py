@@ -1,4 +1,4 @@
-from django import forms
+﻿from django import forms
 
 from .models import Fornecedor
 
@@ -32,3 +32,4 @@ class FornecedorForm(forms.ModelForm):
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+

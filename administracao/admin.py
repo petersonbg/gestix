@@ -1,10 +1,6 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 
-<<<<<<< HEAD
 from .models import BackupRegistro, CategoriaProduto, ConfiguracaoSistema, Empresa
-=======
-from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 @admin.register(Empresa)
@@ -72,7 +68,6 @@ class CategoriaProdutoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return self.has_add_permission(request)
-<<<<<<< HEAD
 
 
 @admin.register(BackupRegistro)
@@ -93,5 +88,4 @@ class BackupRegistroAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser or request.user.groups.filter(name='Administrador').exists()
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
+

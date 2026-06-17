@@ -1,4 +1,4 @@
-from django.contrib import messages
+﻿from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ValidationError
@@ -11,10 +11,7 @@ from django.views import View
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 
-<<<<<<< HEAD
 from accounts.permissions import usuario_tem_perfil
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from accounts.utils import registrar_log
 from administracao.services import contexto_documento_impresso
 from clientes.models import Cliente
@@ -30,7 +27,6 @@ from .models import OrdemServico, Servico
 MENSAGEM_OS_FINALIZADA = 'Esta ordem de serviço já foi finalizada e não pode ser editada.'
 
 
-<<<<<<< HEAD
 def pode_acessar(user):
     return usuario_tem_perfil(user, ['ADMINISTRADOR', 'GERENTE', 'VENDEDOR', 'ESTOQUISTA'])
 
@@ -41,22 +37,6 @@ def pode_editar(user):
 
 def pode_gerenciar(user):
     return usuario_tem_perfil(user, ['ADMINISTRADOR', 'GERENTE'])
-=======
-def grupos_usuario(user):
-    return set(user.groups.values_list('name', flat=True)) if user.is_authenticated else set()
-
-
-def pode_acessar(user):
-    return user.is_superuser or bool(grupos_usuario(user) & {'Administrador', 'Gerente', 'Vendedor', 'Estoquista'})
-
-
-def pode_editar(user):
-    return user.is_superuser or bool(grupos_usuario(user) & {'Administrador', 'Gerente', 'Vendedor'})
-
-
-def pode_gerenciar(user):
-    return user.is_superuser or bool(grupos_usuario(user) & {'Administrador', 'Gerente'})
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 class OrdemServicoPermissaoMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -359,3 +339,4 @@ def imprimir(request, pk):
     context = {'ordem': ordem}
     context.update(contexto_documento_impresso())
     return render(request, 'ordens_servico/imprimir.html', context)
+

@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 import django.core.validators
 import django.db.models.deletion
@@ -105,3 +105,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(criar_servicos_iniciais, remover_servicos_iniciais),
     ]
+

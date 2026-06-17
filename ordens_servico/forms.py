@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django import forms
 from django.contrib.auth import get_user_model
@@ -131,3 +131,4 @@ class PagamentoOSForm(forms.Form):
         if dados.get('forma_pagamento') == OrdemServico.FormaPagamento.CREDIARIO and not dados.get('primeiro_vencimento'):
             self.add_error('primeiro_vencimento', 'Informe o primeiro vencimento do crediário.')
         return dados
+

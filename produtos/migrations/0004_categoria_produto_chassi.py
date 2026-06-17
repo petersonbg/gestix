@@ -1,4 +1,4 @@
-import django.db.models.deletion
+﻿import django.db.models.deletion
 from django.db import migrations, models
 
 
@@ -62,3 +62,4 @@ class Migration(migrations.Migration):
         migrations.RunPython(migrar_categorias_texto, migrations.RunPython.noop),
         migrations.RemoveField(model_name='produto', name='categoria_texto'),
     ]
+

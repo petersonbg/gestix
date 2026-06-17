@@ -1,4 +1,4 @@
-# Instalação do GESTIX no Windows
+﻿# Instalação do GESTIX no Windows
 
 Este guia explica como instalar e operar o GESTIX em uma máquina Windows usando o instalador gerado pelo Inno Setup.
 
@@ -105,3 +105,4 @@ Para acessar o GESTIX a partir de outros computadores, tablets ou celulares da m
 5. Em outro dispositivo da mesma rede, acesse `http://IP-DO-SERVIDOR:8000`.
 
 O launcher continua abrindo `http://localhost:8000` no servidor. Não encaminhe a porta 8000 no roteador e não exponha esta instalação diretamente à internet.
+

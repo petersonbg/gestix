@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -120,3 +120,4 @@ class ContaPagarTests(TestCase):
         self.assertContains(response, 'Contas a pagar atrasadas')
         self.assertEqual(response.context['contas_pagar_atrasadas_qtd'], 1)
         self.assertEqual(response.context['contas_pagar_atrasadas_total'], Decimal('90.00'))
+

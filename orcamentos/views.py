@@ -1,4 +1,4 @@
-from django.contrib import messages
+﻿from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -172,3 +172,4 @@ class OrcamentoConverterView(LoginRequiredMixin, View):
         messages.success(request, f'Orçamento convertido na venda #{venda.pk} e estoque atualizado com sucesso.')
         registrar_log(request.user, 'conversão de orçamento em venda', 'orcamentos', f'Orçamento #{orcamento.pk} convertido na venda #{venda.pk}.', request=request)
         return redirect(venda.get_absolute_url())
+

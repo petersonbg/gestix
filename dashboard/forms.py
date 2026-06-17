@@ -1,1 +1,2 @@
-"""Formulários legados do dashboard foram movidos para o app administracao."""
+﻿"""Formulários legados do dashboard foram movidos para o app administracao."""
+

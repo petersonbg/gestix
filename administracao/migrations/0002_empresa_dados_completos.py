@@ -1,4 +1,4 @@
-import django.core.validators
+﻿import django.core.validators
 import django.utils.timezone
 from django.db import migrations, models
 
@@ -54,3 +54,4 @@ class Migration(migrations.Migration):
             constraint=models.CheckConstraint(condition=models.Q(('id', 1)), name='empresa_registro_unico'),
         ),
     ]
+

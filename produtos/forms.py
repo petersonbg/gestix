@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django import forms
 from django.db.models import Q
@@ -81,3 +81,4 @@ class ProdutoForm(forms.ModelForm):
         if preco_custo is not None and preco_venda is not None and preco_venda < preco_custo:
             self.add_error('preco_venda', 'O preço de venda deve ser maior ou igual ao preço de custo.')
         return cleaned_data
+

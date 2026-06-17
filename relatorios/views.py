@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 from datetime import timedelta
 from decimal import Decimal
 
@@ -410,3 +410,4 @@ class CaixaDiarioView(RelatorioPermissaoMixin, TemplateView):
             for c, t in context['caixas']
         ])
         return response
+

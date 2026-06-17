@@ -1,4 +1,4 @@
-import calendar
+﻿import calendar
 from dataclasses import dataclass
 from datetime import date
 
@@ -6,10 +6,7 @@ from django.db.models import Q, Sum
 from django.utils import timezone
 
 from administracao.services import obter_configuracao_sistema
-<<<<<<< HEAD
 from accounts.permissions import usuario_pode_acessar_modulo, usuario_tem_perfil
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from clientes.models import Cliente
 from contas_receber.models import ContaReceber
 
@@ -78,15 +75,7 @@ def queryset_contas_atrasadas(hoje=None):
 
 
 def usuario_pode_visualizar_contas_receber(user):
-<<<<<<< HEAD
     return usuario_pode_acessar_modulo(user, 'contas-receber')
-=======
-    if not user.is_authenticated:
-        return False
-    if user.is_superuser:
-        return True
-    return user.groups.filter(name__in=['Administrador', 'Gerente', 'Vendedor']).exists()
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 def buscar_contas_atrasadas_dashboard(user, hoje=None, limite=5):
@@ -100,11 +89,7 @@ def buscar_contas_atrasadas_dashboard(user, hoje=None, limite=5):
 
     hoje = hoje or timezone.localdate()
     queryset = queryset_contas_atrasadas(hoje=hoje)
-<<<<<<< HEAD
     if not usuario_tem_perfil(user, ['ADMINISTRADOR', 'GERENTE']):
-=======
-    if not (user.is_superuser or user.groups.filter(name__in=['Administrador', 'Gerente']).exists()):
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         queryset = queryset.filter(Q(venda__usuario=user) | Q(ordem_servico__responsavel=user))
 
     return {
@@ -126,15 +111,7 @@ def queryset_contas_pagar_atrasadas(hoje=None):
 
 
 def usuario_pode_visualizar_contas_pagar(user):
-<<<<<<< HEAD
     return usuario_pode_acessar_modulo(user, 'contas-pagar')
-=======
-    if not user.is_authenticated:
-        return False
-    if user.is_superuser:
-        return True
-    return user.groups.filter(name__in=['Administrador', 'Gerente']).exists()
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 def buscar_contas_pagar_dashboard(user, hoje=None, limite=5):
@@ -178,11 +155,7 @@ def buscar_contas_pagar_dashboard(user, hoje=None, limite=5):
 def buscar_ordens_servico_dashboard(user, hoje=None, limite=5):
     from ordens_servico.models import OrdemServico
 
-<<<<<<< HEAD
     if not usuario_pode_acessar_modulo(user, 'ordens-servico'):
-=======
-    if not user.is_authenticated or not (user.is_superuser or user.groups.filter(name__in=['Administrador', 'Gerente', 'Vendedor', 'Estoquista']).exists()):
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         return {'pode_visualizar_ordens_servico': False}
     hoje = hoje or timezone.localdate()
     base = OrdemServico.objects.select_related('cliente', 'responsavel')
@@ -203,3 +176,4 @@ def buscar_ordens_servico_dashboard(user, hoje=None, limite=5):
         'os_atrasadas_qtd': atrasadas.count(),
         'os_atrasadas_lista': list(atrasadas[:limite]),
     }
+

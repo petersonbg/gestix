@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
@@ -136,3 +136,4 @@ class VendaCancelamentoForm(forms.Form):
             'placeholder': 'Informe por que esta venda em rascunho está sendo cancelada.',
         }),
     )
+

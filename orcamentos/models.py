@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -148,3 +148,4 @@ class ItemOrcamento(models.Model):
     def save(self, *args, **kwargs):
         self.total_item = self.quantidade * self.valor_unitario
         super().save(*args, **kwargs)
+

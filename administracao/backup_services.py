@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import os
 import shutil
 import subprocess
@@ -223,3 +223,4 @@ def restaurar_backup(caminho_arquivo, *, usuario=None, registrar=True, gerar_bac
 def limpar_temporario(caminho):
     caminho = Path(caminho)
     shutil.rmtree(caminho.parent, ignore_errors=True)
+

@@ -1,4 +1,4 @@
-import re
+﻿import re
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -157,3 +157,4 @@ class Produto(models.Model):
 
     def get_absolute_url(self):
         return reverse('produtos:detail', kwargs={'pk': self.pk})
+

@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
@@ -359,3 +359,4 @@ class HistoricoOrdemServico(models.Model):
         ordering = ['-criado_em']
         verbose_name = 'histórico da ordem de serviço'
         verbose_name_plural = 'históricos das ordens de serviço'
+

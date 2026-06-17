@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
@@ -73,3 +73,4 @@ ItemOrcamentoFormSet = inlineformset_factory(
     extra=5,
     can_delete=False,
 )
+

@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -133,7 +133,6 @@ class Caixa(models.Model):
             self.valor_fechamento_calculado = caixa.valor_fechamento_calculado
             self.valor_fechamento_informado = caixa.valor_fechamento_informado
             self.diferenca = caixa.diferenca
-<<<<<<< HEAD
             from accounts.utils import registrar_log
 
             registrar_log(
@@ -143,8 +142,6 @@ class Caixa(models.Model):
                 f'Caixa #{caixa.pk} fechado.',
                 objeto=caixa,
             )
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
             return caixa
 
     def get_absolute_url(self):
@@ -212,3 +209,4 @@ class MovimentacaoCaixa(models.Model):
         movimentacao.full_clean()
         movimentacao.save()
         return movimentacao
+

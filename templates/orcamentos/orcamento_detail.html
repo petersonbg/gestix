@@ -1,4 +1,4 @@
-{% extends 'layouts/internal.html' %}
+﻿{% extends 'layouts/internal.html' %}
 
 {% block title %}Orçamento #{{ orcamento.pk }} | GESTIX{% endblock %}
 
@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
     <div>
         <h1 class="h2 mb-1">Orçamento #{{ orcamento.pk }}</h1>
-        <p class="text-secondary mb-0">{{ orcamento.cliente }} — {{ orcamento.data|date:'d/m/Y H:i' }}</p>
+        <p class="text-secondary mb-0">{{ orcamento.cliente }} â€” {{ orcamento.data|date:'d/m/Y H:i' }}</p>
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'orcamentos:list' %}">Voltar</a>
@@ -60,3 +60,4 @@
     </div>
 </div>
 {% endblock %}
+

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 from xml.etree import ElementTree as ET
@@ -199,3 +199,4 @@ def confirmar_nota(nota, item_bindings, usuario=None):
     nota.status = NotaFiscalEntrada.Status.CONFIRMADA
     nota.save(update_fields=['status', 'atualizado_em'])
     return nota
+

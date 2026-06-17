@@ -1,4 +1,4 @@
-from django.db import models
+﻿from django.db import models
 from django.urls import reverse
 
 from fornecedores.models import Fornecedor
@@ -54,3 +54,4 @@ class ItemNotaFiscalEntrada(models.Model):
 
     def __str__(self):
         return f'{self.numero_item} - {self.descricao}'
+

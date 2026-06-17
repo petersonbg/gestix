@@ -1,4 +1,4 @@
-from django.contrib import messages
+﻿from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.core.exceptions import ValidationError
@@ -43,14 +43,10 @@ class ClienteBuscaView(LoginRequiredMixin, View):
                     When(nome__iexact=query, then=Value(0)),
                     When(cpf_cnpj__exact=query, then=Value(0)),
                     When(telefone__exact=query, then=Value(0)),
-<<<<<<< HEAD
                     When(telefone__icontains=query, then=Value(1)),
                     When(cpf_cnpj__icontains=query, then=Value(2)),
                     When(nome__icontains=query, then=Value(3)),
                     default=Value(4),
-=======
-                    default=Value(1),
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
                     output_field=IntegerField(),
                 )
             ).order_by('prioridade_busca', 'nome')
@@ -181,10 +177,7 @@ class VendaCreateView(LoginRequiredMixin, View):
                 'criação de venda',
                 'vendas',
                 f'Venda #{venda.pk} criada como rascunho.',
-<<<<<<< HEAD
                 objeto=venda,
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
                 request=request,
             )
             return redirect(venda.get_absolute_url())
@@ -220,11 +213,7 @@ class VendaUpdateView(VendaCreateView):
             formset.save()
             venda.recalcular_totais()
             messages.success(request, 'Rascunho da venda atualizado com sucesso.')
-<<<<<<< HEAD
             registrar_log(request.user, 'edição de venda', 'vendas', f'Venda #{venda.pk} atualizada.', objeto=venda, request=request)
-=======
-            registrar_log(request.user, 'edição de venda', 'vendas', f'Venda #{venda.pk} atualizada.', request=request)
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
             return redirect(venda.get_absolute_url())
 
         return render(request, self.template_name, self.get_context_data(form, formset, venda=venda, is_editing=True))
@@ -261,10 +250,7 @@ class VendaCancelarView(LoginRequiredMixin, View):
                     'cancelamento de venda',
                     'vendas',
                     f'Venda #{venda.pk} cancelada. Motivo: {motivo}',
-<<<<<<< HEAD
                     objeto=venda,
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
                     request=request,
                 )
                 messages.success(request, 'Venda em rascunho cancelada sem movimentar estoque ou financeiro.')
@@ -283,11 +269,7 @@ class VendaFinalizarView(LoginRequiredMixin, View):
             messages.error(request, exc.message if hasattr(exc, 'message') else exc.messages[0])
         else:
             messages.success(request, 'Venda finalizada e estoque atualizado com sucesso.')
-<<<<<<< HEAD
             registrar_log(request.user, 'finalização de venda', 'vendas', f'Venda #{venda.pk} finalizada com baixa de estoque.', objeto=venda, request=request)
-=======
-            registrar_log(request.user, 'finalização de venda', 'vendas', f'Venda #{venda.pk} finalizada com baixa de estoque.', request=request)
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         return redirect(venda.get_absolute_url())
 
 
@@ -304,3 +286,4 @@ class VendaPrintView(LoginRequiredMixin, DetailView):
         context.update(contexto_documento_impresso())
         context['vendedor_nome'] = formatar_nome_vendedor(self.object.usuario)
         return context
+

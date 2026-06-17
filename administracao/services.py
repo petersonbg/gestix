@@ -1,4 +1,4 @@
-from django.db.utils import OperationalError, ProgrammingError
+﻿from django.db.utils import OperationalError, ProgrammingError
 
 from .models import ConfiguracaoSistema, Empresa
 
@@ -65,3 +65,4 @@ def contexto_documento_impresso():
         'endereco_empresa_formatado': formatar_endereco_empresa(empresa),
         'contato_empresa_formatado': formatar_contato_empresa(empresa),
     }
+

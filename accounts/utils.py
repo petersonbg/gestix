@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-import logging
+﻿import logging
 
 from .models import LogAtividade
 
@@ -34,11 +33,6 @@ ACAO_ALIASES = {
 }
 
 
-=======
-from .models import LogAtividade
-
-
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 def obter_ip(request):
     forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR') if request else ''
     if forwarded_for:
@@ -46,7 +40,6 @@ def obter_ip(request):
     return request.META.get('REMOTE_ADDR') if request else None
 
 
-<<<<<<< HEAD
 def obter_user_agent(request):
     return request.META.get('HTTP_USER_AGENT', '')[:1000] if request else ''
 
@@ -86,13 +79,4 @@ def registrar_log(usuario, acao, modulo, descricao='', objeto=None, request=None
         )
     except Exception:
         logger.exception('Falha ao registrar log de atividade.')
-=======
-def registrar_log(usuario, acao, modulo, descricao='', request=None):
-    LogAtividade.objects.create(
-        usuario=usuario if getattr(usuario, 'is_authenticated', False) else None,
-        acao=acao,
-        modulo=modulo,
-        descricao=descricao,
-        ip=obter_ip(request),
-    )
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
+

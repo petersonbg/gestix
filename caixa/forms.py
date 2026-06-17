@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django import forms
 
@@ -49,3 +49,4 @@ class MovimentacaoCaixaForm(forms.ModelForm):
         if valor <= Decimal('0.00'):
             raise forms.ValidationError('Informe um valor maior que zero.')
         return valor
+

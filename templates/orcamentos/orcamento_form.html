@@ -1,4 +1,4 @@
-{% extends 'layouts/internal.html' %}
+﻿{% extends 'layouts/internal.html' %}
 
 {% block title %}Novo orçamento | GESTIX{% endblock %}
 
@@ -34,7 +34,7 @@
                 <div class="fw-semibold">Cliente selecionado</div>
                 <div id="cliente-selected-name">
                     {% if selected_cliente %}
-                        {{ selected_cliente.nome }}{% if selected_cliente.cpf_cnpj %} — {{ selected_cliente.cpf_cnpj }}{% endif %}{% if selected_cliente.telefone %} — {{ selected_cliente.telefone }}{% endif %}
+                        {{ selected_cliente.nome }}{% if selected_cliente.cpf_cnpj %} â€” {{ selected_cliente.cpf_cnpj }}{% endif %}{% if selected_cliente.telefone %} â€” {{ selected_cliente.telefone }}{% endif %}
                     {% else %}
                         Nenhum cliente selecionado.
                     {% endif %}
@@ -236,7 +236,7 @@
 
     function selectCliente(cliente) {
         clienteInput.value = cliente.id;
-        clienteSelectedName.textContent = `${cliente.nome}${cliente.cpf_cnpj ? ' — ' + cliente.cpf_cnpj : ''}${cliente.telefone ? ' — ' + cliente.telefone : ''}`;
+        clienteSelectedName.textContent = `${cliente.nome}${cliente.cpf_cnpj ? ' â€” ' + cliente.cpf_cnpj : ''}${cliente.telefone ? ' â€” ' + cliente.telefone : ''}`;
         clienteSelectedBox.classList.remove('alert-warning');
         clienteSelectedBox.classList.add('alert-success');
         clienteResults.innerHTML = '';
@@ -383,3 +383,4 @@
 })();
 </script>
 {% endblock %}
+

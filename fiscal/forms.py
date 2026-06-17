@@ -1,4 +1,4 @@
-from django import forms
+﻿from django import forms
 
 from produtos.models import Produto
 
@@ -63,3 +63,4 @@ class ConfirmarNotaFiscalForm(forms.Form):
                 'codigo_interno': self.cleaned_data.get(f'codigo_interno_{item.pk}'),
             }
         return bindings
+

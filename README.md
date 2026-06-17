@@ -1,4 +1,4 @@
-# GESTIX
+﻿# GESTIX
 
 Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Framework e PostgreSQL.
 
@@ -79,7 +79,7 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 
 ## Como acessar o GESTIX pela rede
 
-O GESTIX pode ser acessado por computadores, tablets e celulares conectados à **mesma rede local** do servidor. Esta configuração não deve ser usada para publicar o sistema diretamente na internet.
+O GESTIX pode ser acessado por computadores, tablets e celulares conectados Ã  **mesma rede local** do servidor. Esta configuração não deve ser usada para publicar o sistema diretamente na internet.
 
 ### 1. Descobrir o IP do servidor
 
@@ -133,7 +133,7 @@ Ajuste `192.168.1.0/24` para a faixa da rede local. Não crie redirecionamento d
 
 ### 4. Acessar de outro dispositivo
 
-Com o servidor e o Docker em execução, abra no navegador de outro dispositivo conectado à mesma rede:
+Com o servidor e o Docker em execução, abra no navegador de outro dispositivo conectado Ã  mesma rede:
 
 ```text
 http://IP-DO-SERVIDOR:8000
@@ -412,7 +412,6 @@ A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do GESTIX
 - `scripts/windows/restaurar_banco.bat`: restaura um backup `.sql` informado pelo usuário.
 - `scripts/windows/resetar_banco.bat`: recria o banco local após confirmação explícita.
 
-<<<<<<< HEAD
 ## Backup e Restauração
 
 O GESTIX possui uma tela administrativa em **Administração > Backup e Restauração** (`/administracao/backup/`).
@@ -452,8 +451,6 @@ docker compose exec -T db pg_dump -U gestix -d gestix -Fc > backups/gestix_backu
 
 Restauração é uma operação destrutiva: ela substitui os dados atuais. Em produção, faça a restauração preferencialmente em janela de manutenção, por comando administrativo ou fila de tarefas, e valide primeiro em uma base descartável.
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 Os arquivos `Iniciar_GESTIX.bat` e `Parar_GESTIX.bat` continuam disponíveis como atalhos compatíveis com a primeira rotina de Docker no Windows.
 
 Como usar:
@@ -513,11 +510,7 @@ O GESTIX possui uma camada inicial de segurança para reduzir uso indevido das t
 - as exceções autorizadas para pop-up são a impressão de recibo de venda e a impressão de orçamento;
 - o controle por perfil segue os grupos `Administrador`, `Gerente`, `Vendedor` e `Estoquista` criados pela migration de `accounts`;
 - usuários sem perfil definido são redirecionados ao dashboard ao tentar acessar módulos operacionais;
-<<<<<<< HEAD
 - ações relevantes são registradas no modelo `LogAtividade`, incluindo login, logout, criação/finalização/cancelamento/impressão de venda, criação/conversão de orçamento, movimentações de estoque, abertura/fechamento de caixa, pagamentos, recebimentos, OS, backup/restauração e exclusões básicas de cadastros.
-=======
-- ações relevantes são registradas no modelo `LogAtividade`, incluindo login, logout, criação/finalização de venda, criação/conversão de orçamento, movimentação manual de estoque e exclusões básicas de cadastros.
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 Perfis de acesso previstos:
 
@@ -554,7 +547,7 @@ Regras principais:
 - O restante é dividido automaticamente em parcelas no módulo **Contas a receber**.
 - Diferenças de centavos por arredondamento são ajustadas na última parcela.
 - Para receber uma parcela, acesse **Contas a receber**, clique em **Receber** e confirme o pagamento com caixa aberto.
-- Se não houver caixa aberto ao receber parcela, o sistema bloqueia o recebimento com a mensagem: “É necessário abrir o caixa antes de receber parcelas.”
+- Se não houver caixa aberto ao receber parcela, o sistema bloqueia o recebimento com a mensagem: â€œÉ necessário abrir o caixa antes de receber parcelas.â€
 - Parcelas abertas vencidas aparecem como **Atrasada** na listagem.
 - Ao imprimir o recibo de uma venda no crediário, o documento exibe entrada, quantidade de parcelas e lista de vencimentos/valores.
 
@@ -593,7 +586,7 @@ Fluxo recomendado:
 3. Pesquise e adicione serviços e produtos/peças. O estoque é apenas consultado nesta etapa e não é baixado na abertura.
 4. Salve a OS e utilize a tela de detalhes para registrar diagnóstico, solução e acompanhar o histórico.
 5. Ao concluir, o backend revalida o estoque e cria uma saída com origem `ORDEM_SERVICO` para cada peça utilizada. A conclusão é bloqueada se faltar estoque.
-6. Depois da conclusão, registre o pagamento. Pagamentos à vista exigem caixa aberto e geram entrada; no crediário, o sistema gera parcelas em **Contas a receber**.
+6. Depois da conclusão, registre o pagamento. Pagamentos Ã  vista exigem caixa aberto e geram entrada; no crediário, o sistema gera parcelas em **Contas a receber**.
 7. Marque a OS concluída como entregue. Depois da entrega, somente administradores podem alterá-la.
 8. Use **Imprimir OS** para abrir o documento A4 em uma janela autorizada de impressão.
 
@@ -603,20 +596,15 @@ Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, vis
 
 O menu **Administração** centraliza configurações gerais do GESTIX e fica disponível somente para os perfis **Administrador** e **Gerente**:
 
-<<<<<<< HEAD
-A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões**, **Backup e Restauração** e **Logs de Atividade**, com resumos e acesso às respectivas consultas.
-=======
-A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões** e **Logs de Atividade**, com resumos e acesso às respectivas consultas.
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
+A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões**, **Backup e Restauração** e **Logs de Atividade**, com resumos e acesso Ã s respectivas consultas.
 
 - **Dados da Empresa**: cadastro único com razão social, nome fantasia, CNPJ, inscrições estadual e municipal, endereço completo, contatos, logos, cores institucionais, responsável e observações. Administradores podem editar em `/administracao/dados-empresa/editar/`; Gerentes acessam somente a visualização.
-  Esses dados alimentam automaticamente os cabeçalhos do recibo de venda, orçamento e ordem de serviço; quando não há cadastro, os documentos exibem somente a marca GESTIX. A logo obedece à opção **Mostrar logo nas impressões**.
+  Esses dados alimentam automaticamente os cabeçalhos do recibo de venda, orçamento e ordem de serviço; quando não há cadastro, os documentos exibem somente a marca GESTIX. A logo obedece Ã  opção **Mostrar logo nas impressões**.
 - **Configurações do Sistema**: cadastro único de preferências compartilhadas, incluindo notificações de aniversário, tempo de logout por inatividade, exibição de logo e assinatura nas impressões e mensagem padrão do rodapé dos documentos.
-  O tempo de logout é aplicado tanto pelo backend quanto pelo temporizador do navegador; atividades no navegador renovam a sessão por um endpoint autenticado e, ao expirar, o usuário retorna à tela de login. Na ausência de configuração, o padrão é 15 minutos.
+  O tempo de logout é aplicado tanto pelo backend quanto pelo temporizador do navegador; atividades no navegador renovam a sessão por um endpoint autenticado e, ao expirar, o usuário retorna Ã  tela de login. Na ausência de configuração, o padrão é 15 minutos.
 
 Administradores podem visualizar e alterar os dados. Gerentes possuem acesso somente para consulta, com os campos desabilitados no formulário. Vendedores, Estoquistas e usuários sem perfil não acessam o módulo. A URL anterior `/configuracoes/` é mantida por compatibilidade e redireciona para a nova área administrativa.
 
-<<<<<<< HEAD
 ### Logs e auditoria
 
 Os logs ficam em **Administração > Logs de Atividade** (`/administracao/logs/`).
@@ -629,8 +617,6 @@ Os logs ficam em **Administração > Logs de Atividade** (`/administracao/logs/`
 - A função utilitária `registrar_log(usuario, acao, modulo, descricao, objeto=None, request=None)` captura usuário, IP, user-agent e objeto relacionado sem interromper o fluxo principal se houver falha no registro.
 - Não registre senhas, dados de cartão, tokens ou outros dados sensíveis em `descricao`.
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 ### Diagnóstico da rota inicial
 
 A rota `/` não depende de registros de `Empresa` ou `ConfiguracaoSistema` para ser renderizada. Se as migrations de administração ainda estiverem sendo aplicadas, as preferências usam temporariamente os valores padrão e voltam a persistir pelo singleton assim que o banco estiver disponível. O WhiteNoise continua sendo usado nos containers instalados pelo `requirements.txt`; em um ambiente Python incompleto, o projeto usa o armazenamento estático padrão do Django para que a página inicial não falhe com erro 500.
@@ -638,3 +624,4 @@ A rota `/` não depende de registros de `Empresa` ou `ConfiguracaoSistema` para 
 ### Cancelamento de vendas em rascunho
 
 Vendas novas são sempre salvas como **RASCUNHO** e somente movimentam estoque, caixa ou contas a receber quando finalizadas. Enquanto estiver em rascunho, a venda pode ser editada ou cancelada mediante motivo obrigatório. O cancelamento registra usuário, data/hora e motivo no histórico de atividades, bloqueia novas alterações e não realiza qualquer baixa ou lançamento financeiro. Vendas finalizadas não podem usar esse cancelamento simples.
+

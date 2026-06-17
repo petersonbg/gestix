@@ -1,16 +1,12 @@
-from django import forms
-<<<<<<< HEAD
+﻿from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 from ordens_servico.models import Servico
 
 from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
 
 
-<<<<<<< HEAD
 EXTENSOES_BACKUP_PERMITIDAS = {'.dump', '.backup'}
 
 
@@ -40,8 +36,6 @@ class BackupRestoreForm(forms.Form):
         return arquivo
 
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 class BootstrapModelFormMixin:
     def aplicar_bootstrap(self):
         for field in self.fields.values():
@@ -137,3 +131,4 @@ class ConfiguracaoSistemaAdministracaoForm(BootstrapModelFormMixin, forms.ModelF
         self.aplicar_bootstrap()
         if somente_leitura:
             self.definir_somente_leitura()
+

@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -196,3 +196,4 @@ class ContaPagarCancelamentoView(ContaPagarPermissaoMixin, ContaPagarQuerysetMix
                 registrar_log(request.user, 'cancelamento de conta', 'contas_pagar', f'Conta #{conta.pk} cancelada.', request=request)
                 return redirect(conta.get_absolute_url())
         return render(request, self.template_name, {'conta': conta, 'form': form})
+

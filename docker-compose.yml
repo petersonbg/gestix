@@ -1,10 +1,6 @@
-services:
+﻿services:
   db:
     image: postgres:16-alpine
-<<<<<<< HEAD
-=======
-    container_name: gestix_db
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME:-gestix}
@@ -22,10 +18,6 @@ services:
 
   web:
     build: .
-<<<<<<< HEAD
-=======
-    container_name: gestix_web
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     restart: unless-stopped
     command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
     environment:
@@ -40,7 +32,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-gestix123}
       DB_HOST: db
       DB_PORT: 5432
-<<<<<<< HEAD
       RUNNING_IN_DOCKER: "True"
       BACKUP_ROOT: /app/backups
     volumes:
@@ -49,16 +40,10 @@ services:
       - ./backups:/app/backups
     ports:
       - "${WEB_PORT:-8000}:8000"
-=======
-    volumes:
-      # O collectstatic recria /app/staticfiles; não monte um volume vazio nesse caminho.
-      - .:/app
-    ports:
-      - "8000:8000"
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   postgres_data:
+

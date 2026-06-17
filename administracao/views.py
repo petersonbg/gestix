@@ -1,27 +1,18 @@
-<<<<<<< HEAD
-from django.conf import settings
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
+﻿from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Group
 from django.db.models import Q
-<<<<<<< HEAD
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.dateparse import parse_date
-=======
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
 from accounts.models import LogAtividade
-<<<<<<< HEAD
 from accounts.permissions import usuario_eh_admin, usuario_eh_gerente
 from accounts.utils import registrar_log
 from ordens_servico.models import Servico
@@ -43,22 +34,6 @@ def usuario_administrador(user):
 
 def usuario_gerente(user):
     return getattr(user, 'is_authenticated', False) and usuario_eh_gerente(user)
-=======
-from ordens_servico.models import Servico
-
-from .forms import (
-    CategoriaProdutoForm, ConfiguracaoSistemaAdministracaoForm, EmpresaForm, ServicoForm,
-)
-from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
-
-
-def usuario_administrador(user):
-    return user.is_authenticated and (user.is_superuser or user.groups.filter(name='Administrador').exists())
-
-
-def usuario_gerente(user):
-    return user.is_authenticated and user.groups.filter(name='Gerente').exists()
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 def usuario_pode_visualizar_administracao(user):
@@ -76,14 +51,11 @@ class AdministracaoPermissaoMixin(LoginRequiredMixin, UserPassesTestMixin):
         return redirect('dashboard')
 
 
-<<<<<<< HEAD
 class AdministradorObrigatorioMixin(AdministracaoPermissaoMixin):
     def test_func(self):
         return usuario_administrador(self.request.user)
 
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
     template_name = 'administracao/home.html'
 
@@ -100,16 +72,12 @@ class AdministracaoHomeView(AdministracaoPermissaoMixin, TemplateView):
         context['categorias_produtos_ativas'] = CategoriaProduto.objects.filter(ativo=True).count()
         context['servicos_total'] = Servico.objects.count()
         context['servicos_ativos'] = Servico.objects.filter(ativo=True).count()
-<<<<<<< HEAD
         context['backups_total'] = BackupRegistro.objects.count()
         context['ultimo_backup'] = BackupRegistro.objects.first()
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         context['ultimo_log'] = LogAtividade.objects.select_related('usuario').first()
         return context
 
 
-<<<<<<< HEAD
 class BackupRestoreView(AdministradorObrigatorioMixin, TemplateView):
     template_name = 'administracao/backup/index.html'
 
@@ -179,8 +147,6 @@ class BackupDownloadView(AdministradorObrigatorioMixin, TemplateView):
         )
 
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 class UsuariosPermissoesView(AdministracaoPermissaoMixin, ListView):
     template_name = 'administracao/usuarios_permissoes.html'
     context_object_name = 'usuarios'
@@ -197,7 +163,6 @@ class UsuariosPermissoesView(AdministracaoPermissaoMixin, ListView):
 
 
 class LogsAtividadeView(AdministracaoPermissaoMixin, ListView):
-<<<<<<< HEAD
     template_name = 'administracao/logs/lista.html'
     context_object_name = 'logs'
     paginate_by = 50
@@ -254,14 +219,6 @@ class LogAtividadeDetailView(AdministracaoPermissaoMixin, DetailView):
 
     def test_func(self):
         return usuario_administrador(self.request.user)
-=======
-    template_name = 'administracao/logs_atividade.html'
-    context_object_name = 'logs'
-    paginate_by = 50
-
-    def get_queryset(self):
-        return LogAtividade.objects.select_related('usuario').all()
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 
 class EmpresaDetailView(AdministracaoPermissaoMixin, DetailView):
@@ -453,3 +410,4 @@ def servico_alterar_ativo(request, pk):
         f'Serviço {"ativado" if servico.ativo else "inativado"} com sucesso.',
     )
     return redirect(servico.get_absolute_url())
+

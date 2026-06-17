@@ -1,4 +1,4 @@
-from django.contrib import messages
+﻿from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -79,3 +79,4 @@ class ProdutoHistoricoEstoqueView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['movimentacoes'] = self.object.movimentacoes_estoque.select_related('usuario')
         return context
+

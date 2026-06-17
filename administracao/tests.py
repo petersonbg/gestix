@@ -1,34 +1,22 @@
-from io import BytesIO
-<<<<<<< HEAD
+﻿from io import BytesIO
 from pathlib import Path
 import tempfile
 from unittest.mock import patch
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-<<<<<<< HEAD
 from django.test import TestCase, override_settings
-=======
-from django.test import TestCase
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from django.urls import reverse
 from PIL import Image
 
 from accounts.models import LogAtividade
 from ordens_servico.models import Servico
 
-<<<<<<< HEAD
 from .backup_services import registrar_backup
 from .forms import BackupRestoreForm, EmpresaForm
 from .models import BackupRegistro, CategoriaProduto, ConfiguracaoSistema, Empresa
-=======
-from .forms import EmpresaForm
-from .models import CategoriaProduto, ConfiguracaoSistema, Empresa
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from .services import formatar_contato_empresa, formatar_endereco_empresa
 
 
@@ -195,7 +183,6 @@ class AdministracaoAcessoTests(TestCase):
         self.assertGreaterEqual(response.context['logs_total'], 1)
         self.assertIsNotNone(response.context['ultimo_log'])
 
-<<<<<<< HEAD
     def test_administrador_acessa_usuarios_e_logs_e_gerente_apenas_usuarios(self):
         self.client.force_login(self.admin)
         self.assertEqual(self.client.get(reverse('administracao:usuarios_permissoes')).status_code, 200)
@@ -204,24 +191,13 @@ class AdministracaoAcessoTests(TestCase):
         self.client.force_login(self.gerente)
         self.assertEqual(self.client.get(reverse('administracao:usuarios_permissoes')).status_code, 200)
         self.assertRedirects(self.client.get(reverse('administracao:logs_atividade')), reverse('acesso_negado'))
-=======
-    def test_administrador_e_gerente_acessam_usuarios_e_logs(self):
-        for usuario in [self.admin, self.gerente]:
-            self.client.force_login(usuario)
-            self.assertEqual(self.client.get(reverse('administracao:usuarios_permissoes')).status_code, 200)
-            self.assertEqual(self.client.get(reverse('administracao:logs_atividade')).status_code, 200)
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
     def test_vendedor_e_estoquista_nao_acessam_usuarios_e_logs(self):
         for usuario in [self.vendedor, self.estoquista]:
             self.client.force_login(usuario)
             for nome_url in ['usuarios_permissoes', 'logs_atividade']:
                 response = self.client.get(reverse(f'administracao:{nome_url}'))
-<<<<<<< HEAD
                 self.assertRedirects(response, reverse('acesso_negado'))
-=======
-                self.assertRedirects(response, reverse('dashboard'))
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
     def test_helpers_formatam_endereco_e_contato_da_empresa(self):
         empresa = Empresa(
@@ -279,11 +255,7 @@ class AdministracaoAcessoTests(TestCase):
         for usuario in [self.vendedor, self.estoquista]:
             self.client.force_login(usuario)
             response = self.client.get(reverse('administracao:home'))
-<<<<<<< HEAD
             self.assertRedirects(response, reverse('acesso_negado'))
-=======
-            self.assertRedirects(response, reverse('dashboard'))
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
     def test_apenas_um_cadastro_de_empresa(self):
         empresa = Empresa.get_solo()
@@ -354,7 +326,6 @@ class AdministracaoAcessoTests(TestCase):
         self.assertRedirects(response, reverse('administracao:configuracoes_sistema'), fetch_redirect_response=False)
 
 
-<<<<<<< HEAD
 class BackupRestauracaoTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -468,8 +439,6 @@ class BackupRestauracaoTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 class CategoriaProdutoTests(TestCase):
     def setUp(self):
         self.administrador = get_user_model().objects.create_user(
@@ -625,3 +594,4 @@ class ServicoAdministracaoTests(TestCase):
         invalido = Servico(nome='Valor negativo', valor_padrao='-0.01')
         with self.assertRaises(ValidationError):
             invalido.full_clean()
+

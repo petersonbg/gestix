@@ -1,4 +1,4 @@
-{% extends 'layouts/internal.html' %}
+﻿{% extends 'layouts/internal.html' %}
 
 {% block title %}Administração | GESTIX{% endblock %}
 
@@ -17,7 +17,7 @@
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-primary mb-2">Empresa</span><h2 class="h5 mb-0">Dados da Empresa</h2></div>
-                    <span class="fs-2" aria-hidden="true">🏢</span>
+                    <span class="fs-2" aria-hidden="true">ðŸ¢</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Razão social, documentos, contatos, endereço e identidade visual usados pelo sistema.</p>
                 <dl class="row small mb-3">
@@ -34,7 +34,7 @@
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-primary mb-2">Sistema</span><h2 class="h5 mb-0">Configurações do Sistema</h2></div>
-                    <span class="fs-2" aria-hidden="true">⚙️</span>
+                    <span class="fs-2" aria-hidden="true">âš™ï¸</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Notificações, tempo de inatividade e preferências dos documentos impressos.</p>
                 <dl class="row small mb-3">
@@ -51,7 +51,7 @@
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-success mb-2">Produtos</span><h2 class="h5 mb-0">Categorias de Produtos</h2></div>
-                    <span class="fs-2" aria-hidden="true">🏷️</span>
+                    <span class="fs-2" aria-hidden="true">ðŸ·ï¸</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Cadastre categorias gerais e de veículos para organizar e filtrar os produtos.</p>
                 <div class="row g-2 text-center mb-3"><div class="col-6"><div class="bg-light rounded p-2"><strong class="d-block fs-5">{{ categorias_produtos_total }}</strong><span class="small text-secondary">Categorias</span></div></div><div class="col-6"><div class="bg-light rounded p-2"><strong class="d-block fs-5">{{ categorias_produtos_ativas }}</strong><span class="small text-secondary">Ativas</span></div></div></div>
@@ -65,7 +65,7 @@
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-warning mb-2">Atendimento</span><h2 class="h5 mb-0">Serviços</h2></div>
-                    <span class="fs-2" aria-hidden="true">🛠️</span>
+                    <span class="fs-2" aria-hidden="true">ðŸ› ï¸</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Gerencie os serviços e valores padrão disponíveis nas ordens de serviço.</p>
                 <div class="row g-2 text-center mb-3"><div class="col-6"><div class="bg-light rounded p-2"><strong class="d-block fs-5">{{ servicos_total }}</strong><span class="small text-secondary">Serviços</span></div></div><div class="col-6"><div class="bg-light rounded p-2"><strong class="d-block fs-5">{{ servicos_ativos }}</strong><span class="small text-secondary">Ativos</span></div></div></div>
@@ -79,7 +79,7 @@
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-info mb-2">Acesso</span><h2 class="h5 mb-0">Usuários e Permissões</h2></div>
-                    <span class="fs-2" aria-hidden="true">👥</span>
+                    <span class="fs-2" aria-hidden="true">ðŸ‘¥</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Consulte usuários cadastrados e os perfis de acesso associados a cada conta.</p>
                 <div class="row g-2 text-center mb-3">
@@ -92,14 +92,13 @@
         </div>
     </div>
 
-<<<<<<< HEAD
     {% if pode_editar %}
     <div class="col">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-danger mb-2">Banco de Dados</span><h2 class="h5 mb-0">Backup e Restauração</h2></div>
-                    <span class="fs-2" aria-hidden="true">⇆</span>
+                    <span class="fs-2" aria-hidden="true">â‡†</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Gere backups protegidos do PostgreSQL e acompanhe o histórico de restaurações.</p>
                 <div class="bg-light rounded p-3 mb-3">
@@ -112,14 +111,12 @@
     </div>
     {% endif %}
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     <div class="col">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div><span class="badge text-bg-dark mb-2">Auditoria</span><h2 class="h5 mb-0">Logs de Atividade</h2></div>
-                    <span class="fs-2" aria-hidden="true">🧾</span>
+                    <span class="fs-2" aria-hidden="true">ðŸ§¾</span>
                 </div>
                 <p class="text-secondary flex-grow-1">Acompanhe logins, alterações e operações registradas para auditoria interna.</p>
                 <div class="bg-light rounded p-3 mb-3">
@@ -132,3 +129,4 @@
     </div>
 </div>
 {% endblock %}
+

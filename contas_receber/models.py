@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
@@ -143,7 +143,7 @@ class ContaReceber(models.Model):
                 data_emissao=timezone.localdate(),
                 data_vencimento=primeiro_vencimento + timedelta(days=int(intervalo) * (numero - 1)),
                 valor=valor_parcela,
-                observacao=f'Parcela referente à OS {ordem.numero}.',
+                observacao=f'Parcela referente Ã  OS {ordem.numero}.',
             ))
         return cls.objects.bulk_create(parcelas)
 
@@ -207,3 +207,4 @@ class ContaReceber(models.Model):
 
     def get_absolute_url(self):
         return reverse('contas_receber:detail', kwargs={'pk': self.pk})
+

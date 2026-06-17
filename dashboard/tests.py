@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+﻿from datetime import date, timedelta
 
 from decimal import Decimal
 from unittest.mock import patch
@@ -14,10 +14,7 @@ from contas_receber.models import ContaReceber
 from vendas.models import Venda
 
 from administracao.models import ConfiguracaoSistema
-<<<<<<< HEAD
 from accounts.models import PerfilUsuario
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 from .services import buscar_aniversariantes, buscar_aniversariantes_configurados
 
 
@@ -74,10 +71,7 @@ class DashboardAniversariantesTests(TestCase):
     def setUp(self):
         User = get_user_model()
         self.user = User.objects.create_user(username='admin', password='senha')
-<<<<<<< HEAD
         PerfilUsuario.objects.create(usuario=self.user, perfil=PerfilUsuario.Perfil.ADMINISTRADOR)
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
         self.client.login(username='admin', password='senha')
 
     def test_notificacoes_ativadas_no_dashboard(self):
@@ -216,3 +210,4 @@ class DashboardContasAtrasadasTests(TestCase):
 
         self.assertFalse(response.context['pode_visualizar_contas_atrasadas'])
         self.assertNotContains(response, 'Contas a receber atrasadas')
+

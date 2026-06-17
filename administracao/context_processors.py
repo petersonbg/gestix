@@ -1,4 +1,4 @@
-from .services import obter_configuracao_sistema
+﻿from .services import obter_configuracao_sistema
 
 
 def configuracao_sistema(request):
@@ -6,3 +6,4 @@ def configuracao_sistema(request):
     if not request.user.is_authenticated:
         return {}
     return {'configuracao_global': obter_configuracao_sistema()}
+

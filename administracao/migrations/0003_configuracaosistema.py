@@ -1,4 +1,4 @@
-from django.db import migrations, models
+﻿from django.db import migrations, models
 
 
 def copiar_configuracao_dashboard(apps, schema_editor):
@@ -59,3 +59,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(copiar_configuracao_dashboard, restaurar_configuracao_dashboard),
     ]
+

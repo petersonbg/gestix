@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -135,3 +135,4 @@ class CaixaTests(TestCase):
                 valor=Decimal('10.00'),
                 usuario=self.user,
             )
+

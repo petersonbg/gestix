@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from xml.etree import ElementTree
 
 from django.core.exceptions import ValidationError
@@ -111,3 +111,4 @@ validador_logo_impressao = ValidadorLogotipo(
     extensoes_permitidas=('png', 'svg'),
     tamanho_maximo_mb=5,
 )
+

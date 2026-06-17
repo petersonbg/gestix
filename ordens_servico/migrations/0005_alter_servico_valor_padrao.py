@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django.db import migrations, models
 from django.core.validators import MinValueValidator
@@ -22,3 +22,4 @@ class Migration(migrations.Migration):
             ),
         ),
     ]
+

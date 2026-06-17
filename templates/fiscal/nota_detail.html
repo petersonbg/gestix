@@ -1,4 +1,4 @@
-{% extends 'layouts/internal.html' %}
+﻿{% extends 'layouts/internal.html' %}
 
 {% block title %}NF-e {{ nota.numero }} | GESTIX{% endblock %}
 
@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
     <div>
         <h1 class="h2 mb-1">NF-e {{ nota.numero }}/{{ nota.serie }}</h1>
-        <p class="text-secondary mb-0">{{ nota.emitente_razao_social }} — {{ nota.chave_acesso }}</p>
+        <p class="text-secondary mb-0">{{ nota.emitente_razao_social }} â€” {{ nota.chave_acesso }}</p>
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'fiscal:list' %}">Voltar</a>
@@ -43,3 +43,4 @@
     </div>
 </div>
 {% endblock %}
+

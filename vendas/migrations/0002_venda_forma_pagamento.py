@@ -1,4 +1,4 @@
-# Generated manually for GESTIX caixa integration
+﻿# Generated manually for GESTIX caixa integration
 
 from django.db import migrations, models
 
@@ -28,3 +28,4 @@ class Migration(migrations.Migration):
             ),
         ),
     ]
+

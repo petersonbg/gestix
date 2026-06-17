@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-from django.core.exceptions import ValidationError
+﻿from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 
 from clientes.validators import cnpj_valido
 
-=======
-from django.db import models
-from django.urls import reverse
-
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
 class Fornecedor(models.Model):
     razao_social = models.CharField('razão social', max_length=150)
@@ -34,13 +28,11 @@ class Fornecedor(models.Model):
     def __str__(self):
         return self.razao_social
 
-<<<<<<< HEAD
     def clean(self):
         super().clean()
         if not cnpj_valido(self.cnpj):
             raise ValidationError({'cnpj': 'Informe um CNPJ valido.'})
 
-=======
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
     def get_absolute_url(self):
         return reverse('fornecedores:detail', kwargs={'pk': self.pk})
+

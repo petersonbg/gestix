@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib import admin
@@ -519,3 +519,4 @@ class ServicoCatalogoNaOSTests(TestCase):
         self.assertContains(formulario, 'Adicionar Serviço')
         self.assertContains(formulario, 'id="servico-select"')
         self.assertNotContains(formulario, 'Pesquisar serviço')
+

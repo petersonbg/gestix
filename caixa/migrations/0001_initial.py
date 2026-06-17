@@ -1,4 +1,4 @@
-# Generated manually for GESTIX caixa module
+﻿# Generated manually for GESTIX caixa module
 
 from decimal import Decimal
 
@@ -65,3 +65,4 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(condition=models.Q(status='ABERTO'), fields=('usuario_abertura',), name='unique_caixa_aberto_por_usuario'),
         ),
     ]
+

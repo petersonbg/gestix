@@ -1,4 +1,4 @@
-from django.contrib import messages
+﻿from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -127,3 +127,4 @@ class ContaReceberReceberView(LoginRequiredMixin, ContaReceberQuerysetMixin, Vie
                 )
                 return redirect(conta.get_absolute_url())
         return render(request, self.template_name, {'conta': conta, 'form': form})
+

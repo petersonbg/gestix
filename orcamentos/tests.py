@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -144,3 +144,4 @@ class ClienteBuscaOrcamentoTests(TestCase):
         self.assertEqual(response.content.count(b'Produto compacto'), 20)
         self.assertContains(response, 'R$ 200,00')
         self.assertContains(response, 'allow-page-overflow')
+

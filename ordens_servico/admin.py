@@ -1,4 +1,4 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 
 from .models import HistoricoOrdemServico, ItemProdutoOS, ItemServicoOS, OrdemServico, Servico
 
@@ -92,3 +92,4 @@ class ServicoAdmin(admin.ModelAdmin):
 admin.site.register(ItemServicoOS)
 admin.site.register(ItemProdutoOS)
 admin.site.register(HistoricoOrdemServico)
+

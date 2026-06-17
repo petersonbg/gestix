@@ -1,4 +1,4 @@
-from django.db import migrations, models
+﻿from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -19,3 +19,4 @@ class Migration(migrations.Migration):
             field=models.DateField(blank=True, null=True, verbose_name='data de nascimento'),
         ),
     ]
+

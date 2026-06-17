@@ -1,1 +1,2 @@
-"""As configurações do sistema são administradas pelo app administracao."""
+﻿"""As configurações do sistema são administradas pelo app administracao."""
+

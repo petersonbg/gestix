@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -47,13 +47,8 @@ class ClienteBuscaVendaTests(TestCase):
         cliente_telefone = self.criar_cliente('Pedro Telefone', '11122233344', telefone='27987654321')
 
         por_nome = self.client.get(reverse('vendas:buscar_clientes'), {'q': 'João'}).json()['results']
-<<<<<<< HEAD
         por_cpf = self.client.get(reverse('vendas:buscar_clientes'), {'q': '32100'}).json()['results']
         por_telefone = self.client.get(reverse('vendas:buscar_clientes'), {'q': '876543'}).json()['results']
-=======
-        por_cpf = self.client.get(reverse('vendas:buscar_clientes'), {'q': '654321'}).json()['results']
-        por_telefone = self.client.get(reverse('vendas:buscar_clientes'), {'q': '987654'}).json()['results']
->>>>>>> 027f04bc6b4f2b33d16a13e0d7c9548c220798f7
 
         self.assertEqual(por_nome[0]['id'], cliente_nome.pk)
         self.assertEqual(por_cpf[0]['id'], cliente_cpf.pk)
@@ -497,3 +492,4 @@ class VendaCancelamentoRascunhoTests(TestCase):
         self.assertNotContains(response, f'#{cancelada.pk}')
         response = self.client.get(reverse('vendas:list'), {'status': 'canceladas'})
         self.assertContains(response, f'#{cancelada.pk}')
+

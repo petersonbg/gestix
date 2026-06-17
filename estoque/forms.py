@@ -1,4 +1,4 @@
-from django import forms
+﻿from django import forms
 
 from produtos.models import Produto
 
@@ -53,3 +53,4 @@ class MovimentacaoEstoqueForm(forms.Form):
             self.add_error('quantidade', 'A saída não pode ser maior que o estoque disponível.')
 
         return cleaned_data
+

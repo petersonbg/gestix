@@ -1,4 +1,4 @@
-# Generated manually for GESTIX contas_pagar module.
+﻿# Generated manually for GESTIX contas_pagar module.
 
 from decimal import Decimal
 
@@ -11,7 +11,7 @@ from django.db import migrations, models
 
 CATEGORIAS_INICIAIS = [
     'Energia',
-    'Água',
+    'Ãgua',
     'Internet',
     'Aluguel',
     'Fornecedor',
@@ -86,3 +86,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(criar_categorias, remover_categorias),
     ]
+

@@ -1,4 +1,4 @@
-from django.conf import settings
+﻿from django.conf import settings
 from django.db import migrations, models
 
 
@@ -72,3 +72,4 @@ class Migration(migrations.Migration):
             index=models.Index(fields=['modulo'], name='accounts_lo_modulo_e4a9e9_idx'),
         ),
     ]
+

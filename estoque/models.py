@@ -1,4 +1,4 @@
-from django.conf import settings
+﻿from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.urls import reverse
@@ -87,3 +87,4 @@ class MovimentacaoEstoque(models.Model):
 
     def get_absolute_url(self):
         return reverse('estoque:produto_historico', kwargs={'produto_pk': self.produto_id})
+

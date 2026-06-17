@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_HALF_UP
+﻿from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -192,3 +192,4 @@ class ContaPagar(models.Model):
 
     def get_absolute_url(self):
         return reverse('contas_pagar:detail', kwargs={'pk': self.pk})
+

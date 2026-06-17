@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -39,3 +39,4 @@ class ContaReceberRecebimentoForm(forms.ModelForm):
         if self.conta and valor_recebido > self.conta.saldo:
             raise ValidationError('O valor recebido não pode ser maior que o saldo da parcela.')
         return valor_recebido
+
