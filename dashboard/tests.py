@@ -254,6 +254,20 @@ class DashboardFinanceiraTests(TestCase):
         self.assertEqual(contexto['saldo_bancario'], Decimal('160.00'))
         self.assertEqual(contexto['saldo_disponivel'], Decimal('310.00'))
 
+    def test_saldo_caixa_permanece_apos_fechamento_e_nao_duplica_na_reabertura(self):
+        self.criar_movimento(Decimal('50.00'))
+        self.caixa.fechar(
+            usuario=self.user,
+            valor_fechamento_informado=Decimal('145.00'),
+        )
+
+        fechado = buscar_dashboard_financeira(self.user)
+        self.assertEqual(fechado['saldo_caixa'], Decimal('145.00'))
+
+        Caixa.objects.create(usuario_abertura=self.user, valor_inicial=Decimal('120.00'))
+        reaberto = buscar_dashboard_financeira(self.user)
+        self.assertEqual(reaberto['saldo_caixa'], Decimal('120.00'))
+
     def test_financeiro_imediato_e_alertas_usam_saldo_em_aberto(self):
         hoje = timezone.localdate()
         vencida = self.criar_conta_receber(
@@ -474,6 +488,45 @@ class DashboardExecutivaTests(TestCase):
         self.assertEqual(contexto['capital_giro'], Decimal('-20.00'))
         self.assertEqual(contexto['capital_giro_situacao'], 'ATENCAO')
 
+    def test_capital_giro_negativo_sem_despesas_futuras_e_critico(self):
+        contexto = buscar_dashboard_executiva(
+            self.gerente,
+            saldo_disponivel=Decimal('-10.00'),
+        )
+
+        self.assertEqual(contexto['despesas_30_dias'], Decimal('0.00'))
+        self.assertEqual(contexto['capital_giro'], Decimal('-10.00'))
+        self.assertEqual(contexto['capital_giro_situacao'], 'CRITICO')
+
+    def test_cache_executivo_considera_saldo_disponivel(self):
+        primeiro = buscar_dashboard_executiva(
+            self.gerente,
+            saldo_disponivel=Decimal('100.00'),
+        )
+        segundo = buscar_dashboard_executiva(
+            self.gerente,
+            saldo_disponivel=Decimal('250.00'),
+        )
+
+        self.assertEqual(primeiro['capital_giro'], Decimal('100.00'))
+        self.assertEqual(segundo['capital_giro'], Decimal('250.00'))
+
+    def test_top_produtos_rateia_desconto_da_venda(self):
+        venda = self.criar_venda(
+            self.cliente_a,
+            self.vendedor,
+            self.produto_a,
+            2,
+            Decimal('100.00'),
+        )
+        venda.desconto = Decimal('50.00')
+        venda.total = Decimal('150.00')
+        venda.save(update_fields=['desconto', 'total'])
+
+        contexto = buscar_dashboard_executiva(self.gerente)
+
+        self.assertEqual(contexto['top_produtos'][0]['faturamento'], Decimal('150.00'))
+
     def test_vendedor_recebe_apenas_rankings_e_indicadores_proprios(self):
         self.criar_venda(self.cliente_a, self.vendedor, self.produto_a, 1, Decimal('100.00'))
         self.criar_venda(self.cliente_b, self.gerente, self.produto_b, 1, Decimal('50.00'))
@@ -521,8 +574,27 @@ class DashboardExecutivaTests(TestCase):
         self.assertEqual(dados['pagar'][0], 0.0)
         self.assertEqual(dados['saldo'][1], 60.0)
 
-    def test_servicos_executivos_carregam_em_menos_de_tres_segundos(self):
-        for indice in range(30):
+    def test_projecao_inclui_vencidos_e_respeita_limite_exato_do_periodo(self):
+        venda = self.criar_venda(
+            self.cliente_a, self.vendedor, self.produto_a, 1, Decimal('100.00')
+        )
+        for indice, dias in enumerate([-3, 6, 7], start=1):
+            ContaReceber.objects.create(
+                venda=venda,
+                cliente=self.cliente_a,
+                numero_parcela=indice,
+                total_parcelas=3,
+                data_vencimento=timezone.localdate() + timedelta(days=dias),
+                valor=Decimal('10.00'),
+            )
+
+        dados = grafico_projecao_financeira()
+
+        self.assertEqual(dados['receber'][0], 20.0)
+        self.assertEqual(dados['receber'][1], 30.0)
+
+    def test_dashboard_http_carrega_em_menos_de_tres_segundos(self):
+        for indice in range(100):
             self.criar_venda(
                 self.cliente_a,
                 self.vendedor,
@@ -531,17 +603,16 @@ class DashboardExecutivaTests(TestCase):
                 Decimal('100.00'),
             )
 
-        inicio = perf_counter()
+        self.client.login(username='executivo-gerente', password='senha')
+        cache.clear()
         with CaptureQueriesContext(connection) as consultas:
-            financeiro = buscar_dashboard_financeira(self.gerente)
-            buscar_dashboard_executiva(
-                self.gerente,
-                saldo_disponivel=financeiro['saldo_disponivel'],
-            )
-        duracao = perf_counter() - inicio
+            inicio = perf_counter()
+            resposta = self.client.get(reverse('dashboard'))
+            duracao = perf_counter() - inicio
 
+        self.assertEqual(resposta.status_code, 200)
         self.assertLess(duracao, 3)
-        self.assertLessEqual(len(consultas), 40)
+        self.assertLessEqual(len(consultas), 45)
 
 
 class DashboardGraficosApiTests(TestCase):
@@ -671,13 +742,14 @@ class DashboardGraficosApiTests(TestCase):
         ]:
             self.assertEqual(self.client.get(reverse(nome)).status_code, 403)
 
-    def test_resultado_do_endpoint_utiliza_cache(self):
+    def test_cache_do_endpoint_e_invalidado_apos_nova_movimentacao(self):
         self.movimento(Decimal('25.00'))
         primeira = self.client.get(reverse('dashboard_api_fluxo_financeiro')).json()
         self.movimento(Decimal('75.00'))
         segunda = self.client.get(reverse('dashboard_api_fluxo_financeiro')).json()
 
-        self.assertEqual(primeira, segunda)
+        self.assertEqual(primeira['receitas'][-1], 25.0)
+        self.assertEqual(segunda['receitas'][-1], 100.0)
 
     def test_template_carrega_chartjs_local_e_quatro_canvases(self):
         response = self.client.get(reverse('dashboard'))

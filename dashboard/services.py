@@ -4,8 +4,21 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.core.cache import cache
-from django.db.models import Case, Count, DecimalField, ExpressionWrapper, F, Min, Q, Sum, When
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models import (
+    Case,
+    Count,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    Min,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Value,
+    When,
+)
+from django.db.models.functions import Coalesce, TruncDate, TruncMonth
 from django.utils import timezone
 
 from administracao.services import obter_configuracao_sistema
@@ -16,6 +29,8 @@ from contas_pagar.models import ContaPagar
 from contas_receber.models import ContaReceber
 from produtos.models import Produto
 from vendas.models import ItemVenda, Venda
+
+from .cache import chave_cache_dashboard
 
 
 ZERO = Decimal('0.00')
@@ -112,6 +127,47 @@ def _escopo_contas_receber(user):
     return queryset.none()
 
 
+def _saldo_caixa_atual():
+    caixa_mais_recente = (
+        Caixa.objects
+        .filter(usuario_abertura_id=OuterRef('usuario_abertura_id'))
+        .order_by('-data_abertura', '-pk')
+        .values('pk')[:1]
+    )
+    caixas_atuais = Caixa.objects.filter(pk=Subquery(caixa_mais_recente))
+    saldo_base = caixas_atuais.aggregate(
+        total=Sum(
+            Case(
+                When(status=Caixa.Status.ABERTO, then=F('valor_inicial')),
+                default=Coalesce(
+                    F('valor_fechamento_informado'),
+                    F('valor_fechamento_calculado'),
+                    Value(ZERO),
+                ),
+                output_field=DecimalField(max_digits=14, decimal_places=2),
+            )
+        )
+    )['total'] or ZERO
+    movimentos_abertos = MovimentacaoCaixa.objects.filter(
+        caixa__in=caixas_atuais.filter(status=Caixa.Status.ABERTO),
+        forma_pagamento=MovimentacaoCaixa.FormaPagamento.DINHEIRO,
+    )
+    entradas = _total(movimentos_abertos.filter(
+        tipo__in=[
+            MovimentacaoCaixa.Tipo.ENTRADA,
+            MovimentacaoCaixa.Tipo.SUPRIMENTO,
+            MovimentacaoCaixa.Tipo.VENDA,
+        ]
+    ))
+    saidas = _total(movimentos_abertos.filter(
+        tipo__in=[
+            MovimentacaoCaixa.Tipo.SAIDA,
+            MovimentacaoCaixa.Tipo.SANGRIA,
+            MovimentacaoCaixa.Tipo.CANCELAMENTO,
+        ]
+    ))
+    return saldo_base + entradas - saidas
+
 def buscar_dashboard_financeira(user, hoje=None, limite_alertas=5):
     hoje = hoje or timezone.localdate()
     inicio_mes = hoje.replace(day=1)
@@ -148,26 +204,8 @@ def buscar_dashboard_financeira(user, hoje=None, limite_alertas=5):
             ),
             'valor_pago',
         )
-        caixas_abertos = Caixa.objects.filter(status=Caixa.Status.ABERTO)
-        saldo_caixa = _total(caixas_abertos, 'valor_inicial')
-        movimentos_abertos = MovimentacaoCaixa.objects.filter(
-            caixa__status=Caixa.Status.ABERTO,
-            forma_pagamento=MovimentacaoCaixa.FormaPagamento.DINHEIRO,
-        )
-        saldo_caixa += _total(movimentos_abertos.filter(
-            tipo__in=[
-                MovimentacaoCaixa.Tipo.ENTRADA,
-                MovimentacaoCaixa.Tipo.SUPRIMENTO,
-                MovimentacaoCaixa.Tipo.VENDA,
-            ]
-        ))
-        saldo_caixa -= _total(movimentos_abertos.filter(
-            tipo__in=[
-                MovimentacaoCaixa.Tipo.SAIDA,
-                MovimentacaoCaixa.Tipo.SANGRIA,
-                MovimentacaoCaixa.Tipo.CANCELAMENTO,
-            ]
-        ))
+        saldo_caixa = _saldo_caixa_atual()
+
         formas_bancarias = [
             forma for forma, _ in MovimentacaoCaixa.FormaPagamento.choices
             if forma != MovimentacaoCaixa.FormaPagamento.DINHEIRO
@@ -284,7 +322,12 @@ def buscar_dashboard_executiva(user, hoje=None, saldo_disponivel=None):
     if not (acesso_total or acesso_vendedor):
         return {'dashboard_executiva_visivel': False}
 
-    chave = f'dashboard:executiva:{user.pk}:{int(acesso_total)}:{hoje:%Y-%m-%d}'
+    if acesso_total and saldo_disponivel is None:
+        saldo_disponivel = buscar_dashboard_financeira(user, hoje=hoje)['saldo_disponivel']
+    saldo_chave = saldo_disponivel if acesso_total else 'vendedor'
+    chave = chave_cache_dashboard(
+        f'dashboard:executiva:{user.pk}:{int(acesso_total)}:{hoje:%Y-%m-%d}:{saldo_chave}'
+    )
     armazenado = cache.get(chave)
     if armazenado is not None:
         return armazenado
@@ -324,9 +367,23 @@ def buscar_dashboard_executiva(user, hoje=None, saldo_disponivel=None):
         .annotate(valor_comprado=Sum('total'), quantidade_compras=Count('pk'))
         .order_by('-valor_comprado', 'cliente__nome')[:10]
     )
+    faturamento_liquido = Case(
+        When(
+            venda__subtotal__gt=0,
+            then=ExpressionWrapper(
+                F('total_item') * F('venda__total') / F('venda__subtotal'),
+                output_field=DecimalField(max_digits=14, decimal_places=2),
+            ),
+        ),
+        default=Value(ZERO),
+        output_field=DecimalField(max_digits=14, decimal_places=2),
+    )
     top_produtos = list(
         itens.values('produto_id', 'produto__nome')
-        .annotate(quantidade_vendida=Sum('quantidade'), faturamento=Sum('total_item'))
+        .annotate(
+            quantidade_vendida=Sum('quantidade'),
+            faturamento=Sum(faturamento_liquido),
+        )
         .order_by('-faturamento', 'produto__nome')[:10]
     )
 
@@ -354,16 +411,18 @@ def buscar_dashboard_executiva(user, hoje=None, saldo_disponivel=None):
             nome = f"{item['usuario__first_name']} {item['usuario__last_name']}".strip()
             item['vendedor_nome'] = nome or item['usuario__username']
 
-        fim_30 = hoje + timedelta(days=30)
+        fim_30 = hoje + timedelta(days=29)
         despesas_30_dias = _saldo_query(ContaPagar.objects.filter(
             status__in=[ContaPagar.Status.ABERTA, ContaPagar.Status.ATRASADA],
             data_vencimento__range=(hoje, fim_30),
         ))
-        if saldo_disponivel is None:
-            saldo_disponivel = buscar_dashboard_financeira(user, hoje=hoje)['saldo_disponivel']
         capital_giro = saldo_disponivel - despesas_30_dias
-        cobertura = saldo_disponivel / despesas_30_dias if despesas_30_dias else Decimal('1.00')
-        if cobertura >= 1:
+        cobertura = saldo_disponivel / despesas_30_dias if despesas_30_dias else None
+        if saldo_disponivel < 0:
+            situacao = 'CRITICO'
+            situacao_label = 'Crítico'
+            situacao_cor = 'danger'
+        elif cobertura is None or cobertura >= 1:
             situacao = 'SAUDAVEL'
             situacao_label = 'Saudável'
             situacao_cor = 'success'
@@ -407,34 +466,40 @@ def buscar_dashboard_executiva(user, hoje=None, saldo_disponivel=None):
 def grafico_projecao_financeira(hoje=None):
     hoje = hoje or timezone.localdate()
     periodos = [7, 15, 30, 60, 90]
-    chave = f'dashboard:grafico:projecao:{hoje:%Y-%m-%d}'
+    chave = chave_cache_dashboard(f'dashboard:grafico:projecao:{hoje:%Y-%m-%d}')
     armazenado = cache.get(chave)
     if armazenado is not None:
         return armazenado
 
     receber_base = ContaReceber.objects.filter(
         status__in=[ContaReceber.Status.ABERTA, ContaReceber.Status.ATRASADA],
-        data_vencimento__gte=hoje,
     )
     pagar_base = ContaPagar.objects.filter(
         status__in=[ContaPagar.Status.ABERTA, ContaPagar.Status.ATRASADA],
-        data_vencimento__gte=hoje,
     )
-    receber = []
-    pagar = []
-    saldo = []
-    for dias in periodos:
-        fim = hoje + timedelta(days=dias)
-        valor_receber = _saldo_query(receber_base.filter(data_vencimento__lte=fim))
-        valor_pagar = _saldo_query(pagar_base.filter(data_vencimento__lte=fim))
-        receber.append(_decimal_float(valor_receber))
-        pagar.append(_decimal_float(valor_pagar))
-        saldo.append(_decimal_float(valor_receber - valor_pagar))
+    saldo_expr = ExpressionWrapper(
+        F('valor') - F('valor_pago'),
+        output_field=DecimalField(max_digits=12, decimal_places=2),
+    )
+    filtros = {
+        f'periodo_{dias}': Sum(
+            saldo_expr,
+            filter=Q(data_vencimento__lte=hoje + timedelta(days=dias - 1)),
+        )
+        for dias in periodos
+    }
+    totais_receber = receber_base.aggregate(**filtros)
+    totais_pagar = pagar_base.aggregate(**filtros)
+    receber_decimais = [totais_receber[f'periodo_{dias}'] or ZERO for dias in periodos]
+    pagar_decimais = [totais_pagar[f'periodo_{dias}'] or ZERO for dias in periodos]
     dados = {
         'labels': [f'{dias} dias' for dias in periodos],
-        'receber': receber,
-        'pagar': pagar,
-        'saldo': saldo,
+        'receber': [_decimal_float(valor) for valor in receber_decimais],
+        'pagar': [_decimal_float(valor) for valor in pagar_decimais],
+        'saldo': [
+            _decimal_float(valor_receber - valor_pagar)
+            for valor_receber, valor_pagar in zip(receber_decimais, pagar_decimais)
+        ],
     }
     cache.set(chave, dados, GRAFICOS_CACHE_TIMEOUT)
     return dados
@@ -458,7 +523,7 @@ def _data_mes(valor):
 
 def grafico_fluxo_financeiro(hoje=None):
     hoje = hoje or timezone.localdate()
-    chave = f'dashboard:grafico:fluxo:{hoje:%Y-%m}'
+    chave = chave_cache_dashboard(f'dashboard:grafico:fluxo:{hoje:%Y-%m}')
     armazenado = cache.get(chave)
     if armazenado is not None:
         return armazenado
@@ -502,7 +567,7 @@ def grafico_fluxo_financeiro(hoje=None):
 def grafico_formas_pagamento(hoje=None):
     hoje = hoje or timezone.localdate()
     inicio = _meses_ate(hoje, 12)[0]
-    chave = f'dashboard:grafico:formas:{hoje:%Y-%m}'
+    chave = chave_cache_dashboard(f'dashboard:grafico:formas:{hoje:%Y-%m}')
     armazenado = cache.get(chave)
     if armazenado is not None:
         return armazenado
@@ -548,7 +613,7 @@ def grafico_formas_pagamento(hoje=None):
 def grafico_contas_30_dias(hoje=None):
     hoje = hoje or timezone.localdate()
     fim = hoje + timedelta(days=29)
-    chave = f'dashboard:grafico:contas:{hoje:%Y-%m-%d}'
+    chave = chave_cache_dashboard(f'dashboard:grafico:contas:{hoje:%Y-%m-%d}')
     armazenado = cache.get(chave)
     if armazenado is not None:
         return armazenado
@@ -575,7 +640,7 @@ def grafico_evolucao_caixa(periodo=30, hoje=None):
     hoje = hoje or timezone.localdate()
     periodo = periodo if periodo in {1, 7, 15, 30} else 30
     inicio = hoje - timedelta(days=periodo - 1)
-    chave = f'dashboard:grafico:caixa:{periodo}:{hoje:%Y-%m-%d}'
+    chave = chave_cache_dashboard(f'dashboard:grafico:caixa:{periodo}:{hoje:%Y-%m-%d}')
     armazenado = cache.get(chave)
     if armazenado is not None:
         return armazenado
