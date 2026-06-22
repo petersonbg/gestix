@@ -1,0 +1,49 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Configurações do Sistema | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Configurações do Sistema</h1>
+        <p class="text-secondary mb-0">Controle as notificações de aniversário exibidas no dashboard.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'dashboard' %}">Voltar</a>
+</div>
+
+<form method="post" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        {% if not pode_editar %}
+            <div class="alert alert-info" role="alert">Você pode visualizar estas configurações, mas apenas administradores podem alterá-las.</div>
+        {% endif %}
+
+        {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    {{ form.notificacoes_aniversario_ativas }}
+                    <label class="form-check-label" for="{{ form.notificacoes_aniversario_ativas.id_for_label }}">{{ form.notificacoes_aniversario_ativas.label }}</label>
+                </div>
+                {% for error in form.notificacoes_aniversario_ativas.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="{{ form.dias_antecedencia_aniversario.id_for_label }}">{{ form.dias_antecedencia_aniversario.label }}</label>
+                {{ form.dias_antecedencia_aniversario }}
+                {% if form.dias_antecedencia_aniversario.help_text %}<div class="form-text">{{ form.dias_antecedencia_aniversario.help_text }}</div>{% endif %}
+                {% for error in form.dias_antecedencia_aniversario.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+                <span class="text-secondary small">Atualizado em</span>
+                <div>{{ configuracao.atualizado_em|date:'d/m/Y H:i'|default:'-' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'dashboard' %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit" {% if not pode_editar %}disabled{% endif %}>Salvar configurações</button>
+    </div>
+</form>
+{% endblock %}
+

@@ -1,0 +1,46 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}NF-e {{ nota.numero }} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">NF-e {{ nota.numero }}/{{ nota.serie }}</h1>
+        <p class="text-secondary mb-0">{{ nota.emitente_razao_social }} â€” {{ nota.chave_acesso }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'fiscal:list' %}">Voltar</a>
+        {% if nota.status == 'PENDENTE' %}<a class="btn btn-primary" href="{% url 'fiscal:confirmar' nota.pk %}">Confirmar estoque</a>{% endif %}
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">CNPJ emitente</span><div class="fw-semibold">{{ nota.emitente_cnpj }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Emissão</span><div>{{ nota.data_emissao|date:'d/m/Y H:i' }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Valor total</span><div class="h5 mb-0">R$ {{ nota.valor_total }}</div></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><span class="text-secondary small">Status</span><div class="h5 mb-0">{{ nota.get_status_display }}</div></div></div></div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white"><h2 class="h5 mb-0">Produtos encontrados no XML</h2></div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Item</th><th>Código XML</th><th>Descrição</th><th>NCM</th><th>Qtd.</th><th>Valor unit.</th><th>Produto vinculado</th></tr></thead>
+            <tbody>
+                {% for item in nota.itens.all %}
+                    <tr>
+                        <td>{{ item.numero_item }}</td>
+                        <td>{{ item.codigo_produto|default:'-' }}</td>
+                        <td class="fw-semibold">{{ item.descricao }}</td>
+                        <td>{{ item.ncm|default:'-' }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>R$ {{ item.valor_unitario }}</td>
+                        <td>{% if item.produto %}<a href="{% url 'produtos:detail' item.produto.pk %}">{{ item.produto }}</a>{% else %}-{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,474 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}{% if is_editing %}Editar venda #{{ venda.pk }}{% else %}Nova venda{% endif %} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">{% if is_editing %}Editar venda #{{ venda.pk }}{% else %}Nova venda{% endif %}</h1>
+        <p class="text-secondary mb-0">A venda será salva como rascunho e não movimentará estoque ou financeiro até a finalização.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
+</div>
+
+<form method="post" novalidate id="venda-form">
+    {% csrf_token %}
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0">Cliente da venda</h2>
+        </div>
+        <div class="card-body">
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {{ form.cliente }}
+            {% for error in form.cliente.errors %}<div class="alert alert-danger py-2" role="alert">{{ error }}</div>{% endfor %}
+
+            <label class="form-label" for="cliente-search">Pesquisar cliente</label>
+            <div class="input-group">
+                <input type="search" class="form-control" id="cliente-search" placeholder="Digite nome, CPF/CNPJ ou telefone" autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" id="cliente-clear">Trocar Cliente</button>
+            </div>
+            <div class="form-text">Pesquise e selecione um cliente ativo antes de salvar ou finalizar a venda.</div>
+            <div class="list-group mt-3" id="cliente-results" aria-live="polite"></div>
+
+            <div class="alert {% if selected_cliente %}alert-success{% else %}alert-warning{% endif %} mt-3 mb-0" id="cliente-selected-box" role="status">
+                <div class="fw-semibold text-uppercase small mb-1">Cliente selecionado</div>
+                <div id="cliente-selected-details">
+                    {% if selected_cliente %}
+                        <div><strong>Nome:</strong> {{ selected_cliente.nome }}</div>
+                        <div><strong>CPF/CNPJ:</strong> {{ selected_cliente.cpf_cnpj|default:'Não informado' }}</div>
+                        <div><strong>Telefone:</strong> {{ selected_cliente.telefone|default:'Não informado' }}</div>
+                        <div><strong>E-mail:</strong> {{ selected_cliente.email|default:'Não informado' }}</div>
+                    {% else %}
+                        Nenhum cliente selecionado.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="{{ form.desconto.id_for_label }}">{{ form.desconto.label }}</label>
+                    {{ form.desconto }}
+                    {% for error in form.desconto.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="{{ form.forma_pagamento.id_for_label }}">{{ form.forma_pagamento.label }}</label>
+                    {{ form.forma_pagamento }}
+                    {% for error in form.forma_pagamento.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+            <div class="border rounded bg-light p-3 mt-3 d-none" id="crediario-fields">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div>
+                        <h3 class="h6 mb-1">Condições do crediário</h3>
+                        <p class="text-secondary small mb-0">Informe entrada opcional e gere parcelas no contas a receber.</p>
+                    </div>
+                    <span class="badge text-bg-warning">Validação no backend</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.quantidade_parcelas.id_for_label }}">{{ form.quantidade_parcelas.label }}</label>
+                        {{ form.quantidade_parcelas }}
+                        {% for error in form.quantidade_parcelas.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.data_primeiro_vencimento.id_for_label }}">{{ form.data_primeiro_vencimento.label }}</label>
+                        {{ form.data_primeiro_vencimento }}
+                        {% for error in form.data_primeiro_vencimento.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.intervalo_parcelas.id_for_label }}">{{ form.intervalo_parcelas.label }}</label>
+                        {{ form.intervalo_parcelas }}
+                        {% for error in form.intervalo_parcelas.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="{{ form.valor_entrada.id_for_label }}">{{ form.valor_entrada.label }}</label>
+                        {{ form.valor_entrada }}
+                        {% for error in form.valor_entrada.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.observacoes_crediario.id_for_label }}">{{ form.observacoes_crediario.label }}</label>
+                        {{ form.observacoes_crediario }}
+                        {% for error in form.observacoes_crediario.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0">Pesquisar produtos</h2>
+        </div>
+        <div class="card-body">
+            <label class="form-label" for="produto-search">Produto</label>
+            <input type="search" class="form-control" id="produto-search" placeholder="Digite nome, código interno ou código de barras" autocomplete="off">
+            <div class="list-group mt-3" id="produto-results" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Itens da venda</h2>
+            <span class="text-secondary small">Subtotal: <strong id="venda-subtotal">R$ 0.00</strong> | Total: <strong id="venda-total">R$ 0.00</strong></span>
+        </div>
+        <div class="card-body">
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger" role="alert">{{ formset.non_form_errors }}</div>
+            {% endif %}
+            {{ formset.management_form }}
+            <div class="table-responsive">
+                <table class="table align-middle" id="itens-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th style="width: 160px;">Quantidade</th>
+                            <th style="width: 180px;">Valor unitário</th>
+                            <th style="width: 160px;">Subtotal</th>
+                            <th style="width: 120px;" class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itens-body">
+                        {% for item_form in formset %}
+                            <tr class="item-row" data-stock="0">
+                                <td>
+                                    {{ item_form.id }}
+                                    <div class="d-none product-field">{{ item_form.produto }}</div>
+                                    <div class="fw-semibold product-name">Produto</div>
+                                    <div class="text-secondary small product-meta"></div>
+                                    {% for error in item_form.produto.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                </td>
+                                <td>
+                                    {{ item_form.quantidade }}
+                                    {% for error in item_form.quantidade.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                </td>
+                                <td>
+                                    {{ item_form.valor_unitario }}
+                                    {% for error in item_form.valor_unitario.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                                </td>
+                                <td class="item-subtotal">R$ 0.00</td>
+                                <td class="text-end"><button type="button" class="btn btn-outline-danger btn-sm remove-item">Remover</button></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-secondary small mb-0">Use a pesquisa acima para adicionar produtos. Produtos sem estoque não podem ser adicionados.</p>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">{% if is_editing %}Salvar alterações{% else %}Salvar rascunho{% endif %}</button>
+        </div>
+    </div>
+</form>
+
+<template id="empty-item-row">
+    <tr class="item-row" data-stock="0">
+        <td>
+            <div class="d-none product-field">{{ formset.empty_form.produto }}</div>
+            <div class="fw-semibold product-name"></div>
+            <div class="text-secondary small product-meta"></div>
+        </td>
+        <td>{{ formset.empty_form.quantidade }}</td>
+        <td>{{ formset.empty_form.valor_unitario }}</td>
+        <td class="item-subtotal">R$ 0.00</td>
+        <td class="text-end"><button type="button" class="btn btn-outline-danger btn-sm remove-item">Remover</button></td>
+    </tr>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const clienteSearchInput = document.getElementById('cliente-search');
+    const clienteResults = document.getElementById('cliente-results');
+    const clienteSelectedBox = document.getElementById('cliente-selected-box');
+    const clienteSelectedDetails = document.getElementById('cliente-selected-details');
+    const clienteClearButton = document.getElementById('cliente-clear');
+    const clienteInput = document.getElementById('id_cliente');
+    const clienteSearchUrl = '{% url "vendas:buscar_clientes" %}';
+    const searchInput = document.getElementById('produto-search');
+    const results = document.getElementById('produto-results');
+    const itensBody = document.getElementById('itens-body');
+    const emptyTemplate = document.getElementById('empty-item-row');
+    const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
+    const descontoInput = document.getElementById('id_desconto');
+    const subtotalOutput = document.getElementById('venda-subtotal');
+    const totalOutput = document.getElementById('venda-total');
+    const formaPagamentoInput = document.getElementById('id_forma_pagamento');
+    const crediarioFields = document.getElementById('crediario-fields');
+    const dataPrimeiroVencimentoInput = document.getElementById('id_data_primeiro_vencimento');
+    const searchUrl = '{% url "vendas:buscar_produtos" %}';
+    let debounceTimer = null;
+    let clienteDebounceTimer = null;
+
+    const money = (value) => `R$ ${Number(value || 0).toFixed(2)}`;
+
+    function reindexRows() {
+        [...itensBody.querySelectorAll('tr.item-row')].forEach((row, index) => {
+            row.querySelectorAll('input, select, label').forEach((element) => {
+                ['name', 'id', 'for'].forEach((attr) => {
+                    const value = element.getAttribute(attr);
+                    if (value) {
+                        element.setAttribute(attr, value.replace(/{{ formset.prefix }}-(\d+|__prefix__)-/g, '{{ formset.prefix }}-' + index + '-'));
+                    }
+                });
+            });
+        });
+        totalForms.value = itensBody.querySelectorAll('tr.item-row').length;
+    }
+
+    function updateRowDisplay(row, product) {
+        const select = row.querySelector('select');
+        const selectedOption = select?.selectedOptions?.[0];
+        row.querySelector('.product-name').textContent = product?.nome || selectedOption?.textContent || 'Produto';
+        row.querySelector('.product-meta').textContent = product
+            ? `Código: ${product.codigo_interno} | Estoque: ${product.estoque_atual}`
+            : '';
+        if (product) {
+            row.dataset.stock = product.estoque_atual;
+        }
+    }
+
+    function recalculate() {
+        let subtotal = 0;
+        itensBody.querySelectorAll('tr.item-row').forEach((row) => {
+            const quantityInput = row.querySelector('input[name$="-quantidade"]');
+            const unitInput = row.querySelector('input[name$="-valor_unitario"]');
+            const quantity = Number(quantityInput?.value || 0);
+            const unit = Number(unitInput?.value || 0);
+            const stock = Number(row.dataset.stock || 0);
+            if (stock && quantity > stock) {
+                quantityInput.setCustomValidity(`Quantidade maior que o estoque disponível (${stock}).`);
+                quantityInput.classList.add('is-invalid');
+            } else {
+                quantityInput?.setCustomValidity('');
+                quantityInput?.classList.remove('is-invalid');
+            }
+            const rowSubtotal = quantity * unit;
+            subtotal += rowSubtotal;
+            row.querySelector('.item-subtotal').textContent = money(rowSubtotal);
+        });
+        const desconto = Number(descontoInput?.value || 0);
+        subtotalOutput.textContent = money(subtotal);
+        totalOutput.textContent = money(Math.max(subtotal - desconto, 0));
+    }
+
+    function toggleCrediarioFields() {
+        const isCrediario = formaPagamentoInput?.value === 'CREDIARIO';
+        crediarioFields?.classList.toggle('d-none', !isCrediario);
+        if (dataPrimeiroVencimentoInput) {
+            dataPrimeiroVencimentoInput.required = isCrediario;
+        }
+    }
+
+    function addProduct(product) {
+        if (Number(product.estoque_atual) <= 0) {
+            alert('Produto sem estoque disponível.');
+            return;
+        }
+
+        const existingRow = [...itensBody.querySelectorAll('tr.item-row')].find((row) => {
+            const select = row.querySelector('select');
+            return select && select.value === String(product.id);
+        });
+        if (existingRow) {
+            const quantityInput = existingRow.querySelector('input[name$="-quantidade"]');
+            const nextQuantity = Number(quantityInput.value || 0) + 1;
+            if (nextQuantity > Number(product.estoque_atual)) {
+                alert('Quantidade maior que o estoque disponível.');
+                return;
+            }
+            quantityInput.value = nextQuantity;
+            recalculate();
+            return;
+        }
+
+        const fragment = emptyTemplate.content.cloneNode(true);
+        const row = fragment.querySelector('tr.item-row');
+        itensBody.appendChild(fragment);
+        reindexRows();
+
+        const select = row.querySelector('select');
+        const quantityInput = row.querySelector('input[name$="-quantidade"]');
+        const unitInput = row.querySelector('input[name$="-valor_unitario"]');
+        select.value = product.id;
+        quantityInput.value = 1;
+        quantityInput.max = product.estoque_atual;
+        unitInput.value = product.preco_venda;
+        updateRowDisplay(row, product);
+        recalculate();
+    }
+
+    function clienteDetailsHtml(cliente) {
+        return `
+            <div><strong>Nome:</strong> ${cliente.nome || 'Não informado'}</div>
+            <div><strong>CPF/CNPJ:</strong> ${cliente.cpf_cnpj || 'Não informado'}</div>
+            <div><strong>Telefone:</strong> ${cliente.telefone || 'Não informado'}</div>
+            <div><strong>E-mail:</strong> ${cliente.email || 'Não informado'}</div>
+        `;
+    }
+
+    function selectCliente(cliente) {
+        clienteInput.value = cliente.id;
+        clienteSelectedDetails.innerHTML = clienteDetailsHtml(cliente);
+        clienteSelectedBox.classList.remove('alert-warning');
+        clienteSelectedBox.classList.add('alert-success');
+        clienteResults.innerHTML = '';
+        clienteSearchInput.value = '';
+    }
+
+    function clearCliente() {
+        clienteInput.value = '';
+        clienteSelectedDetails.textContent = 'Nenhum cliente selecionado.';
+        clienteSelectedBox.classList.remove('alert-success');
+        clienteSelectedBox.classList.add('alert-warning');
+        clienteResults.innerHTML = '';
+        clienteSearchInput.value = '';
+        clienteSearchInput.focus();
+    }
+
+    function renderClienteResults(clientes) {
+        clienteResults.innerHTML = '';
+        if (!clientes.length) {
+            clienteResults.innerHTML = '<div class="list-group-item text-secondary">Nenhum cliente encontrado.</div>';
+            return;
+        }
+        clientes.forEach((cliente) => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center gap-3 flex-wrap';
+
+            const info = document.createElement('div');
+            const name = document.createElement('div');
+            name.className = 'fw-semibold';
+            name.textContent = cliente.nome;
+            const documentInfo = document.createElement('div');
+            documentInfo.className = 'text-secondary small';
+            documentInfo.textContent = `CPF/CNPJ: ${cliente.cpf_cnpj || 'Não informado'}`;
+            const contactInfo = document.createElement('div');
+            contactInfo.className = 'text-secondary small';
+            contactInfo.textContent = `Telefone: ${cliente.telefone || 'Não informado'} | E-mail: ${cliente.email || 'Não informado'}`;
+            info.appendChild(name);
+            info.appendChild(documentInfo);
+            info.appendChild(contactInfo);
+
+            const selectButton = document.createElement('button');
+            selectButton.type = 'button';
+            selectButton.className = 'btn btn-sm btn-primary';
+            selectButton.textContent = 'Selecionar';
+            selectButton.addEventListener('click', () => selectCliente(cliente));
+
+            item.appendChild(info);
+            item.appendChild(selectButton);
+            clienteResults.appendChild(item);
+        });
+    }
+
+    function renderResults(products) {
+        results.innerHTML = '';
+        if (!products.length) {
+            results.innerHTML = '<div class="list-group-item text-secondary">Nenhum produto encontrado.</div>';
+            return;
+        }
+        products.forEach((product) => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center gap-3';
+
+            const info = document.createElement('div');
+            const name = document.createElement('div');
+            name.className = 'fw-semibold';
+            name.textContent = product.nome;
+            const meta = document.createElement('div');
+            meta.className = 'text-secondary small';
+            meta.textContent = `Código: ${product.codigo_interno} | Preço: ${money(product.preco_venda)} | Estoque: ${product.estoque_atual}`;
+            info.appendChild(name);
+            info.appendChild(meta);
+
+            const addButton = document.createElement('button');
+            addButton.type = 'button';
+            addButton.className = 'btn btn-sm btn-primary';
+            addButton.textContent = 'Adicionar';
+            addButton.disabled = Number(product.estoque_atual) <= 0;
+            addButton.addEventListener('click', () => addProduct(product));
+
+            item.appendChild(info);
+            item.appendChild(addButton);
+            results.appendChild(item);
+        });
+    }
+
+    clienteSearchInput.addEventListener('input', () => {
+        clearTimeout(clienteDebounceTimer);
+        const query = clienteSearchInput.value.trim();
+        if (query.length < 2) {
+            clienteResults.innerHTML = '';
+            return;
+        }
+        clienteDebounceTimer = setTimeout(async () => {
+            const response = await fetch(`${clienteSearchUrl}?q=${encodeURIComponent(query)}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+            const data = await response.json();
+            renderClienteResults(data.results || []);
+        }, 250);
+    });
+
+    clienteClearButton.addEventListener('click', clearCliente);
+    formaPagamentoInput?.addEventListener('change', toggleCrediarioFields);
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+            results.innerHTML = '';
+            return;
+        }
+        debounceTimer = setTimeout(async () => {
+            const response = await fetch(`${searchUrl}?q=${encodeURIComponent(query)}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+            const data = await response.json();
+            renderResults(data.results || []);
+        }, 250);
+    });
+
+    document.getElementById('venda-form').addEventListener('submit', (event) => {
+        if (!clienteInput.value) {
+            event.preventDefault();
+            alert('Selecione um cliente para continuar.');
+            clienteSearchInput.focus();
+        }
+    });
+
+    itensBody.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-item')) {
+            event.target.closest('tr.item-row').remove();
+            reindexRows();
+            recalculate();
+        }
+    });
+
+    itensBody.addEventListener('input', (event) => {
+        if (event.target.matches('input[name$="-quantidade"], input[name$="-valor_unitario"]')) {
+            recalculate();
+        }
+    });
+    descontoInput?.addEventListener('input', recalculate);
+
+    itensBody.querySelectorAll('tr.item-row').forEach((row) => {
+        const select = row.querySelector('select');
+        if (!select?.value) {
+            row.remove();
+        } else {
+            updateRowDisplay(row);
+        }
+    });
+    reindexRows();
+    toggleCrediarioFields();
+    recalculate();
+})();
+</script>
+{% endblock %}
+

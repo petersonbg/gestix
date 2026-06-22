@@ -1,0 +1,49 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Histórico de caixas | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Histórico de caixas</h1>
+        <p class="text-secondary mb-0">Consulte caixas abertos e fechados com filtros por período, usuário e status.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'caixa:index' %}">Caixa atual</a>
+</div>
+
+<form method="get" class="card border-0 shadow-sm mb-4">
+    <div class="card-body row g-3 align-items-end">
+        <div class="col-md-3"><label class="form-label" for="data_inicial">Data inicial</label><input class="form-control" type="date" name="data_inicial" id="data_inicial" value="{{ filtros.data_inicial }}"></div>
+        <div class="col-md-3"><label class="form-label" for="data_final">Data final</label><input class="form-control" type="date" name="data_final" id="data_final" value="{{ filtros.data_final }}"></div>
+        <div class="col-md-2"><label class="form-label" for="status">Status</label><select class="form-select" name="status" id="status"><option value="">Todos</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if filtros.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        {% if pode_filtrar_usuario %}
+            <div class="col-md-2"><label class="form-label" for="usuario">Usuário</label><select class="form-select" name="usuario" id="usuario"><option value="">Todos</option>{% for usuario in usuarios %}<option value="{{ usuario.pk }}" {% if filtros.usuario == usuario.pk|stringformat:'s' %}selected{% endif %}>{{ usuario.get_full_name|default:usuario.username }}</option>{% endfor %}</select></div>
+        {% endif %}
+        <div class="col-md-2"><button class="btn btn-outline-primary w-100" type="submit">Filtrar</button></div>
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Usuário</th><th>Abertura</th><th>Status</th><th class="text-end">Inicial</th><th class="text-end">Calculado</th><th class="text-end">Informado</th><th class="text-end">Diferença</th></tr></thead>
+            <tbody>
+                {% for caixa in caixas %}
+                    <tr>
+                        <td>{{ caixa.usuario_abertura.get_full_name|default:caixa.usuario_abertura.username }}</td>
+                        <td>{{ caixa.data_abertura|date:'d/m/Y H:i' }}</td>
+                        <td><span class="badge {% if caixa.status == 'ABERTO' %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ caixa.get_status_display }}</span></td>
+                        <td class="text-end">R$ {{ caixa.valor_inicial }}</td>
+                        <td class="text-end">{% if caixa.status == 'ABERTO' %}R$ {{ caixa.saldo_calculado }}{% else %}R$ {{ caixa.valor_fechamento_calculado }}{% endif %}</td>
+                        <td class="text-end">{% if caixa.valor_fechamento_informado is not None %}R$ {{ caixa.valor_fechamento_informado }}{% else %}-{% endif %}</td>
+                        <td class="text-end">R$ {{ caixa.diferenca }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="text-center text-secondary py-4">Nenhum caixa encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

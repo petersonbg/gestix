@@ -1,0 +1,78 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Configurações do Sistema | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Configurações do Sistema</h1>
+        <p class="text-secondary mb-0">Preferências gerais utilizadas pelos módulos do GESTIX.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+</div>
+
+{% if not pode_editar %}
+<div class="alert alert-info">Seu perfil possui acesso somente para visualização. Apenas administradores podem alterar as configurações.</div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white"><h2 class="h5 mb-0">Notificações de clientes</h2></div>
+        <div class="card-body">
+            <div class="form-check form-switch mb-4">
+                {{ form.notificacoes_aniversario_ativas }}
+                <label class="form-check-label" for="{{ form.notificacoes_aniversario_ativas.id_for_label }}">{{ form.notificacoes_aniversario_ativas.label }}</label>
+                {{ form.notificacoes_aniversario_ativas.errors }}
+            </div>
+            <div class="row">
+                <div class="col-md-5">
+                    <label class="form-label" for="{{ form.dias_antecedencia_aniversario.id_for_label }}">{{ form.dias_antecedencia_aniversario.label }}</label>
+                    {{ form.dias_antecedencia_aniversario }}
+                    {% if form.dias_antecedencia_aniversario.help_text %}<div class="form-text">{{ form.dias_antecedencia_aniversario.help_text }}</div>{% endif %}
+                    {{ form.dias_antecedencia_aniversario.errors }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white"><h2 class="h5 mb-0">Sessão e segurança</h2></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-5">
+                    <label class="form-label" for="{{ form.tempo_logout_inatividade.id_for_label }}">{{ form.tempo_logout_inatividade.label }}</label>
+                    {{ form.tempo_logout_inatividade }}
+                    {% if form.tempo_logout_inatividade.help_text %}<div class="form-text">{{ form.tempo_logout_inatividade.help_text }}</div>{% endif %}
+                    {{ form.tempo_logout_inatividade.errors }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white"><h2 class="h5 mb-0">Documentos e impressões</h2></div>
+        <div class="card-body">
+            <div class="form-check form-switch mb-3">
+                {{ form.mostrar_logo_impressoes }}
+                <label class="form-check-label" for="{{ form.mostrar_logo_impressoes.id_for_label }}">{{ form.mostrar_logo_impressoes.label }}</label>
+                {{ form.mostrar_logo_impressoes.errors }}
+            </div>
+            <div class="form-check form-switch mb-4">
+                {{ form.mostrar_assinatura_cliente }}
+                <label class="form-check-label" for="{{ form.mostrar_assinatura_cliente.id_for_label }}">{{ form.mostrar_assinatura_cliente.label }}</label>
+                {{ form.mostrar_assinatura_cliente.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.mensagem_rodape_documentos.id_for_label }}">{{ form.mensagem_rodape_documentos.label }}</label>
+                {{ form.mensagem_rodape_documentos }}
+                {{ form.mensagem_rodape_documentos.errors }}
+            </div>
+            {% if pode_editar %}<div class="text-end mt-4"><button class="btn btn-primary" type="submit">Salvar configurações</button></div>{% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+

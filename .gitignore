@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# Django
+staticfiles/*
+!staticfiles/.gitkeep
+media/*
+!media/.gitkeep
+backups/*
+!backups/.gitkeep
+logs/*
+!logs/.gitkeep
+config/.env
+config/discovered_server.json
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store

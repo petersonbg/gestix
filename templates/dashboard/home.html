@@ -1,0 +1,659 @@
+{% extends 'layouts/internal.html' %}
+{% load static %}
+
+{% block title %}Dashboard Financeira | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Dashboard Financeira</h1>
+        <p class="text-secondary mb-0">Visão gerencial do mês atual e das obrigações imediatas.</p>
+    </div>
+    <span class="text-secondary small">Atualizado em {% now "d/m/Y H:i" %}</span>
+</div>
+
+{% if dashboard_acesso_total %}
+<section class="mb-4" aria-labelledby="indicadores-principais">
+    <h2 class="h5 mb-3" id="indicadores-principais">Indicadores Financeiros Principais</h2>
+    <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-xl-5">
+        <div class="col">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small mb-2">Receitas do Mês</div>
+                    <div class="h4 mb-2">R$ {{ receitas_mes|floatformat:2 }}</div>
+                    <div class="small {% if receitas_variacao >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ receitas_variacao|floatformat:2 }}% em relação ao mês anterior
+                    </div>
+                    <div class="text-secondary small mt-1">Anterior: R$ {{ receitas_mes_anterior|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small mb-2">Despesas do Mês</div>
+                    <div class="h4 mb-2">R$ {{ despesas_mes|floatformat:2 }}</div>
+                    <div class="small {% if despesas_variacao > 0 %}text-danger{% else %}text-success{% endif %}">
+                        {{ despesas_variacao|floatformat:2 }}% em relação ao mês anterior
+                    </div>
+                    <div class="text-secondary small mt-1">Anterior: R$ {{ despesas_mes_anterior|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card {% if lucro_estimado >= 0 %}border-success{% else %}border-danger{% endif %} shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small mb-2">Lucro Estimado</div>
+                    <div class="h4 mb-2 {% if lucro_estimado < 0 %}text-danger{% endif %}">R$ {{ lucro_estimado|floatformat:2 }}</div>
+                    <div class="text-secondary small">Receitas menos despesas pagas no mês</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small mb-2">Saldo Disponível</div>
+                    <div class="h4 mb-2">R$ {{ saldo_disponivel|floatformat:2 }}</div>
+                    <div class="text-secondary small">Caixa: R$ {{ saldo_caixa|floatformat:2 }}</div>
+                    <div class="text-secondary small">Bancário: R$ {{ saldo_bancario|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-{{ capital_giro_cor }} shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small mb-2">Capital de Giro</div>
+                    <div class="h4 mb-2">R$ {{ capital_giro|floatformat:2 }}</div>
+                    <span class="badge text-bg-{{ capital_giro_cor }}">{{ capital_giro_label }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if dashboard_executiva_visivel %}
+<section class="mb-4" aria-labelledby="indicadores-executivos">
+    <h2 class="h5 mb-3" id="indicadores-executivos">Indicadores Executivos</h2>
+    <div class="row g-3">
+        {% if not dashboard_acesso_total %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Vendas do Mês</div>
+                    <div class="h4 my-2">R$ {{ vendas_mes_total|floatformat:2 }}</div>
+                    <span class="small text-secondary">{{ vendas_mes_quantidade }} venda(s)</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Ticket Médio</div>
+                    <div class="h4 my-2">R$ {{ ticket_medio|floatformat:2 }}</div>
+                    <span class="small text-secondary">Por venda finalizada</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Margem Média</div>
+                    <div class="h4 my-2">{{ margem_media|floatformat:2 }}%</div>
+                    <span class="small text-secondary">Estimativa pelo custo atual</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card {% if inadimplencia_percentual > 10 %}border-danger{% elif inadimplencia_percentual > 5 %}border-warning{% else %}border-success{% endif %} shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Inadimplência</div>
+                    <div class="h4 my-2">{{ inadimplencia_percentual|floatformat:2 }}%</div>
+                    <span class="small text-secondary">R$ {{ inadimplencia_valor|floatformat:2 }} vencidos</span>
+                </div>
+            </div>
+        </div>
+        {% if dashboard_acesso_total %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-{{ capital_giro_cor }} shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Cobertura de 30 dias</div>
+                    <div class="h4 my-2">R$ {{ despesas_30_dias|floatformat:2 }}</div>
+                    <span class="badge text-bg-{{ capital_giro_cor }}">{{ capital_giro_label }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% if dashboard_acesso_receber or dashboard_acesso_total %}
+<section class="mb-4" aria-labelledby="financeiro-imediato">
+    <h2 class="h5 mb-3" id="financeiro-imediato">Financeiro Imediato</h2>
+    <div class="row g-3">
+        {% if dashboard_acesso_receber %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Contas a Receber Hoje</div>
+                    <div class="h4 my-2">R$ {{ receber_hoje_total|floatformat:2 }}</div>
+                    <div class="small text-success">{{ receber_hoje_qtd }} conta(s)</div>
+                </div>
+                <a class="card-footer bg-white text-decoration-none small" href="{% url 'contas_receber:hoje' %}">Consultar contas</a>
+            </div>
+        </div>
+        {% endif %}
+        {% if dashboard_acesso_total %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Contas a Pagar Hoje</div>
+                    <div class="h4 my-2">R$ {{ pagar_hoje_total|floatformat:2 }}</div>
+                    <div class="small text-warning-emphasis">{{ pagar_hoje_qtd }} conta(s)</div>
+                </div>
+                <a class="card-footer bg-white text-decoration-none small" href="{% url 'contas_pagar:list' %}?periodo=hoje">Consultar contas</a>
+            </div>
+        </div>
+        {% endif %}
+        {% if dashboard_acesso_receber %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-danger shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Contas a receber atrasadas</div>
+                    <div class="h4 my-2 text-danger">R$ {{ receber_atrasadas_total|floatformat:2 }}</div>
+                    <div class="small text-danger">{{ receber_atrasadas_qtd }} conta(s)</div>
+                </div>
+                <a class="card-footer bg-white text-decoration-none small" href="{% url 'contas_receber:atrasadas' %}">Consultar atrasadas</a>
+            </div>
+        </div>
+        {% endif %}
+        {% if dashboard_acesso_total %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-danger shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Contas a pagar atrasadas</div>
+                    <div class="h4 my-2 text-danger">R$ {{ pagar_atrasadas_total|floatformat:2 }}</div>
+                    <div class="small text-danger">{{ pagar_atrasadas_qtd }} conta(s)</div>
+                </div>
+                <a class="card-footer bg-white text-decoration-none small" href="{% url 'contas_pagar:list' %}?periodo=atrasadas">Consultar atrasadas</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% if dashboard_acesso_total %}
+<section class="mb-4" aria-labelledby="graficos-gerenciais">
+    <h2 class="h5 mb-3" id="graficos-gerenciais">Gráficos Gerenciais</h2>
+    <div class="row g-4">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Fluxo Financeiro dos Últimos 12 Meses</h3>
+                </div>
+                <div class="card-body position-relative" style="height: 340px;">
+                    <canvas id="grafico-fluxo" aria-label="Fluxo financeiro dos últimos 12 meses"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Receitas por Forma de Pagamento</h3>
+                </div>
+                <div class="card-body position-relative" style="height: 340px;">
+                    <canvas id="grafico-formas" aria-label="Receitas por forma de pagamento"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Contas a Receber x Contas a Pagar</h3>
+                    <span class="text-secondary small">Próximos 30 dias</span>
+                </div>
+                <div class="card-body position-relative" style="height: 320px;">
+                    <canvas id="grafico-contas" aria-label="Contas a receber e contas a pagar em 30 dias"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h3 class="h6 mb-0">Evolução do Caixa</h3>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Período da evolução do caixa">
+                        <button class="btn btn-outline-primary periodo-caixa" type="button" data-periodo="1">Hoje</button>
+                        <button class="btn btn-outline-primary periodo-caixa" type="button" data-periodo="7">7 dias</button>
+                        <button class="btn btn-outline-primary periodo-caixa" type="button" data-periodo="15">15 dias</button>
+                        <button class="btn btn-primary periodo-caixa" type="button" data-periodo="30">30 dias</button>
+                    </div>
+                </div>
+                <div class="card-body position-relative" style="height: 320px;">
+                    <canvas id="grafico-caixa" aria-label="Evolução do caixa"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Projeção Financeira</h3>
+                    <span class="text-secondary small">Contas a receber, contas a pagar e saldo projetado</span>
+                </div>
+                <div class="card-body position-relative" style="height: 340px;">
+                    <canvas id="grafico-projecao" aria-label="Projeção financeira para 7, 15, 30, 60 e 90 dias"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-warning mt-3 d-none" id="erro-graficos" role="alert">
+        Não foi possível carregar os gráficos financeiros.
+    </div>
+</section>
+{% endif %}
+
+{% if configuracao_sistema.notificacoes_aniversario_ativas %}
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h2 class="h5 mb-0">Aniversariantes</h2>
+                <span class="text-secondary small">Clientes com aniversário nos próximos {{ configuracao_sistema.dias_antecedencia_aniversario }} dia(s).</span>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'administracao:configuracoes_sistema' %}">Configurar</a>
+        </div>
+        <div class="card-body">
+            {% if aniversariantes %}
+                <div class="list-group list-group-flush">
+                    {% for item in aniversariantes %}
+                        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3" href="{% url 'clientes:detail' item.cliente.pk %}">
+                            <div>
+                                <div class="fw-semibold">{{ item.cliente.nome }}</div>
+                                <div class="text-secondary small">
+                                    {% if item.cliente.telefone %}Telefone: {{ item.cliente.telefone }} · {% endif %}
+                                    Nascimento: {{ item.cliente.data_nascimento|date:'d/m/Y' }} ·
+                                    Idade: {{ item.idade }} ano(s)
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                {% if item.dias_restantes == 0 %}
+                                    <span class="badge text-bg-success">Hoje</span>
+                                {% elif item.dias_restantes == 1 %}
+                                    <span class="badge text-bg-warning">Amanhã</span>
+                                {% else %}
+                                    <span class="badge text-bg-primary">Em {{ item.dias_restantes }} dias</span>
+                                {% endif %}
+                                <div class="text-secondary small mt-1">{{ item.data_aniversario_no_ano|date:'d/m/Y' }}</div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-secondary mb-0">Nenhum aniversário no período configurado.</p>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-secondary mt-4 mb-0" role="alert">Notificações de aniversário desativadas.</div>
+{% endif %}
+
+{% if dashboard_executiva_visivel %}
+<section class="mt-4" aria-labelledby="rankings-executivos">
+    <h2 class="h5 mb-3" id="rankings-executivos">Rankings do Mês</h2>
+    <div class="row g-4">
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white"><h3 class="h6 mb-0">Top 10 Clientes</h3></div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light"><tr><th>Cliente</th><th class="text-end">Compras</th><th class="text-end">Valor</th></tr></thead>
+                        <tbody>
+                        {% for item in top_clientes %}
+                            <tr><td>{{ item.cliente__nome }}</td><td class="text-end">{{ item.quantidade_compras }}</td><td class="text-end">R$ {{ item.valor_comprado|floatformat:2 }}</td></tr>
+                        {% empty %}
+                            <tr><td colspan="3" class="text-center text-secondary py-3">Sem vendas no mês.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white"><h3 class="h6 mb-0">Top 10 Produtos</h3></div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light"><tr><th>Produto</th><th class="text-end">Qtd.</th><th class="text-end">Faturamento</th></tr></thead>
+                        <tbody>
+                        {% for item in top_produtos %}
+                            <tr><td>{{ item.produto__nome }}</td><td class="text-end">{{ item.quantidade_vendida }}</td><td class="text-end">R$ {{ item.faturamento|floatformat:2 }}</td></tr>
+                        {% empty %}
+                            <tr><td colspan="3" class="text-center text-secondary py-3">Sem produtos vendidos no mês.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% if dashboard_acesso_total %}
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white"><h3 class="h6 mb-0">Top 10 Vendedores</h3></div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light"><tr><th>Vendedor</th><th class="text-end">Vendas</th><th class="text-end">Total</th></tr></thead>
+                        <tbody>
+                        {% for item in top_vendedores %}
+                            <tr><td>{{ item.vendedor_nome }}</td><td class="text-end">{{ item.quantidade_vendas }}</td><td class="text-end">R$ {{ item.total_vendido|floatformat:2 }}</td></tr>
+                        {% empty %}
+                            <tr><td colspan="3" class="text-center text-secondary py-3">Sem vendedores no ranking.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% if dashboard_acesso_total %}
+<section class="mt-4" aria-labelledby="ranking-inadimplencia">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white"><h2 class="h5 mb-0" id="ranking-inadimplencia">Ranking de Inadimplência</h2></div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light"><tr><th>Cliente</th><th class="text-end">Valor vencido</th><th class="text-end">Maior atraso</th></tr></thead>
+                <tbody>
+                {% for item in ranking_inadimplencia %}
+                    <tr><td>{{ item.cliente__nome }}</td><td class="text-end text-danger fw-semibold">R$ {{ item.valor_vencido|floatformat:2 }}</td><td class="text-end">{{ item.dias_atraso }} dia(s)</td></tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center text-secondary py-3">Nenhum cliente inadimplente.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="mt-4" aria-labelledby="alertas-financeiros">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0" id="alertas-financeiros">Alertas Financeiros</h2>
+        </div>
+        <div class="card-body">
+            {% if tem_alertas_financeiros %}
+            <div class="row g-3 mb-4">
+                {% if dashboard_acesso_receber %}
+                <div class="col-6 col-lg">
+                    <div class="border border-danger p-3 h-100">
+                        <div class="small text-secondary">Contas vencidas</div>
+                        <strong class="h4 text-danger">{{ alertas_contas_vencidas_qtd }}</strong>
+                    </div>
+                </div>
+                <div class="col-6 col-lg">
+                    <div class="border border-warning p-3 h-100">
+                        <div class="small text-secondary">Vencendo hoje</div>
+                        <strong class="h4 text-warning-emphasis">{{ alertas_vencendo_hoje_qtd }}</strong>
+                    </div>
+                </div>
+                <div class="col-6 col-lg">
+                    <div class="border border-danger p-3 h-100">
+                        <div class="small text-secondary">Clientes inadimplentes</div>
+                        <strong class="h4 text-danger">{{ clientes_inadimplentes_qtd }}</strong>
+                    </div>
+                </div>
+                {% endif %}
+                {% if dashboard_acesso_estoque %}
+                <div class="col-6 col-lg">
+                    <div class="border border-warning p-3 h-100">
+                        <div class="small text-secondary">Estoque abaixo do mínimo</div>
+                        <strong class="h4 text-warning-emphasis">{{ estoque_baixo_qtd }}</strong>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="row g-4">
+                {% if dashboard_acesso_receber and alertas_contas_vencidas %}
+                <div class="col-lg-6">
+                    <h3 class="h6 text-danger">Contas a receber vencidas</h3>
+                    <div class="list-group list-group-flush">
+                        {% for conta in alertas_contas_vencidas %}
+                        <a class="list-group-item list-group-item-action px-0 d-flex justify-content-between gap-3" href="{{ conta.get_absolute_url }}">
+                            <span>{{ conta.cliente.nome }} · {{ conta.data_vencimento|date:'d/m/Y' }}</span>
+                            <strong>R$ {{ conta.saldo|floatformat:2 }}</strong>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if dashboard_acesso_total and alertas_pagar_vencidas %}
+                <div class="col-lg-6">
+                    <h3 class="h6 text-danger">Contas a pagar vencidas</h3>
+                    <div class="list-group list-group-flush">
+                        {% for conta in alertas_pagar_vencidas %}
+                        <a class="list-group-item list-group-item-action px-0 d-flex justify-content-between gap-3" href="{{ conta.get_absolute_url }}">
+                            <span>{{ conta.descricao }} · {{ conta.data_vencimento|date:'d/m/Y' }}</span>
+                            <strong>R$ {{ conta.saldo|floatformat:2 }}</strong>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if dashboard_acesso_receber and alertas_contas_hoje %}
+                <div class="col-lg-6">
+                    <h3 class="h6 text-warning-emphasis">Contas a receber vencendo hoje</h3>
+                    <div class="list-group list-group-flush">
+                        {% for conta in alertas_contas_hoje %}
+                        <a class="list-group-item list-group-item-action px-0 d-flex justify-content-between gap-3" href="{{ conta.get_absolute_url }}">
+                            <span>{{ conta.cliente.nome }}</span>
+                            <strong>R$ {{ conta.saldo|floatformat:2 }}</strong>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if dashboard_acesso_total and alertas_pagar_hoje %}
+                <div class="col-lg-6">
+                    <h3 class="h6 text-warning-emphasis">Contas a pagar vencendo hoje</h3>
+                    <div class="list-group list-group-flush">
+                        {% for conta in alertas_pagar_hoje %}
+                        <a class="list-group-item list-group-item-action px-0 d-flex justify-content-between gap-3" href="{{ conta.get_absolute_url }}">
+                            <span>{{ conta.descricao }}</span>
+                            <strong>R$ {{ conta.saldo|floatformat:2 }}</strong>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if dashboard_acesso_estoque and alertas_estoque_baixo %}
+                <div class="col-lg-6">
+                    <h3 class="h6 text-warning-emphasis">Produtos abaixo do estoque mínimo</h3>
+                    <div class="list-group list-group-flush">
+                        {% for produto in alertas_estoque_baixo %}
+                        <a class="list-group-item list-group-item-action px-0 d-flex justify-content-between gap-3" href="{{ produto.get_absolute_url }}">
+                            <span>{{ produto.nome }}</span>
+                            <strong>{{ produto.estoque_atual }} / {{ produto.estoque_minimo }}</strong>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-secondary mb-0">Não existem alertas financeiros.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if dashboard_acesso_total %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+(() => {
+    const moeda = new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'});
+    const cor = {
+        verde: '#198754',
+        amarelo: '#ffc107',
+        vermelho: '#dc3545',
+        azul: '#0d6efd',
+        ciano: '#0dcaf0',
+        cinza: '#6c757d',
+    };
+    const opcoesBase = {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {mode: 'index', intersect: false},
+        plugins: {
+            legend: {position: 'bottom'},
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.dataset.label || context.label}: ${moeda.format(context.parsed.y ?? context.parsed)}`
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {callback: (valor) => moeda.format(valor)}
+            }
+        }
+    };
+    let graficoCaixa;
+
+    async function buscar(url) {
+        const resposta = await fetch(url, {
+            credentials: 'same-origin',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+        });
+        if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+        return resposta.json();
+    }
+
+    function criarFluxo(dados) {
+        new Chart(document.getElementById('grafico-fluxo'), {
+            type: 'line',
+            data: {
+                labels: dados.labels,
+                datasets: [
+                    {label: 'Receitas', data: dados.receitas, borderColor: cor.verde, backgroundColor: cor.verde, tension: 0.25},
+                    {label: 'Despesas', data: dados.despesas, borderColor: cor.vermelho, backgroundColor: cor.vermelho, tension: 0.25},
+                    {label: 'Lucro', data: dados.lucro, borderColor: cor.azul, backgroundColor: cor.azul, tension: 0.25},
+                ]
+            },
+            options: opcoesBase
+        });
+    }
+
+    function criarFormas(dados) {
+        new Chart(document.getElementById('grafico-formas'), {
+            type: 'pie',
+            data: {
+                labels: dados.labels,
+                datasets: [{
+                    data: dados.valores,
+                    backgroundColor: [cor.ciano, cor.verde, cor.azul, cor.amarelo, cor.vermelho],
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {position: 'bottom'},
+                    tooltip: {callbacks: {label: (context) => `${context.label}: ${moeda.format(context.parsed)}`}}
+                }
+            }
+        });
+    }
+
+    function criarContas(dados) {
+        new Chart(document.getElementById('grafico-contas'), {
+            type: 'bar',
+            data: {
+                labels: dados.labels,
+                datasets: [{
+                    label: 'Valor',
+                    data: dados.valores,
+                    backgroundColor: [cor.verde, cor.vermelho],
+                    borderWidth: 0,
+                }]
+            },
+            options: opcoesBase
+        });
+    }
+
+    async function carregarCaixa(periodo) {
+        const dados = await buscar(`{% url 'dashboard_api_caixa' %}?periodo=${periodo}`);
+        graficoCaixa?.destroy();
+        graficoCaixa = new Chart(document.getElementById('grafico-caixa'), {
+            type: 'line',
+            data: {
+                labels: dados.labels,
+                datasets: [{
+                    label: 'Saldo de caixa',
+                    data: dados.valores,
+                    borderColor: cor.azul,
+                    backgroundColor: 'rgba(13, 110, 253, 0.12)',
+                    fill: true,
+                    tension: 0.25,
+                }]
+            },
+            options: opcoesBase
+        });
+    }
+
+    async function iniciarGraficos() {
+        try {
+            const [fluxo, formas, contas, projecao] = await Promise.all([
+                buscar("{% url 'dashboard_api_fluxo_financeiro' %}"),
+                buscar("{% url 'dashboard_api_formas_pagamento' %}"),
+                buscar("{% url 'dashboard_api_contas' %}"),
+                buscar("{% url 'dashboard_api_projecao_financeira' %}"),
+            ]);
+            criarFluxo(fluxo);
+            criarFormas(formas);
+            criarContas(contas);
+            new Chart(document.getElementById('grafico-projecao'), {
+                type: 'bar',
+                data: {
+                    labels: projecao.labels,
+                    datasets: [
+                        {label: 'Receber', data: projecao.receber, backgroundColor: cor.verde},
+                        {label: 'Pagar', data: projecao.pagar, backgroundColor: cor.vermelho},
+                        {label: 'Saldo projetado', data: projecao.saldo, type: 'line', borderColor: cor.azul, backgroundColor: cor.azul, tension: 0.25},
+                    ]
+                },
+                options: opcoesBase
+            });
+            await carregarCaixa(30);
+        } catch (erro) {
+            document.getElementById('erro-graficos')?.classList.remove('d-none');
+        }
+    }
+
+    document.querySelectorAll('.periodo-caixa').forEach((botao) => {
+        botao.addEventListener('click', async () => {
+            document.querySelectorAll('.periodo-caixa').forEach((item) => {
+                item.classList.toggle('btn-primary', item === botao);
+                item.classList.toggle('btn-outline-primary', item !== botao);
+            });
+            try {
+                await carregarCaixa(Number(botao.dataset.periodo));
+            } catch (erro) {
+                document.getElementById('erro-graficos')?.classList.remove('d-none');
+            }
+        });
+    });
+
+    iniciarGraficos();
+})();
+</script>
+{% endif %}
+{% endblock %}

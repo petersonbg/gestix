@@ -1,0 +1,68 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Confirmar NF-e | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Confirmar entrada no estoque</h1>
+        <p class="text-secondary mb-0">Vincule cada item da NF-e {{ nota.numero }}/{{ nota.serie }} a um produto existente ou crie um novo produto.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'fiscal:detail' nota.pk %}">Voltar</a>
+</div>
+
+<form method="post" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="alert alert-info" role="alert">
+            Ao confirmar, o GESTIX gera uma movimentação de <strong>entrada</strong> no estoque para cada item.
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Item do XML</th>
+                        <th>Quantidade</th>
+                        <th>Produto existente</th>
+                        <th>Criar novo</th>
+                        <th>Código interno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in nota.itens.all %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ item.descricao }}</div>
+                                <div class="text-secondary small">Código XML: {{ item.codigo_produto|default:'-' }} | NCM: {{ item.ncm|default:'-' }}</div>
+                            </td>
+                            <td>{{ item.quantidade }}</td>
+                            <td>
+                                {% with item_pk=item.pk|stringformat:'s' %}{% with field_name='produto_'|add:item_pk %}
+                                    {% for field in form %}{% if field.name == field_name %}{{ field }}{% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}{% endif %}{% endfor %}
+                                {% endwith %}{% endwith %}
+                            </td>
+                            <td>
+                                {% with item_pk=item.pk|stringformat:'s' %}{% with field_name='criar_'|add:item_pk %}
+                                    {% for field in form %}{% if field.name == field_name %}<div class="form-check">{{ field }} <label class="form-check-label" for="{{ field.id_for_label }}">Sim</label></div>{% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}{% endif %}{% endfor %}
+                                {% endwith %}{% endwith %}
+                            </td>
+                            <td>
+                                {% with item_pk=item.pk|stringformat:'s' %}{% with field_name='codigo_interno_'|add:item_pk %}
+                                    {% for field in form %}{% if field.name == field_name %}{{ field }}{% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}{% endif %}{% endfor %}
+                                {% endwith %}{% endwith %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'fiscal:detail' nota.pk %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Confirmar entrada</button>
+    </div>
+</form>
+{% endblock %}
+

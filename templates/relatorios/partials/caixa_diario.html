@@ -1,0 +1,11 @@
+﻿<table class="table table-sm align-middle">
+    <thead><tr><th>Usuário</th><th>Abertura</th><th>Fechamento</th><th>Inicial</th><th>Vendas</th><th>Suprimentos</th><th>Sangrias</th><th>Saídas</th><th>Saldo</th><th>Informado</th><th>Diferença</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for caixa, totais in caixas %}
+            <tr><td>{{ caixa.usuario_abertura }}</td><td>{{ caixa.data_abertura|date:'d/m/Y H:i' }}</td><td>{{ caixa.data_fechamento|date:'d/m/Y H:i'|default:'-' }}</td><td>R$ {{ caixa.valor_inicial }}</td><td>R$ {{ totais.vendas }}</td><td>R$ {{ totais.suprimentos }}</td><td>R$ {{ totais.sangrias }}</td><td>R$ {{ totais.saidas }}</td><td>R$ {{ totais.saldo }}</td><td>{% if caixa.valor_fechamento_informado != None %}R$ {{ caixa.valor_fechamento_informado }}{% else %}-{% endif %}</td><td>R$ {{ caixa.diferenca }}</td><td><span class="badge text-bg-secondary">{{ caixa.get_status_display }}</span></td></tr>
+        {% empty %}
+            <tr><td colspan="12" class="text-center text-secondary">Nenhum caixa encontrado.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+

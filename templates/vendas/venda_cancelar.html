@@ -1,0 +1,41 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Cancelar venda #{{ venda.pk }} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Cancelar venda #{{ venda.pk }}</h1>
+        <p class="text-secondary mb-0">Esta operação é permitida apenas para vendas em rascunho.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ venda.get_absolute_url }}">Voltar</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header text-bg-danger"><strong>Confirmar cancelamento</strong></div>
+            <div class="card-body">
+                <div class="alert alert-warning">O cancelamento não movimentará estoque, caixa ou contas a receber.</div>
+                <dl class="row">
+                    <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8">{{ venda.cliente }}</dd>
+                    <dt class="col-sm-4">Total</dt><dd class="col-sm-8">R$ {{ venda.total }}</dd>
+                    <dt class="col-sm-4">Status atual</dt><dd class="col-sm-8"><span class="badge text-bg-warning">RASCUNHO</span></dd>
+                </dl>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                    <label class="form-label" for="{{ form.motivo.id_for_label }}">{{ form.motivo.label }}</label>
+                    {{ form.motivo }}
+                    {% for error in form.motivo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a class="btn btn-outline-secondary" href="{{ venda.get_absolute_url }}">Não cancelar</a>
+                        <button class="btn btn-danger" type="submit">Cancelar venda</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

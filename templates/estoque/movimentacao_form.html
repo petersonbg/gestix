@@ -1,0 +1,42 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Movimentar estoque | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Movimentar estoque</h1>
+        <p class="text-secondary mb-0">Registre entradas, saídas ou ajustes manuais de saldo.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'estoque:list' %}">Voltar</a>
+</div>
+
+<form method="post" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="alert alert-info" role="alert">
+            Para <strong>Ajuste</strong>, informe a quantidade que deve se tornar o saldo atual do produto.
+        </div>
+
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="{% if field.name == 'observacao' %}col-12{% else %}col-md-6{% endif %}">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'estoque:list' %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Registrar movimentação</button>
+    </div>
+</form>
+{% endblock %}
+

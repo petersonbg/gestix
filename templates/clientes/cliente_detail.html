@@ -1,0 +1,43 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}{{ cliente.nome }} | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">{{ cliente.nome }}</h1>
+        <p class="text-secondary mb-0">Detalhes do cliente.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'clientes:list' %}">Voltar</a>
+        <a class="btn btn-primary" href="{% url 'clientes:update' cliente.pk %}">Editar</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-6"><span class="text-secondary small">Tipo de pessoa</span><div class="fw-semibold">{{ cliente.get_tipo_pessoa_display }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">CPF/CNPJ</span><div class="fw-semibold">{{ cliente.cpf_cnpj }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Inscrição Estadual</span><div>{{ cliente.inscricao_estadual|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Data de nascimento</span><div>{{ cliente.data_nascimento|date:'d/m/Y'|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Telefone</span><div>{{ cliente.telefone|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Email</span><div>{{ cliente.email|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Endereço</span><div>{{ cliente.endereco|default:'-' }}</div></div>
+            <div class="col-md-3"><span class="text-secondary small">Cidade</span><div>{{ cliente.cidade|default:'-' }}</div></div>
+            <div class="col-md-3"><span class="text-secondary small">Estado</span><div>{{ cliente.estado|default:'-' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Criado em</span><div>{{ cliente.criado_em|date:'d/m/Y H:i' }}</div></div>
+            <div class="col-md-6"><span class="text-secondary small">Atualizado em</span><div>{{ cliente.atualizado_em|date:'d/m/Y H:i' }}</div></div>
+            <div class="col-12"><span class="text-secondary small">Observações</span><div>{{ cliente.observacoes|linebreaksbr|default:'-' }}</div></div>
+            <div class="col-12">
+                {% if cliente.ativo %}
+                    <span class="badge text-bg-success">Ativo</span>
+                {% else %}
+                    <span class="badge text-bg-secondary">Inativo</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

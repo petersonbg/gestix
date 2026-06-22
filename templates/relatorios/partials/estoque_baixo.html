@@ -1,0 +1,11 @@
+﻿<table class="table table-sm align-middle">
+    <thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Fornecedor</th><th>Atual</th><th>Mínimo</th><th>Unidade</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for produto in produtos %}
+            <tr><td>{{ produto.codigo_interno }}</td><td>{{ produto.nome }}</td><td>{{ produto.categoria|default:'-' }}</td><td>{{ produto.fornecedor|default:'-' }}</td><td>{{ produto.estoque_atual }}</td><td>{{ produto.estoque_minimo }}</td><td>{{ produto.unidade_medida }}</td><td><span class="badge {% if produto.ativo %}text-bg-success{% else %}text-bg-secondary{% endif %}">{% if produto.ativo %}Ativo{% else %}Inativo{% endif %}</span></td></tr>
+        {% empty %}
+            <tr><td colspan="8" class="text-center text-secondary">Nenhum produto abaixo do mínimo.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+

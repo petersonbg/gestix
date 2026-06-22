@@ -1,0 +1,49 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Diagnóstico de Rede | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Diagnóstico de Rede</h1>
+        <p class="text-secondary mb-0">Informações para acesso ao GESTIX por outros computadores da rede local.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-4">Endereço de acesso na rede</h2>
+                <div class="alert alert-primary mb-4">
+                    <div class="small text-uppercase fw-semibold mb-1">URL recomendada</div>
+                    <a class="fs-5 fw-semibold text-break" href="{{ rede.recommended_url }}">{{ rede.recommended_url }}</a>
+                </div>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Hostname</dt>
+                    <dd class="col-sm-8">{{ rede.hostname }}</dd>
+                    <dt class="col-sm-4">IP atual</dt>
+                    <dd class="col-sm-8">{{ rede.ip }}</dd>
+                    <dt class="col-sm-4">Porta utilizada</dt>
+                    <dd class="col-sm-8">{{ rede.port }}</dd>
+                    <dt class="col-sm-4">Alternativa mDNS</dt>
+                    <dd class="col-sm-8"><a href="{{ rede.mdns_url }}">{{ rede.mdns_url }}</a></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Hosts autorizados</h2>
+                <ul class="list-group list-group-flush">
+                    {% for host in allowed_hosts %}
+                    <li class="list-group-item px-0"><code>{{ host }}</code></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

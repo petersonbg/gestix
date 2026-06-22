@@ -1,0 +1,11 @@
+﻿<table class="table table-sm align-middle">
+    <thead><tr><th>Descrição</th><th>Fornecedor</th><th>Categoria</th><th>Vencimento</th><th>Pagamento</th><th>Valor</th><th>Valor pago</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for conta in contas %}
+            <tr><td>{{ conta.descricao }}</td><td>{{ conta.fornecedor|default:'-' }}</td><td>{{ conta.categoria }}</td><td>{{ conta.data_vencimento|date:'d/m/Y' }}</td><td>{{ conta.data_pagamento|date:'d/m/Y'|default:'-' }}</td><td>R$ {{ conta.valor }}</td><td>R$ {{ conta.valor_pago }}</td><td><span class="badge text-bg-secondary">{{ conta.status_exibicao_label }}</span></td></tr>
+        {% empty %}
+            <tr><td colspan="8" class="text-center text-secondary">Nenhuma conta a pagar encontrada.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+

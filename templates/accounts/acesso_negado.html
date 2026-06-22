@@ -1,0 +1,16 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Acesso negado | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center py-5">
+    <div class="card border-0 shadow-sm" style="max-width: 560px;">
+        <div class="card-body p-4 text-center">
+            <h1 class="h3 mb-3">Acesso negado</h1>
+            <p class="text-secondary mb-4">Você não possui permissão para acessar este recurso.</p>
+            <a class="btn btn-primary" href="{% url 'dashboard' %}">Voltar ao dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

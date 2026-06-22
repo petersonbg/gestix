@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <title>{{ titulo_relatorio }}</title>
+    <style>
+        @page { size: A4 portrait; margin: 10mm; }
+        body { font-family: Arial, sans-serif; font-size: 10px; color: #111; }
+        h1 { font-size: 16px; margin: 0 0 4px; }
+        .meta { margin-bottom: 10px; line-height: 1.4; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #bbb; padding: 3px; vertical-align: top; }
+        th { background: #eee; }
+        .badge { font-weight: 700; }
+        .cards { display: none; }
+    </style>
+</head>
+<body onload="window.print()">
+    <h1>{{ titulo_relatorio }}</h1>
+    <div class="meta">
+        {% if empresa %}<strong>{{ empresa.nome_fantasia|default:empresa.razao_social }}</strong><br>{% endif %}
+        {% if endereco_empresa_formatado %}{{ endereco_empresa_formatado }}<br>{% endif %}
+        {% if contato_empresa_formatado %}Contato: {{ contato_empresa_formatado }}<br>{% endif %}
+        Emitido em {{ emitido_em|date:'d/m/Y H:i' }} por {{ emitido_por }}
+    </div>
+
+    {% if relatorio_slug == 'vendas' %}
+        {% include 'relatorios/partials/vendas.html' %}
+    {% elif relatorio_slug == 'estoque_baixo' %}
+        {% include 'relatorios/partials/estoque_baixo.html' %}
+    {% elif relatorio_slug == 'contas_receber' %}
+        {% include 'relatorios/partials/contas_receber.html' %}
+    {% elif relatorio_slug == 'contas_pagar' %}
+        {% include 'relatorios/partials/contas_pagar.html' %}
+    {% elif relatorio_slug == 'caixa_diario' %}
+        {% include 'relatorios/partials/caixa_diario.html' %}
+    {% endif %}
+</body>
+</html>

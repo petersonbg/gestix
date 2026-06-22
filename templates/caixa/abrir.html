@@ -1,0 +1,35 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Abrir caixa | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Abrir caixa</h1>
+        <p class="text-secondary mb-0">Informe o valor inicial para iniciar o controle diário.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'caixa:historico' %}">Histórico</a>
+</div>
+
+<form method="post" class="card border-0 shadow-sm" novalidate>
+    {% csrf_token %}
+    <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.valor_inicial.id_for_label }}">Valor inicial</label>
+            {{ form.valor_inicial }}
+            {% for error in form.valor_inicial.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.observacao_abertura.id_for_label }}">Observação de abertura</label>
+            {{ form.observacao_abertura }}
+            {% for error in form.observacao_abertura.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'dashboard' %}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Abrir caixa</button>
+    </div>
+</form>
+{% endblock %}
+

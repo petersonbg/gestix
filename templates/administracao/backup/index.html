@@ -1,0 +1,119 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Backup e Restauração | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pb-3 mb-4 border-bottom gap-2">
+    <div>
+        <h1 class="h2 mb-1">Backup e Restauração</h1>
+        <p class="text-secondary mb-0">Gere backups do PostgreSQL e restaure arquivos protegidos pelo login administrativo.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'administracao:home' %}">Voltar</a>
+</div>
+
+<div class="alert alert-warning" role="alert">
+    A restauração substitui os dados atuais do sistema. Em produção, prefira executar a restauração por comando administrativo ou fila de tarefas planejada.
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Gerar Backup</h2>
+                <p class="text-secondary">Cria um arquivo .dump em formato custom do PostgreSQL na pasta protegida backups/.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="gerar">
+                    <button type="submit" class="btn btn-primary">Gerar Backup</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Restaurar Backup</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="restaurar">
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.arquivo_backup.id_for_label }}">{{ form.arquivo_backup.label }}</label>
+                        {{ form.arquivo_backup }}
+                        {% if form.arquivo_backup.errors %}
+                            <div class="text-danger small mt-1">{{ form.arquivo_backup.errors|join:', ' }}</div>
+                        {% endif %}
+                        <div class="form-text">Extensões permitidas: .dump e .backup. Tamanho máximo: {{ max_upload_mb }} MB.</div>
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ form.confirmar_restauracao }}
+                        <label class="form-check-label" for="{{ form.confirmar_restauracao.id_for_label }}">
+                            A restauração substituirá os dados atuais do sistema. Deseja continuar?
+                        </label>
+                        {% if form.confirmar_restauracao.errors %}
+                            <div class="text-danger small mt-1">{{ form.confirmar_restauracao.errors|join:', ' }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-danger">Restaurar Backup</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h2 class="h5 mb-3">Histórico dos últimos backups</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Data/hora</th>
+                        <th>Tipo</th>
+                        <th>Usuário</th>
+                        <th>Arquivo</th>
+                        <th>Tamanho</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in historico %}
+                        <tr>
+                            <td>{{ registro.criado_em|date:'d/m/Y H:i' }}</td>
+                            <td>{{ registro.get_tipo_display }}</td>
+                            <td>{{ registro.usuario.get_username|default:'Sistema' }}</td>
+                            <td>
+                                <span class="fw-semibold">{{ registro.nome_arquivo|default:'-' }}</span>
+                                {% if registro.mensagem %}
+                                    <div class="small text-secondary">{{ registro.mensagem|truncatechars:120 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ registro.tamanho_formatado }}</td>
+                            <td>
+                                {% if registro.status == 'SUCESSO' %}
+                                    <span class="badge text-bg-success">SUCESSO</span>
+                                {% else %}
+                                    <span class="badge text-bg-danger">ERRO</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if registro.tipo == 'BACKUP' and registro.status == 'SUCESSO' and registro.nome_arquivo %}
+                                    <a class="btn btn-sm btn-outline-primary" href="{% url 'administracao:backup_download' registro.pk %}">Baixar Backup</a>
+                                {% else %}
+                                    <span class="text-secondary small">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-secondary py-4">Nenhum registro de backup encontrado.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,81 @@
+﻿{% load administracao_tags %}
+<div class="p-3">
+    <div class="text-uppercase text-secondary small fw-semibold mb-2">Menu</div>
+    <nav class="nav nav-pills flex-column gap-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
+        {% if request.user|pode_acessar_modulo:'clientes' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'clientes' %}active{% endif %}" href="{% url 'clientes:list' %}">Clientes</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'fornecedores' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'fornecedores' %}active{% endif %}" href="{% url 'fornecedores:list' %}">Fornecedores</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'produtos' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'produtos' %}active{% endif %}" href="{% url 'produtos:list' %}">Produtos</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'estoque' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'estoque' %}active{% endif %}" href="{% url 'estoque:list' %}">Estoque</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'vendas' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'vendas' %}active{% endif %}" href="{% url 'vendas:list' %}">Vendas</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'caixa' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'caixa' %}active{% endif %}" href="{% url 'caixa:index' %}">Caixa</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'contas-receber' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'contas_receber' %}active{% endif %}" href="{% url 'contas_receber:list' %}">Contas a receber</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'contas-pagar' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'contas_pagar' %}active{% endif %}" href="{% url 'contas_pagar:list' %}">Contas a pagar</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'ordens-servico' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'ordens_servico' %}active{% endif %}" href="{% url 'ordens_servico:list' %}">Ordens de serviço</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'orcamentos' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'orcamentos' %}active{% endif %}" href="{% url 'orcamentos:list' %}">Orçamentos</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'fiscal' %}
+            <a class="nav-link {% if request.resolver_match.namespace == 'fiscal' %}active{% endif %}" href="{% url 'fiscal:list' %}">Fiscal</a>
+        {% endif %}
+        {% if request.user|pode_acessar_modulo:'relatorios' %}
+            <div class="mt-2 pt-2 border-top">
+                <a class="nav-link fw-semibold {% if request.resolver_match.namespace == 'relatorios' %}active{% endif %}" href="{% url 'relatorios:home' %}">Relatórios</a>
+                <nav class="nav flex-column ms-3 mt-1 gap-1" aria-label="Submenu Relatórios">
+                    {% if request.user|pode_acessar_relatorio:'vendas' %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'vendas' %}active{% endif %}" href="{% url 'relatorios:vendas' %}">Vendas por Período</a>
+                    {% endif %}
+                    {% if request.user|pode_acessar_relatorio:'estoque_baixo' %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'estoque_baixo' %}active{% endif %}" href="{% url 'relatorios:estoque_baixo' %}">Estoque Baixo</a>
+                    {% endif %}
+                    {% if request.user|pode_acessar_relatorio:'contas_receber' %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'contas_receber' %}active{% endif %}" href="{% url 'relatorios:contas_receber' %}">Contas a Receber</a>
+                    {% endif %}
+                    {% if request.user|pode_acessar_relatorio:'contas_pagar' %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'contas_pagar' %}active{% endif %}" href="{% url 'relatorios:contas_pagar' %}">Contas a Pagar</a>
+                    {% endif %}
+                    {% if request.user|pode_acessar_relatorio:'caixa_diario' %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'caixa_diario' %}active{% endif %}" href="{% url 'relatorios:caixa_diario' %}">Caixa Diário</a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+        {% if request.user|pode_acessar_administracao %}
+            <div class="mt-2 pt-2 border-top">
+                <a class="nav-link fw-semibold {% if request.resolver_match.namespace == 'administracao' %}active{% endif %}" href="{% url 'administracao:home' %}">Administração</a>
+                <nav class="nav flex-column ms-3 mt-1 gap-1" aria-label="Submenu Administração">
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'dados_empresa' %}active{% endif %}" href="{% url 'administracao:dados_empresa' %}">Dados da Empresa</a>
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'configuracoes_sistema' %}active{% endif %}" href="{% url 'administracao:configuracoes_sistema' %}">Configurações do Sistema</a>
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'diagnostico_rede' %}active{% endif %}" href="{% url 'administracao:diagnostico_rede' %}">Diagnóstico de Rede</a>
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'categorias_produtos' or request.resolver_match.url_name == 'categoria_produto_detalhe' or request.resolver_match.url_name == 'categoria_produto_criar' or request.resolver_match.url_name == 'categoria_produto_editar' %}active{% endif %}" href="{% url 'administracao:categorias_produtos' %}">Categorias de Produtos</a>
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'servicos' or request.resolver_match.url_name == 'servico_detalhe' or request.resolver_match.url_name == 'servico_criar' or request.resolver_match.url_name == 'servico_editar' %}active{% endif %}" href="{% url 'administracao:servicos' %}">Serviços</a>
+                    {% if request.user|pode_administrar %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'backup' %}active{% endif %}" href="{% url 'administracao:backup' %}">Backup e Restauração</a>
+                    {% endif %}
+                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'usuarios_permissoes' %}active{% endif %}" href="{% url 'administracao:usuarios_permissoes' %}">Usuários e Permissões</a>
+                    {% if request.user|pode_administrar %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'logs_atividade' %}active{% endif %}" href="{% url 'administracao:logs_atividade' %}">Logs de Atividade</a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+    </nav>
+</div>

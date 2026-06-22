@@ -1,0 +1,52 @@
+﻿{% extends 'layouts/internal.html' %}
+
+{% block title %}Receber parcela | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Receber parcela</h1>
+        <p class="text-secondary mb-0">{{ conta.referencia }} · {{ conta.cliente.nome }} · Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }}</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ conta.get_absolute_url }}">Voltar</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Resumo</h2></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><span>Valor da parcela</span><strong>R$ {{ conta.valor }}</strong></div>
+                <div class="d-flex justify-content-between"><span>Valor já pago</span><strong>R$ {{ conta.valor_pago }}</strong></div>
+                <div class="d-flex justify-content-between border-top pt-2 mt-2"><span>Saldo</span><strong>R$ {{ conta.saldo }}</strong></div>
+                <div class="text-secondary small mt-3">É necessário haver caixa aberto para registrar o recebimento.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Dados do recebimento</h2></div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                    <div class="row g-3">
+                        {% for field in form %}
+                            <div class="col-md-6 {% if field.name == 'observacao' %}col-md-12{% endif %}">
+                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a class="btn btn-outline-secondary" href="{{ conta.get_absolute_url }}">Cancelar</a>
+                        <button class="btn btn-primary" type="submit">Confirmar recebimento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

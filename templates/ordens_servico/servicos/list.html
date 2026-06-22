@@ -1,0 +1,11 @@
+﻿{% extends 'layouts/internal.html' %}
+{% block title %}Serviços | GESTIX{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+  <div><h1 class="h2 mb-1">Cadastro de serviços</h1><p class="text-secondary mb-0">Serviços disponíveis para inclusão nas ordens de serviço.</p></div>
+  <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{% url 'ordens_servico:list' %}">Ordens de serviço</a>{% if pode_editar %}<a class="btn btn-primary" href="{% url 'ordens_servico:servico_create' %}">Novo serviço</a>{% endif %}</div>
+</div>
+<form method="get" class="card border-0 shadow-sm mb-4"><div class="card-body"><div class="input-group"><input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Buscar por nome ou descrição"><button class="btn btn-outline-primary">Buscar</button>{% if query %}<a class="btn btn-outline-secondary" href="{% url 'ordens_servico:servicos' %}">Limpar</a>{% endif %}</div></div></form>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Nome</th><th>Descrição</th><th class="text-end">Valor padrão</th><th>Status</th>{% if pode_editar %}<th class="text-end">Ações</th>{% endif %}</tr></thead><tbody>{% for servico in servicos %}<tr><td class="fw-semibold">{{ servico.nome }}</td><td>{{ servico.descricao|truncatechars:90|default:'-' }}</td><td class="text-end">R$ {{ servico.valor_padrao }}</td><td>{% if servico.ativo %}<span class="badge text-bg-success">Ativo</span>{% else %}<span class="badge text-bg-secondary">Inativo</span>{% endif %}</td>{% if pode_editar %}<td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'ordens_servico:servico_update' servico.pk %}">Editar</a></td>{% endif %}</tr>{% empty %}<tr><td colspan="5" class="text-center text-secondary py-4">Nenhum serviço cadastrado.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}
+
