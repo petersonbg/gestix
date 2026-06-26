@@ -1,4 +1,4 @@
-﻿"""URL configuration for the GESTIX project."""
+"""URL configuration for the GESTIX project."""
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -43,6 +43,7 @@ urlpatterns = [
     path('orcamentos/', include('orcamentos.urls')),
     path('fiscal/', include('fiscal.urls')),
     path('relatorios/', include('relatorios.urls')),
+    path('whatsapp/', include('whatsapp.urls')),
     path('admin/', admin.site.urls),
 ]
 

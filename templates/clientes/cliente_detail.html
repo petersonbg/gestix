@@ -1,4 +1,4 @@
-﻿{% extends 'layouts/internal.html' %}
+{% extends 'layouts/internal.html' %}
 
 {% block title %}{{ cliente.nome }} | GESTIX{% endblock %}
 
@@ -10,6 +10,7 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'clientes:list' %}">Voltar</a>
+        <a class="btn btn-success" href="{% url 'whatsapp:enviar' %}?origem=cliente&id={{ cliente.pk }}">Enviar WhatsApp</a>
         <a class="btn btn-primary" href="{% url 'clientes:update' cliente.pk %}">Editar</a>
     </div>
 </div>

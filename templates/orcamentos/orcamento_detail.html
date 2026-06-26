@@ -1,4 +1,4 @@
-﻿{% extends 'layouts/internal.html' %}
+{% extends 'layouts/internal.html' %}
 
 {% block title %}Orçamento #{{ orcamento.pk }} | GESTIX{% endblock %}
 
@@ -10,6 +10,7 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'orcamentos:list' %}">Voltar</a>
+        <a class="btn btn-success" href="{% url 'whatsapp:enviar' %}?origem=orcamento&id={{ orcamento.pk }}">Enviar Orçamento por WhatsApp</a>
         <button
             class="btn btn-outline-primary"
             type="button"

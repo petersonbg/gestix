@@ -1,0 +1,43 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Modelos de Mensagem | WhatsApp | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Modelos de Mensagem</h1>
+        <p class="text-secondary mb-0">Textos base para mensagens futuras do WhatsApp.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if pode_configurar_whatsapp %}<a class="btn btn-primary" href="{% url 'whatsapp:modelo_create' %}">Novo modelo</a>{% endif %}
+        <a class="btn btn-outline-secondary" href="{% url 'whatsapp:configuracao' %}">Configurações</a>
+        <a class="btn btn-outline-primary" href="{% url 'whatsapp:enviar' %}">Enviar</a>
+    </div>
+</div>
+
+<form method="get" class="card border-0 shadow-sm mb-4">
+    <div class="card-body"><div class="row g-3 align-items-end">
+        <div class="col-md-10"><label class="form-label" for="q">Buscar</label><input id="q" type="search" name="q" value="{{ query }}" class="form-control" placeholder="Nome ou mensagem"></div>
+        <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-primary flex-grow-1" type="submit">Filtrar</button>{% if query %}<a class="btn btn-outline-secondary" href="{% url 'whatsapp:modelos' %}">Limpar</a>{% endif %}</div>
+    </div></div>
+</form>
+
+<div class="card border-0 shadow-sm"><div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light"><tr><th>Nome</th><th>Tipo</th><th>Status</th><th>Atualizado em</th><th class="text-end">Ações</th></tr></thead>
+        <tbody>
+            {% for modelo in modelos %}
+                <tr>
+                    <td class="fw-semibold">{{ modelo.nome }}</td>
+                    <td>{{ modelo.get_tipo_display }}</td>
+                    <td>{% if modelo.ativo %}<span class="badge text-bg-success">Ativo</span>{% else %}<span class="badge text-bg-secondary">Inativo</span>{% endif %}</td>
+                    <td>{{ modelo.atualizado_em|date:'d/m/Y H:i' }}</td>
+                    <td class="text-end">{% if pode_configurar_whatsapp %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'whatsapp:modelo_update' modelo.pk %}">Editar</a>{% else %}-{% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="text-center text-secondary py-4">Nenhum modelo cadastrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% endblock %}

@@ -1,4 +1,4 @@
-﻿{% extends 'layouts/internal.html' %}
+{% extends 'layouts/internal.html' %}
 
 {% block title %}Venda #{{ venda.pk }} | GESTIX{% endblock %}
 
@@ -10,6 +10,7 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'vendas:list' %}">Voltar</a>
+        <a class="btn btn-success" href="{% url 'whatsapp:enviar' %}?origem=venda&id={{ venda.pk }}">Enviar Comprovante por WhatsApp</a>
         {% if venda.status == 'FINALIZADA' %}
             <button
                 class="btn btn-primary"

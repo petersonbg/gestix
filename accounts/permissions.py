@@ -1,4 +1,4 @@
-﻿from functools import wraps
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
@@ -28,11 +28,11 @@ PERFIL_MODULOS = {
     PerfilUsuario.Perfil.GERENTE: {
         'dashboard', 'clientes', 'fornecedores', 'produtos', 'estoque',
         'vendas', 'orcamentos', 'caixa', 'contas-receber', 'contas-pagar',
-        'ordens-servico', 'administracao', 'fiscal', 'relatorios',
+        'ordens-servico', 'administracao', 'fiscal', 'relatorios', 'whatsapp',
     },
     PerfilUsuario.Perfil.VENDEDOR: {
         'dashboard', 'clientes', 'produtos', 'vendas', 'orcamentos', 'caixa',
-        'contas-receber', 'ordens-servico', 'relatorios',
+        'contas-receber', 'ordens-servico', 'relatorios', 'whatsapp',
     },
     PerfilUsuario.Perfil.ESTOQUISTA: {
         'dashboard', 'produtos', 'fornecedores', 'estoque', 'ordens-servico',

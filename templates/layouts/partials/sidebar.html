@@ -1,4 +1,4 @@
-﻿{% load administracao_tags %}
+{% load administracao_tags %}
 <div class="p-3">
     <div class="text-uppercase text-secondary small fw-semibold mb-2">Menu</div>
     <nav class="nav nav-pills flex-column gap-1">
@@ -58,19 +58,34 @@
                 </nav>
             </div>
         {% endif %}
-        {% if request.user|pode_acessar_administracao %}
+        {% if request.user|pode_acessar_administracao or request.user|pode_acessar_modulo:'whatsapp' %}
             <div class="mt-2 pt-2 border-top">
-                <a class="nav-link fw-semibold {% if request.resolver_match.namespace == 'administracao' %}active{% endif %}" href="{% url 'administracao:home' %}">Administração</a>
+                {% if request.user|pode_acessar_administracao %}
+                    <a class="nav-link fw-semibold {% if request.resolver_match.namespace == 'administracao' %}active{% endif %}" href="{% url 'administracao:home' %}">Administração</a>
+                {% else %}
+                    <a class="nav-link fw-semibold {% if request.resolver_match.namespace == 'whatsapp' %}active{% endif %}" href="{% url 'whatsapp:enviar' %}">Administração</a>
+                {% endif %}
                 <nav class="nav flex-column ms-3 mt-1 gap-1" aria-label="Submenu Administração">
-                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'dados_empresa' %}active{% endif %}" href="{% url 'administracao:dados_empresa' %}">Dados da Empresa</a>
-                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'configuracoes_sistema' %}active{% endif %}" href="{% url 'administracao:configuracoes_sistema' %}">Configurações do Sistema</a>
-                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'diagnostico_rede' %}active{% endif %}" href="{% url 'administracao:diagnostico_rede' %}">Diagnóstico de Rede</a>
-                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'categorias_produtos' or request.resolver_match.url_name == 'categoria_produto_detalhe' or request.resolver_match.url_name == 'categoria_produto_criar' or request.resolver_match.url_name == 'categoria_produto_editar' %}active{% endif %}" href="{% url 'administracao:categorias_produtos' %}">Categorias de Produtos</a>
-                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'servicos' or request.resolver_match.url_name == 'servico_detalhe' or request.resolver_match.url_name == 'servico_criar' or request.resolver_match.url_name == 'servico_editar' %}active{% endif %}" href="{% url 'administracao:servicos' %}">Serviços</a>
+                    {% if request.user|pode_acessar_administracao %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'dados_empresa' %}active{% endif %}" href="{% url 'administracao:dados_empresa' %}">Dados da Empresa</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'configuracoes_sistema' %}active{% endif %}" href="{% url 'administracao:configuracoes_sistema' %}">Configurações do Sistema</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'diagnostico_rede' %}active{% endif %}" href="{% url 'administracao:diagnostico_rede' %}">Diagnóstico de Rede</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'categorias_produtos' or request.resolver_match.url_name == 'categoria_produto_detalhe' or request.resolver_match.url_name == 'categoria_produto_criar' or request.resolver_match.url_name == 'categoria_produto_editar' %}active{% endif %}" href="{% url 'administracao:categorias_produtos' %}">Categorias de Produtos</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'servicos' or request.resolver_match.url_name == 'servico_detalhe' or request.resolver_match.url_name == 'servico_criar' or request.resolver_match.url_name == 'servico_editar' %}active{% endif %}" href="{% url 'administracao:servicos' %}">Serviços</a>
+                    {% endif %}
+                    {% if request.user|pode_acessar_modulo:'whatsapp' %}
+                        {% if request.user|pode_acessar_administracao %}<a class="nav-link py-1 small {% if request.resolver_match.namespace == 'whatsapp' and request.resolver_match.url_name == 'configuracao' %}active{% endif %}" href="{% url 'whatsapp:configuracao' %}">WhatsApp - Configurações</a>{% endif %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.namespace == 'whatsapp' and request.resolver_match.url_name == 'modelos' %}active{% endif %}" href="{% url 'whatsapp:modelos' %}">WhatsApp - Modelos de Mensagem</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.namespace == 'whatsapp' and request.resolver_match.url_name == 'enviar' %}active{% endif %}" href="{% url 'whatsapp:enviar' %}">WhatsApp - Enviar Mensagem</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.namespace == 'whatsapp' and request.resolver_match.url_name == 'historico' %}active{% endif %}" href="{% url 'whatsapp:historico' %}">WhatsApp - Histórico de Envios</a>
+                        <a class="nav-link py-1 small {% if request.resolver_match.namespace == 'whatsapp' and request.resolver_match.url_name == 'fila' %}active{% endif %}" href="{% url 'whatsapp:fila' %}">WhatsApp - Fila de Mensagens</a>
+                    {% endif %}
                     {% if request.user|pode_administrar %}
                         <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'backup' %}active{% endif %}" href="{% url 'administracao:backup' %}">Backup e Restauração</a>
                     {% endif %}
-                    <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'usuarios_permissoes' %}active{% endif %}" href="{% url 'administracao:usuarios_permissoes' %}">Usuários e Permissões</a>
+                    {% if request.user|pode_acessar_administracao %}
+                        <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'usuarios_permissoes' %}active{% endif %}" href="{% url 'administracao:usuarios_permissoes' %}">Usuários e Permissões</a>
+                    {% endif %}
                     {% if request.user|pode_administrar %}
                         <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'logs_atividade' %}active{% endif %}" href="{% url 'administracao:logs_atividade' %}">Logs de Atividade</a>
                     {% endif %}

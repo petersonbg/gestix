@@ -1,0 +1,118 @@
+{% extends 'layouts/internal.html' %}
+
+{% block title %}Enviar WhatsApp | GESTIX{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+    <div>
+        <h1 class="h2 mb-1">Enviar WhatsApp</h1>
+        <p class="text-secondary mb-0">Selecione o cliente, revise a mensagem e abra o WhatsApp Web.</p>
+    </div>
+    <div class="btn-group" role="group" aria-label="Menu WhatsApp">
+        {% if pode_configurar_whatsapp %}<a class="btn btn-outline-primary" href="{% url 'whatsapp:configuracao' %}">Configurações</a>{% endif %}
+        <a class="btn btn-outline-primary" href="{% url 'whatsapp:modelos' %}">Modelos</a>
+        <a class="btn btn-outline-primary" href="{% url 'whatsapp:historico' %}">Histórico</a>
+        <a class="btn btn-outline-primary" href="{% url 'whatsapp:fila' %}">Fila</a>
+    </div>
+</div>
+
+{% if abrir_link_whatsapp %}
+    <div class="alert alert-success d-flex justify-content-between align-items-center gap-3">
+        <div>Mensagem registrada no histórico. O WhatsApp Web deve abrir em uma nova aba.</div>
+        <a class="btn btn-success" href="{{ abrir_link_whatsapp }}" target="_blank" rel="noopener">Abrir WhatsApp</a>
+    </div>
+{% endif %}
+
+<form method="post" class="card border-0 shadow-sm" novalidate id="whatsapp-form">
+    {% csrf_token %}
+    {% if dados_origem_whatsapp %}<input type="hidden" name="origem_whatsapp" value="{{ dados_origem_whatsapp.origem }}">{% endif %}
+    <div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label" for="cliente-busca">Pesquisar cliente</label>
+                <input id="cliente-busca" type="search" class="form-control" placeholder="Digite para filtrar a lista de clientes">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="{{ form.cliente.id_for_label }}">{{ form.cliente.label }}</label>
+                {{ form.cliente }}
+                {% for error in form.cliente.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>
+                {{ form.telefone }}
+                <div class="form-text" id="telefone-status">O telefone será normalizado com DDI 55 quando necessário.</div>
+                {% for error in form.telefone.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="{{ form.modelo.id_for_label }}">{{ form.modelo.label }} <span class="text-secondary small">(opcional para avulsa)</span></label>
+                {{ form.modelo }}
+                {% for error in form.modelo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="{{ form.mensagem.id_for_label }}">{{ form.mensagem.label }}</label>
+                {{ form.mensagem }}
+                {% for error in form.mensagem.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+        <button class="btn btn-success" type="submit">Enviar WhatsApp</button>
+    </div>
+</form>
+
+<script>
+(function () {
+    const clienteBusca = document.getElementById('cliente-busca');
+    const cliente = document.getElementById('id_cliente');
+    const telefone = document.getElementById('id_telefone');
+    const modelo = document.getElementById('id_modelo');
+    const mensagem = document.getElementById('id_mensagem');
+    const telefoneStatus = document.getElementById('telefone-status');
+    const previewUrl = "{% url 'whatsapp:preview_modelo' %}";
+    const whatsappLink = "{{ abrir_link_whatsapp|default:''|escapejs }}";
+
+    if (whatsappLink) {
+        window.open(whatsappLink, '_blank', 'noopener');
+    }
+
+    if (clienteBusca && cliente) {
+        const opcoesOriginais = Array.from(cliente.options).map((option) => ({
+            value: option.value,
+            text: option.text,
+            selected: option.selected,
+        }));
+        clienteBusca.addEventListener('input', () => {
+            const termo = clienteBusca.value.trim().toLowerCase();
+            const selecionado = cliente.value;
+            cliente.innerHTML = '';
+            opcoesOriginais
+                .filter((option) => !termo || option.text.toLowerCase().includes(termo) || option.value === selecionado)
+                .forEach((option) => {
+                    const elemento = document.createElement('option');
+                    elemento.value = option.value;
+                    elemento.textContent = option.text;
+                    elemento.selected = option.value === selecionado;
+                    cliente.appendChild(elemento);
+                });
+        });
+    }
+
+    async function atualizarPreview() {
+        if (!cliente || !modelo || !cliente.value || !modelo.value) return;
+        const params = new URLSearchParams({cliente: cliente.value, modelo: modelo.value});
+        const response = await fetch(`${previewUrl}?${params.toString()}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+        if (!response.ok) return;
+        const data = await response.json();
+        telefone.value = data.telefone || '';
+        mensagem.value = data.mensagem || '';
+        telefoneStatus.textContent = data.telefone_valido ? 'Telefone válido para WhatsApp Web.' : (data.erro_telefone || 'Cliente sem telefone cadastrado.');
+        telefoneStatus.classList.toggle('text-danger', !data.telefone_valido);
+        telefoneStatus.classList.toggle('text-success', data.telefone_valido);
+    }
+
+    if (cliente) cliente.addEventListener('change', atualizarPreview);
+    if (modelo) modelo.addEventListener('change', atualizarPreview);
+})();
+</script>
+{% endblock %}

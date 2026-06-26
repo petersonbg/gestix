@@ -267,9 +267,9 @@
             {% if aniversariantes %}
                 <div class="list-group list-group-flush">
                     {% for item in aniversariantes %}
-                        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3" href="{% url 'clientes:detail' item.cliente.pk %}">
+                        <div class="list-group-item d-flex justify-content-between align-items-start gap-3">
                             <div>
-                                <div class="fw-semibold">{{ item.cliente.nome }}</div>
+                                <a class="fw-semibold text-decoration-none" href="{% url 'clientes:detail' item.cliente.pk %}">{{ item.cliente.nome }}</a>
                                 <div class="text-secondary small">
                                     {% if item.cliente.telefone %}Telefone: {{ item.cliente.telefone }} · {% endif %}
                                     Nascimento: {{ item.cliente.data_nascimento|date:'d/m/Y' }} ·
@@ -285,8 +285,9 @@
                                     <span class="badge text-bg-primary">Em {{ item.dias_restantes }} dias</span>
                                 {% endif %}
                                 <div class="text-secondary small mt-1">{{ item.data_aniversario_no_ano|date:'d/m/Y' }}</div>
+                                <a class="btn btn-sm btn-success mt-2" href="{% url 'whatsapp:enviar' %}?origem=aniversario&id={{ item.cliente.pk }}">Enviar Parabéns</a>
                             </div>
-                        </a>
+                        </div>
                     {% endfor %}
                 </div>
             {% else %}

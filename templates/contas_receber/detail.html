@@ -1,4 +1,4 @@
-﻿{% extends 'layouts/internal.html' %}
+{% extends 'layouts/internal.html' %}
 
 {% block title %}Parcela {{ conta.numero_parcela }}/{{ conta.total_parcelas }} | GESTIX{% endblock %}
 
@@ -10,6 +10,7 @@
     </div>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{% url 'contas_receber:list' %}">Voltar</a>
+        <a class="btn btn-success" href="{% url 'whatsapp:enviar' %}?origem=cobranca&id={{ conta.pk }}">Enviar Cobrança</a>
         {% if conta.status != 'PAGA' and conta.status != 'CANCELADA' %}
             <a class="btn btn-primary" href="{% url 'contas_receber:receber' conta.pk %}">Receber</a>
         {% endif %}
