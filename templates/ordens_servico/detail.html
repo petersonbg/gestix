@@ -1,5 +1,5 @@
 {% extends 'layouts/internal.html' %}
-{% block title %}{{ ordem.numero }} | GESTIX{% endblock %}
+{% block title %}{{ ordem.numero }} | AXIORA ERP{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap gap-2 border-bottom pb-3 mb-4"><div><h1 class="h2 mb-1">{{ ordem.numero }}</h1><span class="badge text-bg-primary">{{ ordem.get_status_display }}</span>{% if ordem.atrasada %} <span class="badge text-bg-danger">Previsão atrasada</span>{% endif %}</div><div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{% url 'ordens_servico:list' %}">Voltar</a><a class="btn btn-success" href="{% url 'whatsapp:enviar' %}?origem=ordem_servico&id={{ ordem.pk }}">Avisar por WhatsApp</a>{% if pode_editar %}<a class="btn btn-outline-primary" href="{% url 'ordens_servico:update' ordem.pk %}">Editar</a>{% endif %}<a class="btn btn-primary allow-popup" target="_blank" href="{% url 'ordens_servico:imprimir' ordem.pk %}">Imprimir OS</a></div></div>
 <div class="row g-4"><div class="col-lg-8">

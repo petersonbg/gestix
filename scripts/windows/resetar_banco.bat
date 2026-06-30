@@ -1,11 +1,11 @@
-﻿@echo off
+@echo off
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
 set "PROJECT_ROOT=%SCRIPT_DIR%..\.."
 cd /d "%PROJECT_ROOT%" || exit /b 1
 
-echo ATENCAO: esta acao apagara todos os dados do banco local do GESTIX.
+echo ATENCAO: esta acao apagara todos os dados do banco local do AXIORA ERP.
 set /p CONFIRMA="Digite APAGAR para confirmar: "
 if /i not "%CONFIRMA%"=="APAGAR" (
     echo Operacao cancelada.

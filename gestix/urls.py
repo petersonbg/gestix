@@ -1,4 +1,4 @@
-"""URL configuration for the GESTIX project."""
+"""URL configuration for the AXIORA ERP project."""
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin

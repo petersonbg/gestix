@@ -1,4 +1,4 @@
-﻿from datetime import timedelta
+from datetime import timedelta
 from decimal import Decimal
 import os
 from pathlib import Path
@@ -517,7 +517,7 @@ class HomeRouteTests(SimpleTestCase):
         response = self.client.get(reverse('home'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'GESTIX')
+        self.assertContains(response, 'AXIORA ERP')
         self.assertRegex(response.content.decode(), r'/static/css/home(\.[0-9a-f]+)?\.css')
 
     @patch('administracao.services.ConfiguracaoSistema.get_solo', side_effect=OperationalError)
@@ -581,8 +581,8 @@ class ConfiguracaoRedeLocalTests(SimpleTestCase):
     def test_listas_de_rede_sao_lidas_do_ambiente(self):
         from gestix.settings import env_list
 
-        with patch.dict(os.environ, {'GESTIX_TEST_HOSTS': '10.0.0.10, servidor.local ,'}):
-            self.assertEqual(env_list('GESTIX_TEST_HOSTS'), ['10.0.0.10', 'servidor.local'])
+        with patch.dict(os.environ, {'AXIORA_TEST_HOSTS': '10.0.0.10, servidor.local ,'}):
+            self.assertEqual(env_list('AXIORA_TEST_HOSTS'), ['10.0.0.10', 'servidor.local'])
 
     def test_docker_publica_porta_e_escuta_em_todas_as_interfaces(self):
         compose = (Path(__file__).resolve().parents[1] / 'docker-compose.yml').read_text(encoding='utf-8')
@@ -595,7 +595,7 @@ class ConfiguracaoRedeLocalTests(SimpleTestCase):
         launcher = (Path(__file__).resolve().parents[1] / 'launcher' / 'gestix_launcher.py').read_text(encoding='utf-8')
 
         self.assertIn("APP_URL = 'http://localhost:8000'", launcher)
-        self.assertIn("GESTIX_NETWORK_URL", launcher)
+        self.assertIn("AXIORA_NETWORK_URL", launcher)
         self.assertIn('Nome da maquina', launcher)
         self.assertIn('Hostname', launcher)
         self.assertIn('IP atual', launcher)

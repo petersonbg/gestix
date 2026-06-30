@@ -4,7 +4,7 @@ from administracao.backup_services import gerar_backup
 
 
 class Command(BaseCommand):
-    help = 'Gera um backup PostgreSQL do banco GESTIX em formato custom.'
+    help = 'Gera um backup PostgreSQL do banco AXIORA ERP em formato custom.'
 
     def handle(self, *args, **options):
         try:

@@ -29,14 +29,14 @@ from gestix.network_discovery import (
     serve,
 )
 
-APP_NAME = 'GESTIX'
+APP_NAME = 'AXIORA ERP'
 DEFAULT_PORT = 8000
 MAX_PORT_ATTEMPTS = 20
-FIREWALL_RULE_NAME = 'GESTIX - Rede Local'
-DISCOVERY_FIREWALL_RULE_NAME = 'GESTIX - Descoberta Local'
-MDNS_FIREWALL_RULE_NAME = 'GESTIX - mDNS'
-PID_FILE_NAME = 'gestix_waitress.pid'
-DISCOVERY_PID_FILE_NAME = 'gestix_discovery.pid'
+FIREWALL_RULE_NAME = 'AXIORA ERP - Rede Local'
+DISCOVERY_FIREWALL_RULE_NAME = 'AXIORA ERP - Descoberta Local'
+MDNS_FIREWALL_RULE_NAME = 'AXIORA ERP - mDNS'
+PID_FILE_NAME = 'axiora_waitress.pid'
+DISCOVERY_PID_FILE_NAME = 'axiora_discovery.pid'
 APP_URL = 'http://localhost:8000'
 
 
@@ -73,7 +73,7 @@ def setup_logging():
     logger.handlers.clear()
 
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s %(name)s: %(message)s')
-    for name, level in (('gestix_launcher.log', logging.INFO), ('gestix_launcher_errors.log', logging.ERROR)):
+    for name, level in (('axiora_launcher.log', logging.INFO), ('axiora_launcher_errors.log', logging.ERROR)):
         handler = RotatingFileHandler(LOG_DIR / name, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
         handler.setLevel(level)
         handler.setFormatter(formatter)
@@ -122,10 +122,15 @@ def load_environment(port, ip_address):
         if host and origin not in origins:
             origins.append(origin)
     env['CSRF_TRUSTED_ORIGINS'] = ','.join(origins)
-    env['GESTIX_NETWORK_URL'] = f'http://{HOSTNAME}:{port}'
-    env['GESTIX_MDNS_URL'] = f'http://{mdns_hostname}:{port}'
-    env['GESTIX_NETWORK_IP_URL'] = f'http://{ip_address}:{port}'
-    env['GESTIX_PORT'] = str(port)
+    env['AXIORA_NETWORK_URL'] = f'http://{HOSTNAME}:{port}'
+    env['AXIORA_MDNS_URL'] = f'http://{mdns_hostname}:{port}'
+    env['AXIORA_NETWORK_IP_URL'] = f'http://{ip_address}:{port}'
+    env['AXIORA_PORT'] = str(port)
+    # Compatibilidade com instalações antigas que ainda leem GESTIX_*.
+    env.setdefault('GESTIX_NETWORK_URL', env['AXIORA_NETWORK_URL'])
+    env.setdefault('GESTIX_MDNS_URL', env['AXIORA_MDNS_URL'])
+    env.setdefault('GESTIX_NETWORK_IP_URL', env['AXIORA_NETWORK_IP_URL'])
+    env.setdefault('GESTIX_PORT', env['AXIORA_PORT'])
     return env
 
 
@@ -185,7 +190,7 @@ def find_python():
         found = shutil.which(executable)
         if found:
             return found
-    raise RuntimeError('Python nao encontrado. Instale Python 3.12+ ou crie o ambiente .venv na pasta do GESTIX.')
+    raise RuntimeError('Python nao encontrado. Instale Python 3.12+ ou crie o ambiente .venv na pasta do AXIORA ERP.')
 
 
 def find_waitress_command(python_exe):
@@ -219,7 +224,7 @@ def run(command, env, check_title):
     if result.stderr:
         LOGGER.warning('%s stderr: %s', check_title, result.stderr.strip())
     if result.returncode != 0:
-        raise RuntimeError(f'{check_title} falhou. Consulte logs/gestix_launcher_errors.log.')
+        raise RuntimeError(f'{check_title} falhou. Consulte logs/axiora_launcher_errors.log.')
     return result
 
 
@@ -293,7 +298,7 @@ def write_diagnostic(port, ip_address, firewall_status):
     diagnostic.write_text(
         '\n'.join(
             [
-                'DIAGNOSTICO LAUNCHER GESTIX',
+                'DIAGNOSTICO LAUNCHER AXIORA ERP',
                 f'Pasta: {INSTALL_DIR}',
                 f'Nome da maquina: {current_machine_name()}',
                 f'Hostname: {HOSTNAME}',
@@ -359,7 +364,7 @@ def stop_existing():
     discovery_stopped = stop_pid_file(DISCOVERY_PID_FILE)
     waitress_stopped = stop_pid_file(PID_FILE)
     if not discovery_stopped and not waitress_stopped:
-        LOGGER.info('Nenhum processo do GESTIX encontrado.')
+        LOGGER.info('Nenhum processo do AXIORA ERP encontrado.')
     return discovery_stopped or waitress_stopped
 
 
@@ -468,7 +473,7 @@ def run_launcher(service=False, open_browser=True, preferred_port=DEFAULT_PORT):
     network_url = f'http://{ip_address}:{port}'
     process = start_waitress(port, env)
     if not wait_for_http(local_url):
-        raise RuntimeError('Waitress iniciou, mas o GESTIX nao respondeu dentro do tempo esperado.')
+        raise RuntimeError('Waitress iniciou, mas o AXIORA ERP nao respondeu dentro do tempo esperado.')
     discovery_process = start_discovery_server(port, ip_address, env)
 
     if open_browser:
@@ -482,7 +487,7 @@ def run_launcher(service=False, open_browser=True, preferred_port=DEFAULT_PORT):
             PID_FILE.unlink(missing_ok=True)
     else:
         show_info(
-            f'GESTIX iniciado com sucesso.\n\n'
+            f'AXIORA ERP iniciado com sucesso.\n\n'
             f'Nome da maquina: {current_machine_name()}\n'
             f'Hostname: {HOSTNAME}\n'
             f'IP atual: {ip_address}\n\n'
@@ -501,12 +506,12 @@ def run_client(open_browser=True):
     ensure_directories()
     server = discover_server()
     if not server:
-        raise RuntimeError('Nenhum servidor GESTIX foi encontrado na rede local.')
+        raise RuntimeError('Nenhum servidor AXIORA ERP foi encontrado na rede local.')
     save_server(server, DISCOVERED_SERVER_FILE)
     if open_browser:
         webbrowser.open(server.ip_url)
     show_info(
-        f'Servidor GESTIX encontrado.\n\n'
+        f'Servidor AXIORA ERP encontrado.\n\n'
         f'Nome da maquina: {server.machine_name}\n'
         f'Hostname: {server.hostname}\n'
         f'IP atual: {server.ip}\n'
@@ -517,9 +522,9 @@ def run_client(open_browser=True):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Launcher multiplataforma do GESTIX.')
+    parser = argparse.ArgumentParser(description='Launcher multiplataforma do AXIORA ERP.')
     parser.add_argument('--service', action='store_true', help='Executa sem interface e mantem o processo ativo.')
-    parser.add_argument('--client', action='store_true', help='Localiza e abre um servidor GESTIX da rede local.')
+    parser.add_argument('--client', action='store_true', help='Localiza e abre um servidor AXIORA ERP da rede local.')
     parser.add_argument('--discovery-server', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--ip', help=argparse.SUPPRESS)
     parser.add_argument('--no-browser', action='store_true', help='Nao abre navegador apos iniciar.')
@@ -537,7 +542,7 @@ def main():
         if args.stop:
             stopped = stop_existing()
             if not args.service:
-                show_info('GESTIX encerrado.' if stopped else 'Nenhum processo do GESTIX encontrado.')
+                show_info('AXIORA ERP encerrado.' if stopped else 'Nenhum processo do AXIORA ERP encontrado.')
             return 0
         if args.client:
             return run_client(open_browser=not args.no_browser)

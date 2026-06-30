@@ -1,6 +1,6 @@
-#define AppName "GESTIX"
+#define AppName "AXIORA ERP"
 #define AppVersion "1.0.0"
-#define AppPublisher "GESTIX"
+#define AppPublisher "AXIORA ERP"
 #define SourceRoot ".."
 
 [Setup]
@@ -8,16 +8,16 @@ AppId={{B7D14D6B-3A9F-4D37-8C60-6E57A1000001}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-DefaultDirName=C:\GESTIX
+DefaultDirName=C:\AxioraERP
 DefaultGroupName={#AppName}
 OutputDir=Output
-OutputBaseFilename=GESTIX_Instalador
+OutputBaseFilename=Axiora_ERP_Instalador
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
-UninstallDisplayIcon={app}\GESTIX.exe
+UninstallDisplayIcon={app}\AxioraERP.exe
 
 [Dirs]
 Name: "{app}\logs"; Permissions: users-modify
@@ -28,7 +28,7 @@ Name: "{app}\config"; Permissions: users-modify
 
 [Files]
 Source: "{#SourceRoot}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion; Excludes: ".git\*,.venv\*,venv\*,__pycache__\*,*.pyc,backups\*,logs\*,media\*,launcher\build\*,launcher\dist\*,launcher\*.spec,installer\Output\*"
-Source: "{#SourceRoot}\launcher\dist\GESTIX.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\launcher\dist\AxioraERP.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\config\.env.example"; DestDir: "{app}\config"; DestName: ".env"; Flags: ignoreversion onlyifdoesntexist
 Source: "{#SourceRoot}\config\.env.example"; DestDir: "{app}\config"; Flags: ignoreversion
 Source: "{#SourceRoot}\scripts\windows\*"; DestDir: "{app}\scripts\windows"; Flags: recursesubdirs ignoreversion
@@ -37,20 +37,20 @@ Source: "{#SourceRoot}\docs\CHECKLIST_EMPACOTAMENTO_WINDOWS.md"; DestDir: "{app}
 Source: "{#SourceRoot}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autodesktop}\GESTIX"; Filename: "{app}\GESTIX.exe"; WorkingDir: "{app}"
-Name: "{group}\GESTIX"; Filename: "{app}\GESTIX.exe"; WorkingDir: "{app}"
-Name: "{group}\Iniciar GESTIX"; Filename: "{app}\GESTIX.exe"; WorkingDir: "{app}"
-Name: "{group}\Conectar ao servidor GESTIX"; Filename: "{app}\GESTIX.exe"; Parameters: "--client"; WorkingDir: "{app}"
-Name: "{group}\Parar GESTIX"; Filename: "{app}\scripts\windows\parar_gestix_sem_docker.bat"; WorkingDir: "{app}"
+Name: "{autodesktop}\AXIORA ERP"; Filename: "{app}\AxioraERP.exe"; WorkingDir: "{app}"
+Name: "{group}\AXIORA ERP"; Filename: "{app}\AxioraERP.exe"; WorkingDir: "{app}"
+Name: "{group}\Iniciar AXIORA ERP"; Filename: "{app}\AxioraERP.exe"; WorkingDir: "{app}"
+Name: "{group}\Conectar ao servidor AXIORA ERP"; Filename: "{app}\AxioraERP.exe"; Parameters: "--client"; WorkingDir: "{app}"
+Name: "{group}\Parar AXIORA ERP"; Filename: "{app}\scripts\windows\parar_gestix_sem_docker.bat"; WorkingDir: "{app}"
 Name: "{group}\Backup"; Filename: "{app}\scripts\windows\backup_banco_sem_docker.bat"; WorkingDir: "{app}"
 Name: "{group}\Instalar servico"; Filename: "{app}\scripts\windows\instalar_servico.bat"; WorkingDir: "{app}"
 Name: "{group}\Iniciar servico"; Filename: "{app}\scripts\windows\iniciar_servico.bat"; WorkingDir: "{app}"
 Name: "{group}\Parar servico"; Filename: "{app}\scripts\windows\parar_servico.bat"; WorkingDir: "{app}"
 Name: "{group}\Remover servico"; Filename: "{app}\scripts\windows\remover_servico.bat"; WorkingDir: "{app}"
-Name: "{group}\Desinstalar GESTIX"; Filename: "{uninstallexe}"
+Name: "{group}\Desinstalar AXIORA ERP"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\GESTIX.exe"; Description: "Iniciar GESTIX agora"; Flags: postinstall skipifsilent unchecked nowait
+Filename: "{app}\AxioraERP.exe"; Description: "Iniciar AXIORA ERP agora"; Flags: postinstall skipifsilent unchecked nowait
 
 [Code]
 function CommandExists(Command: String): Boolean;
@@ -65,7 +65,7 @@ begin
   Result := True;
   if not CommandExists('python.exe') and not CommandExists('py.exe') then
   begin
-    MsgBox('Python 3.12+ nao foi encontrado no PATH. Instale o Python ou crie uma venv em C:\GESTIX\.venv antes de iniciar o GESTIX.', mbInformation, MB_OK);
+    MsgBox('Python 3.12+ nao foi encontrado no PATH. Instale o Python ou crie uma venv em C:\AxioraERP\.venv antes de iniciar o AXIORA ERP.', mbInformation, MB_OK);
   end;
 
   if not CommandExists('psql.exe') then

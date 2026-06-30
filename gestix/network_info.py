@@ -30,7 +30,7 @@ class NetworkInfo:
 
 
 def server_port():
-    raw_port = os.getenv('GESTIX_PORT') or os.getenv('WEB_PORT') or DEFAULT_PORT
+    raw_port = os.getenv('AXIORA_PORT') or os.getenv('GESTIX_PORT') or os.getenv('WEB_PORT') or DEFAULT_PORT
     try:
         port = int(raw_port)
     except (TypeError, ValueError):

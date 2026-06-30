@@ -8,14 +8,14 @@ cd /d "%PROJECT_ROOT%" || exit /b 1
 set "NSSM=%PROJECT_ROOT%\tools\nssm\nssm.exe"
 if not exist "%NSSM%" set "NSSM=nssm"
 
-"%NSSM%" stop GESTIX
+"%NSSM%" stop AxioraERP
 if errorlevel 1 (
-    echo Nao foi possivel parar o servico GESTIX.
+    echo Nao foi possivel parar o servico AXIORA ERP.
     pause
     exit /b 1
 )
 
-echo Servico GESTIX parado.
+echo Servico AXIORA ERP parado.
 pause
 
 endlocal

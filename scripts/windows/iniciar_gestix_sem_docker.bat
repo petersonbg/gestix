@@ -24,7 +24,7 @@ if not exist "media" mkdir "media"
 if not exist "staticfiles" mkdir "staticfiles"
 if not exist "config" mkdir "config"
 
-echo Iniciando GESTIX com descoberta automatica em http://gestix.local:8000
+echo Iniciando AXIORA ERP com descoberta automatica em http://axiora.local:8000
 python launcher\gestix_launcher.py --service
 
 endlocal

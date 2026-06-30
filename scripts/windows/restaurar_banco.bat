@@ -7,7 +7,7 @@ cd /d "%PROJECT_ROOT%" || exit /b 1
 
 if not exist "backups" mkdir "backups"
 echo Informe o caminho do arquivo de backup .sql.
-echo Exemplo: backups\gestix_20260101_120000.sql
+echo Exemplo: backups\axiora_20260101_120000.sql
 set /p BACKUP_FILE="Arquivo: "
 
 if not exist "%BACKUP_FILE%" (

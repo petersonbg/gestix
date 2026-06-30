@@ -1,12 +1,12 @@
-﻿{% extends 'layouts/internal.html' %}
+{% extends 'layouts/internal.html' %}
 
-{% block title %}Produtos | GESTIX{% endblock %}
+{% block title %}Produtos | AXIORA ERP{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
     <div>
         <h1 class="h2 mb-1">Produtos</h1>
-        <p class="text-secondary mb-0">Gerencie o cadastro de produtos do GESTIX.</p>
+        <p class="text-secondary mb-0">Gerencie o cadastro de produtos do AXIORA ERP.</p>
     </div>
     {% if pode_manter_produtos %}
         <a class="btn btn-primary" href="{% url 'produtos:create' %}">Novo produto</a>

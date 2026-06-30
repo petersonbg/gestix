@@ -16,25 +16,25 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if not exist "GESTIX.exe" (
-    echo GESTIX.exe nao encontrado na pasta do sistema.
+if not exist "AxioraERP.exe" (
+    echo AxioraERP.exe nao encontrado na pasta do sistema.
     echo Gere o launcher com build_launcher.bat antes de instalar o servico.
     pause
     exit /b 1
 )
 
-"%NSSM%" install GESTIX "%PROJECT_ROOT%\GESTIX.exe" --service
-"%NSSM%" set GESTIX AppDirectory "%PROJECT_ROOT%"
-"%NSSM%" set GESTIX DisplayName "GESTIX"
-"%NSSM%" set GESTIX Description "Sistema GESTIX em Waitress para rede local"
-"%NSSM%" set GESTIX Start SERVICE_AUTO_START
-"%NSSM%" set GESTIX AppStdout "%PROJECT_ROOT%\logs\gestix_service_stdout.log"
-"%NSSM%" set GESTIX AppStderr "%PROJECT_ROOT%\logs\gestix_service_stderr.log"
-"%NSSM%" set GESTIX AppRotateFiles 1
-"%NSSM%" set GESTIX AppRotateOnline 1
-"%NSSM%" set GESTIX AppRotateBytes 5242880
+"%NSSM%" install AxioraERP "%PROJECT_ROOT%\AxioraERP.exe" --service
+"%NSSM%" set AxioraERP AppDirectory "%PROJECT_ROOT%"
+"%NSSM%" set AxioraERP DisplayName "AXIORA ERP"
+"%NSSM%" set AxioraERP Description "Sistema AXIORA ERP em Waitress para rede local"
+"%NSSM%" set AxioraERP Start SERVICE_AUTO_START
+"%NSSM%" set AxioraERP AppStdout "%PROJECT_ROOT%\logs\axiora_service_stdout.log"
+"%NSSM%" set AxioraERP AppStderr "%PROJECT_ROOT%\logs\axiora_service_stderr.log"
+"%NSSM%" set AxioraERP AppRotateFiles 1
+"%NSSM%" set AxioraERP AppRotateOnline 1
+"%NSSM%" set AxioraERP AppRotateBytes 5242880
 
-echo Servico GESTIX instalado.
+echo Servico AXIORA ERP instalado.
 pause
 
 endlocal

@@ -23,7 +23,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('acesso') == 'janela-invalida':
-            messages.warning(request, 'Abra as telas internas pelo menu principal do GESTIX.')
+            messages.warning(request, 'Abra as telas internas pelo menu principal do AXIORA ERP.')
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

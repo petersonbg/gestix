@@ -1,4 +1,4 @@
-"""Django settings for the GESTIX project."""
+"""Django settings for the AXIORA ERP project."""
 from importlib.util import find_spec
 from pathlib import Path
 import os

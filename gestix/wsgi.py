@@ -1,4 +1,4 @@
-"""WSGI config for the GESTIX project."""
+"""WSGI config for the AXIORA ERP project."""
 import os
 
 from django.core.wsgi import get_wsgi_application

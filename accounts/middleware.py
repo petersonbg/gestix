@@ -1,4 +1,4 @@
-﻿from django.conf import settings
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.shortcuts import redirect
@@ -18,7 +18,7 @@ from .session_services import MENSAGEM_SESSAO_SUBSTITUIDA, atualizar_ultimo_aces
 from .utils import registrar_log
 
 
-ULTIMA_ATIVIDADE_SESSAO = 'gestix_ultima_atividade'
+ULTIMA_ATIVIDADE_SESSAO = 'axiora_ultima_atividade'
 
 
 INTERNAL_PREFIXES = (

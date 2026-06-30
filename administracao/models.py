@@ -1,4 +1,4 @@
-﻿from django.conf import settings
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -182,7 +182,7 @@ class ConfiguracaoSistema(models.Model):
     mensagem_rodape_documentos = models.CharField(
         'mensagem de rodapé dos documentos',
         max_length=255,
-        default='Documento gerado pelo sistema GESTIX.',
+        default='Documento gerado pelo sistema AXIORA ERP.',
     )
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)

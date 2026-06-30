@@ -1,4 +1,4 @@
-"""ASGI config for the GESTIX project."""
+"""ASGI config for the AXIORA ERP project."""
 import os
 
 from django.core.asgi import get_asgi_application

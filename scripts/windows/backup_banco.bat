@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
@@ -7,7 +7,7 @@ cd /d "%PROJECT_ROOT%" || exit /b 1
 
 if not exist "backups" mkdir "backups"
 for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "STAMP=%%i"
-set "BACKUP_FILE=backups\gestix_%STAMP%.sql"
+set "BACKUP_FILE=backups\axiora_%STAMP%.sql"
 
 echo Gerando backup em %BACKUP_FILE%...
 docker compose exec -T db sh -c "pg_dump -U $POSTGRES_USER $POSTGRES_DB" > "%BACKUP_FILE%"

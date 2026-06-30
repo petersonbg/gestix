@@ -1,6 +1,6 @@
-﻿# GESTIX
+# AXIORA ERP
 
-Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Framework e PostgreSQL.
+Estrutura inicial do projeto **AXIORA ERP**, preparada com Django, Django REST Framework e PostgreSQL.
 
 ## Módulos criados
 
@@ -77,7 +77,7 @@ Estrutura inicial do projeto **GESTIX**, preparada com Django, Django REST Frame
 
 
 
-## Como acessar o GESTIX pela rede
+## Como acessar o AXIORA ERP pela rede
 
 O launcher agora detecta o hostname da maquina e recomenda
 `http://HOSTNAME:PORTA`. Ele tambem anuncia `HOSTNAME.local` por mDNS, sem IP
@@ -85,11 +85,11 @@ fixo, instalacao nos clientes ou configuracao do roteador. Consulte
 [`docs/DESCOBERTA_REDE_LOCAL.md`](docs/DESCOBERTA_REDE_LOCAL.md). As instrucoes
 manuais abaixo se aplicam apenas ao modo Docker, que nao executa o launcher.
 
-O GESTIX pode ser acessado por computadores, tablets e celulares conectados Ã  **mesma rede local** do servidor. Esta configuração não deve ser usada para publicar o sistema diretamente na internet.
+O AXIORA ERP pode ser acessado por computadores, tablets e celulares conectados Ã  **mesma rede local** do servidor. Esta configuração não deve ser usada para publicar o sistema diretamente na internet.
 
 ### 1. Descobrir o IP do servidor
 
-No computador Windows que executa o GESTIX, abra o Prompt de Comando e execute:
+No computador Windows que executa o AXIORA ERP, abra o Prompt de Comando e execute:
 
 ```bat
 ipconfig
@@ -110,7 +110,7 @@ DEBUG=False
 ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.50
 CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://192.168.1.50:8000
 USE_HTTPS=False
-GESTIX_NETWORK_URL=http://192.168.1.50:8000
+AXIORA_NETWORK_URL=http://192.168.1.50:8000
 ```
 
 Reinicie o container web após alterar o arquivo:
@@ -126,7 +126,7 @@ O Docker publica a porta `8000` do container e inicia o Django em `0.0.0.0:8000`
 No Windows, execute o PowerShell ou Prompt de Comando **como Administrador**:
 
 ```bat
-netsh advfirewall firewall add rule name="GESTIX - Rede Local" dir=in action=allow protocol=TCP localport=8000 profile=private
+netsh advfirewall firewall add rule name="AXIORA ERP - Rede Local" dir=in action=allow protocol=TCP localport=8000 profile=private
 ```
 
 Confirme também que a conexão do Windows está marcada como **Rede privada**. No Linux com UFW:
@@ -159,7 +159,7 @@ O launcher e os atalhos continuam abrindo `http://localhost:8000` no próprio se
 - Execute `docker compose ps` e confirme que o serviço `web` publica `0.0.0.0:8000->8000/tcp`.
 - Teste no servidor primeiro com `http://localhost:8000`.
 - Depois teste em outro dispositivo com o IP do servidor.
-- Se o IP mudar, atualize `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` e `GESTIX_NETWORK_URL` no `.env` e reinicie o serviço web.
+- Se o IP mudar, atualize `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` e `AXIORA_NETWORK_URL` no `.env` e reinicie o serviço web.
 
 ## Arquivos estáticos e Django Admin
 
@@ -180,7 +180,7 @@ curl -I http://localhost:8000/static/admin/css/base.css
 
 ## Produção Windows sem Docker
 
-O GESTIX também pode rodar em Windows com PostgreSQL local e Waitress, sem Docker. Use `config/.env` com `DEBUG=False`, `RUNNING_IN_DOCKER=False` e `SERVER_MODE=True`, execute `collectstatic` e inicie com:
+O AXIORA ERP também pode rodar em Windows com PostgreSQL local e Waitress, sem Docker. Use `config/.env` com `DEBUG=False`, `RUNNING_IN_DOCKER=False` e `SERVER_MODE=True`, execute `collectstatic` e inicie com:
 
 ```bat
 waitress-serve --listen=0.0.0.0:8000 gestix.wsgi:application
@@ -426,7 +426,7 @@ As páginas internas começam em `/dashboard/`, exigem login e exibem o nome do 
 
 ### Atalhos para Windows
 
-A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do GESTIX no Windows com Docker Desktop:
+A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do AXIORA ERP no Windows com Docker Desktop:
 
 - `scripts/windows/iniciar_gestix.bat`: acessa automaticamente a pasta raiz do projeto, executa `docker compose up -d`, aguarda alguns segundos e abre <http://localhost:8000/> no navegador padrão.
 - `scripts/windows/parar_gestix.bat`: acessa automaticamente a pasta raiz do projeto, executa `docker compose down` e informa que o sistema foi encerrado.
@@ -436,11 +436,11 @@ A pasta `scripts/windows/` possui arquivos `.bat` para facilitar o uso do GESTIX
 
 ## Backup e Restauração
 
-O GESTIX possui uma tela administrativa em **Administração > Backup e Restauração** (`/administracao/backup/`).
+O AXIORA ERP possui uma tela administrativa em **Administração > Backup e Restauração** (`/administracao/backup/`).
 
 - Apenas usuários Administradores podem acessar, gerar, restaurar e baixar backups.
 - Os arquivos são salvos em `backups/`, fora de `static/` e `media/`, e não têm URL pública.
-- O formato gerado é o custom format do PostgreSQL (`pg_dump -Fc`) com nome `gestix_backup_YYYYMMDD_HHMMSS.dump`.
+- O formato gerado é o custom format do PostgreSQL (`pg_dump -Fc`) com nome `axiora_backup_YYYYMMDD_HHMMSS.dump`.
 - A restauração aceita somente `.dump` e `.backup`, com limite padrão de 500 MB.
 - Antes de restaurar, o sistema gera um backup automático de segurança do banco atual.
 
@@ -462,18 +462,18 @@ No Docker, os comandos podem ser executados dentro do container web:
 
 ```bash
 docker compose exec web python manage.py gerar_backup
-docker compose exec web python manage.py restaurar_backup backups/gestix_backup_DATA.dump
+docker compose exec web python manage.py restaurar_backup backups/axiora_backup_DATA.dump
 ```
 
 Backup manual do banco no Docker:
 
 ```bash
-docker compose exec -T db pg_dump -U gestix -d gestix -Fc > backups/gestix_backup_DATA.dump
+docker compose exec -T db pg_dump -U gestix -d gestix -Fc > backups/axiora_backup_DATA.dump
 ```
 
 Restauração é uma operação destrutiva: ela substitui os dados atuais. Em produção, faça a restauração preferencialmente em janela de manutenção, por comando administrativo ou fila de tarefas, e valide primeiro em uma base descartável.
 
-Os arquivos `Iniciar_GESTIX.bat` e `Parar_GESTIX.bat` continuam disponíveis como atalhos compatíveis com a primeira rotina de Docker no Windows.
+Os arquivos `Iniciar_AXIORA ERP.bat` e `Parar_AXIORA ERP.bat` continuam disponíveis como atalhos compatíveis com a primeira rotina de Docker no Windows.
 
 Como usar:
 
@@ -490,20 +490,20 @@ Se o Docker Desktop não estiver aberto, o script de inicialização exibirá um
 O projeto possui uma estrutura para distribuição em máquinas Windows usando PyInstaller e Inno Setup:
 
 - `launcher/gestix_launcher.py`: launcher gráfico que valida o Docker Desktop, executa `docker compose up -d`, aguarda a inicialização e abre <http://localhost:8000>.
-- `launcher/build_launcher.bat`: gera `launcher/dist/GESTIX.exe` com PyInstaller usando `--onefile --noconsole`; se existir `launcher/gestix.ico`, o ícone será aplicado ao executável.
-- `installer/gestix_installer.iss`: script do Inno Setup para gerar o instalador `.exe` com diretório padrão `C:\GESTIX`, atalhos no desktop/menu iniciar e verificação de Docker Desktop instalado.
+- `launcher/build_launcher.bat`: gera `launcher/dist/AxioraERP.exe` com PyInstaller usando `--onefile --noconsole`; se existir `static/branding/favicon.ico`, o ícone será aplicado ao executável.
+- `installer/gestix_installer.iss`: script do Inno Setup para gerar o instalador `.exe` com diretório padrão `C:\AxioraERP`, atalhos no desktop/menu iniciar e verificação de Docker Desktop instalado.
 - `scripts/windows/`: scripts para iniciar, parar, resetar banco, gerar backup e restaurar backup.
 - `docs/INSTALACAO_WINDOWS.md`: guia operacional para instalação, abertura, parada, backup, restauração e desinstalação no Windows.
 
 Fluxo recomendado para gerar o instalador:
 
-1. Em uma máquina Windows com Python, execute `launcher/build_launcher.bat` para gerar `launcher/dist/GESTIX.exe`.
+1. Em uma máquina Windows com Python, execute `launcher/build_launcher.bat` para gerar `launcher/dist/AxioraERP.exe`.
 2. Instale o Inno Setup.
 3. Abra `installer/gestix_installer.iss` no Inno Setup Compiler.
 4. Compile o instalador.
 5. Distribua o `.exe` gerado para instalação no Windows.
 
-Após instalado, o usuário final deve abrir o Docker Desktop e clicar no atalho **GESTIX** na área de trabalho. O sistema será iniciado sem necessidade de digitar comandos no terminal.
+Após instalado, o usuário final deve abrir o Docker Desktop e clicar no atalho **AXIORA ERP** na área de trabalho. O sistema será iniciado sem necessidade de digitar comandos no terminal.
 
 ## Estrutura inicial
 
@@ -519,7 +519,7 @@ Esta etapa cria apenas a base do projeto. Regras de negócio, modelos completos,
 
 ## Segurança da aplicação
 
-O GESTIX possui uma camada inicial de segurança para reduzir uso indevido das telas internas:
+O AXIORA ERP possui uma camada inicial de segurança para reduzir uso indevido das telas internas:
 
 - todas as páginas internas usam autenticação do Django com `LoginRequiredMixin` ou views protegidas;
 - APIs internas do Django REST Framework exigem usuário autenticado por padrão;
@@ -616,12 +616,12 @@ Perfis: Administrador e Gerente gerenciam todo o fluxo; Vendedor pode criar, vis
 
 ## Administração
 
-O menu **Administração** centraliza configurações gerais do GESTIX e fica disponível somente para os perfis **Administrador** e **Gerente**:
+O menu **Administração** centraliza configurações gerais do AXIORA ERP e fica disponível somente para os perfis **Administrador** e **Gerente**:
 
 A tela inicial apresenta cards responsivos para **Dados da Empresa**, **Configurações do Sistema**, **Usuários e Permissões**, **Backup e Restauração** e **Logs de Atividade**, com resumos e acesso Ã s respectivas consultas.
 
 - **Dados da Empresa**: cadastro único com razão social, nome fantasia, CNPJ, inscrições estadual e municipal, endereço completo, contatos, logos, cores institucionais, responsável e observações. Administradores podem editar em `/administracao/dados-empresa/editar/`; Gerentes acessam somente a visualização.
-  Esses dados alimentam automaticamente os cabeçalhos do recibo de venda, orçamento e ordem de serviço; quando não há cadastro, os documentos exibem somente a marca GESTIX. A logo obedece Ã  opção **Mostrar logo nas impressões**.
+  Esses dados alimentam automaticamente os cabeçalhos do recibo de venda, orçamento e ordem de serviço; quando não há cadastro, os documentos exibem somente a marca AXIORA ERP. A logo obedece Ã  opção **Mostrar logo nas impressões**.
 - **Configurações do Sistema**: cadastro único de preferências compartilhadas, incluindo notificações de aniversário, tempo de logout por inatividade, exibição de logo e assinatura nas impressões e mensagem padrão do rodapé dos documentos.
   O tempo de logout é aplicado tanto pelo backend quanto pelo temporizador do navegador; atividades no navegador renovam a sessão por um endpoint autenticado e, ao expirar, o usuário retorna Ã  tela de login. Na ausência de configuração, o padrão é 15 minutos.
 

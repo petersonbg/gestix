@@ -1,4 +1,4 @@
-"""Local-network discovery for GESTIX servers."""
+"""Local-network discovery for AXIORA ERP servers."""
 
 from __future__ import annotations
 
@@ -21,14 +21,15 @@ except ImportError:  # pragma: no cover - handled with a clear runtime error
     IPVersion = ServiceInfo = Zeroconf = None
 
 
-SERVICE_TYPE = '_gestix._tcp.local.'
-SERVICE_NAME = f'GESTIX.{SERVICE_TYPE}'
+SERVICE_TYPE = '_axiora._tcp.local.'
+SERVICE_NAME = f'AXIORA ERP.{SERVICE_TYPE}'
 DISCOVERY_PORT = 37020
 PROTOCOL_VERSION = 1
-QUERY_KIND = 'gestix-discover'
-RESPONSE_KIND = 'gestix-server'
+QUERY_KIND = 'axiora-discover'
+LEGACY_QUERY_KIND = 'gestix-discover'
+RESPONSE_KIND = 'axiora-server'
 DEFAULT_CACHE_PATH = Path('config') / 'discovered_server.json'
-LOGGER = logging.getLogger('GESTIX.discovery')
+LOGGER = logging.getLogger('AXIORA ERP.discovery')
 
 
 @dataclass(frozen=True)
@@ -50,11 +51,11 @@ class ServerAddress:
 
 
 def current_machine_name():
-    return platform.node() or socket.gethostname() or 'GESTIX'
+    return platform.node() or socket.gethostname() or 'AXIORA ERP'
 
 
 def current_hostname():
-    return current_machine_name().split('.', 1)[0].strip() or 'GESTIX'
+    return current_machine_name().split('.', 1)[0].strip() or 'AXIORA ERP'
 
 
 def current_mdns_hostname():
@@ -141,7 +142,7 @@ def _server_from_response(payload, nonce, sender_ip):
         return None
     return ServerAddress(
         hostname=str(payload.get('hostname') or HOSTNAME).rstrip('.'),
-        machine_name=str(payload.get('machine_name') or 'GESTIX'),
+        machine_name=str(payload.get('machine_name') or 'AXIORA ERP'),
         ip=sender_ip,
         port=port,
         source='udp',
@@ -207,7 +208,7 @@ class MdnsAdvertisement:
             addresses=[socket.inet_aton(self.ip)],
             port=self.port,
             properties={
-                b'app': b'GESTIX',
+                b'app': b'AXIORA ERP',
                 b'version': str(PROTOCOL_VERSION).encode('ascii'),
                 b'machine': current_machine_name().encode('utf-8'),
             },
@@ -243,7 +244,7 @@ def discover_mdns(timeout=2.5):
         addresses = info.parsed_scoped_addresses(IPVersion.V4Only)
         if not addresses:
             return None
-        machine = info.properties.get(b'machine', b'GESTIX').decode('utf-8', errors='replace')
+        machine = info.properties.get(b'machine', b'AXIORA ERP').decode('utf-8', errors='replace')
         return ServerAddress(
             hostname=machine,
             machine_name=machine,
@@ -316,7 +317,7 @@ def load_saved_server(path=DEFAULT_CACHE_PATH):
 def serve(ip, port, discovery_port=DISCOVERY_PORT):
     advertisement = MdnsAdvertisement(ip, port)
     responder = UdpDiscoveryResponder(ip, port, discovery_port)
-    responder_thread = threading.Thread(target=responder.serve_forever, name='gestix-udp', daemon=True)
+    responder_thread = threading.Thread(target=responder.serve_forever, name='axiora-udp', daemon=True)
     stop_event = threading.Event()
 
     def request_stop(_signum=None, _frame=None):
@@ -338,7 +339,7 @@ def serve(ip, port, discovery_port=DISCOVERY_PORT):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Descoberta local do servidor GESTIX.')
+    parser = argparse.ArgumentParser(description='Descoberta local do servidor AXIORA ERP.')
     subparsers = parser.add_subparsers(dest='command', required=True)
 
     server = subparsers.add_parser('serve', help='Anuncia este servidor na rede local.')
@@ -346,7 +347,7 @@ def parse_args():
     server.add_argument('--port', type=int, required=True)
     server.add_argument('--discovery-port', type=int, default=DISCOVERY_PORT)
 
-    client = subparsers.add_parser('discover', help='Localiza um servidor GESTIX.')
+    client = subparsers.add_parser('discover', help='Localiza um servidor AXIORA ERP.')
     client.add_argument('--cache', type=Path, default=DEFAULT_CACHE_PATH)
     return parser.parse_args()
 
@@ -360,7 +361,7 @@ def main():
 
     server = discover_server()
     if not server:
-        LOGGER.error('Nenhum servidor GESTIX foi encontrado na rede local.')
+        LOGGER.error('Nenhum servidor AXIORA ERP foi encontrado na rede local.')
         return 1
     save_server(server, args.cache)
     print(server.ip_url)

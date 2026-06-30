@@ -81,7 +81,7 @@ def contexto_whatsapp(cliente=None, empresa=None, **extras):
     empresa_nome = ''
     empresa_contato = ''
     if empresa:
-        empresa_nome = empresa.nome_fantasia or empresa.razao_social or 'GESTIX'
+        empresa_nome = empresa.nome_fantasia or empresa.razao_social or 'AXIORA ERP'
         empresa_contato = empresa.whatsapp or empresa.telefone or empresa.celular or empresa.email or ''
     contexto = {
         'cliente_nome': getattr(cliente, 'nome', '') if cliente else '',

@@ -21,7 +21,7 @@ class Resultado:
 
 
 class Command(BaseCommand):
-    help = 'Verifica se o GESTIX esta pronto para producao local em Windows sem Docker.'
+    help = 'Verifica se o AXIORA ERP esta pronto para producao local em Windows sem Docker.'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -189,7 +189,7 @@ class Command(BaseCommand):
     def gerar_diagnostico(self, resultados):
         caminho = Path(settings.LOG_DIR) / 'diagnostico.txt'
         linhas = [
-            'DIAGNOSTICO GESTIX - PRODUCAO WINDOWS',
+            'DIAGNOSTICO AXIORA ERP - PRODUCAO WINDOWS',
             f'IP local: {self.ip_local()}',
             f'DEBUG: {settings.DEBUG}',
             f'RUNNING_IN_DOCKER: {settings.RUNNING_IN_DOCKER}',

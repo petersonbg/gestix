@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
@@ -29,21 +29,21 @@ if errorlevel 1 (
 )
 
 set "ICON_OPTION="
-if exist "%SCRIPT_DIR%gestix.ico" (
-    set "ICON_OPTION=--icon %SCRIPT_DIR%gestix.ico"
+if exist "%PROJECT_ROOT%\static\branding\favicon.ico" (
+    set "ICON_OPTION=--icon %PROJECT_ROOT%\static\branding\favicon.ico"
 ) else (
-    if exist "%PROJECT_ROOT%\gestix.ico" set "ICON_OPTION=--icon %PROJECT_ROOT%\gestix.ico"
+    if exist "%PROJECT_ROOT%\static\branding\favicon.ico" set "ICON_OPTION=--icon %PROJECT_ROOT%\static\branding\favicon.ico"
 )
 
-echo Gerando GESTIX.exe...
-"%PYTHON_EXE%" -m PyInstaller --onefile --noconsole --paths "%PROJECT_ROOT%" --collect-all zeroconf --name GESTIX %ICON_OPTION% gestix_launcher.py
+echo Gerando AxioraERP.exe...
+"%PYTHON_EXE%" -m PyInstaller --onefile --noconsole --paths "%PROJECT_ROOT%" --collect-all zeroconf --name AxioraERP %ICON_OPTION% gestix_launcher.py
 if errorlevel 1 (
-    echo Falha ao gerar o executavel GESTIX.exe.
+    echo Falha ao gerar o executavel AxioraERP.exe.
     pause
     exit /b 1
 )
 
 echo.
-echo Executavel gerado em dist\GESTIX.exe
+echo Executavel gerado em dist\AxioraERP.exe
 echo.
 pause

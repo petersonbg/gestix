@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 import os
 import shutil
 import subprocess
@@ -28,7 +28,7 @@ def backup_root():
     return raiz
 
 
-def nome_backup(prefixo='gestix_backup'):
+def nome_backup(prefixo='axiora_backup'):
     return f'{prefixo}_{timezone.localtime().strftime("%Y%m%d_%H%M%S")}.dump'
 
 
@@ -113,7 +113,7 @@ def registrar_backup(*, tipo, caminho='', usuario=None, status, mensagem=''):
     )
 
 
-def gerar_backup(*, usuario=None, prefixo='gestix_backup', registrar=True):
+def gerar_backup(*, usuario=None, prefixo='axiora_backup', registrar=True):
     caminho = caminho_seguro_backup(nome_backup(prefixo))
     config, env = _env_postgres()
     comando = [
@@ -158,7 +158,7 @@ def salvar_upload_temporario(arquivo: UploadedFile):
     extensao = Path(nome).suffix.lower()
     if extensao not in EXTENSOES_BACKUP_PERMITIDAS:
         raise ValidationError('Envie um arquivo .dump ou .backup.')
-    destino = Path(tempfile.mkdtemp(prefix='gestix_restore_')) / nome
+    destino = Path(tempfile.mkdtemp(prefix='axiora_restore_')) / nome
     with destino.open('wb') as saida:
         for chunk in arquivo.chunks():
             saida.write(chunk)
@@ -176,7 +176,7 @@ def restaurar_backup(caminho_arquivo, *, usuario=None, registrar=True, gerar_bac
         if gerar_backup_seguranca:
             backup_seguranca = gerar_backup(
                 usuario=usuario,
-                prefixo='gestix_backup_seguro_pre_restore',
+                prefixo='axiora_backup_seguro_pre_restore',
                 registrar=True,
             )
 

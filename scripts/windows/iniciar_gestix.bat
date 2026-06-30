@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
@@ -14,16 +14,16 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Iniciando o GESTIX...
+echo Iniciando o AXIORA ERP...
 docker compose up -d
 if errorlevel 1 (
-    echo Nao foi possivel iniciar o GESTIX. Verifique as mensagens acima.
+    echo Nao foi possivel iniciar o AXIORA ERP. Verifique as mensagens acima.
     pause
     exit /b 1
 )
 
 timeout /t 8 /nobreak >nul
 start "" "http://localhost:8000"
-echo GESTIX iniciado em http://localhost:8000
+echo AXIORA ERP iniciado em http://localhost:8000
 echo Outros dispositivos podem acessar http://IP-DO-SERVIDOR:8000
 pause

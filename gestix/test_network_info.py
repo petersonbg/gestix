@@ -10,7 +10,7 @@ class NetworkInfoTests(TestCase):
             patch('gestix.network_info.current_hostname', return_value='SERVIDOR'),
             patch('gestix.network_info.current_mdns_hostname', return_value='SERVIDOR.local'),
             patch('gestix.network_info.local_ip', return_value='192.168.1.20'),
-            patch.dict('os.environ', {'GESTIX_PORT': '8012'}),
+            patch.dict('os.environ', {'AXIORA_PORT': '8012'}),
         ):
             info = get_network_info()
 
@@ -28,5 +28,5 @@ class NetworkInfoTests(TestCase):
         self.assertEqual(hosts, ['SERVIDOR', 'SERVIDOR.local', 'localhost', '127.0.0.1'])
 
     def test_invalid_port_uses_default(self):
-        with patch.dict('os.environ', {'GESTIX_PORT': 'invalida'}):
+        with patch.dict('os.environ', {'AXIORA_PORT': 'invalida'}):
             self.assertEqual(server_port(), 8000)

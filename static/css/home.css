@@ -1,3 +1,26 @@
+:root {
+    --axiora-blue-dark: #0A2E63;
+    --axiora-blue-light: #1EA7FD;
+    --axiora-white: #FFFFFF;
+    --axiora-gray-light: #F5F7FA;
+    --axiora-gray-dark: #2F3542;
+}
+
+body {
+    background: var(--axiora-gray-light);
+    color: var(--axiora-gray-dark);
+    font-family: Inter, sans-serif;
+}
+
+.navbar, .offcanvas-header {
+    background: var(--axiora-white);
+}
+
+.text-primary { color: var(--axiora-blue-dark) !important; }
+.btn-primary, .text-bg-primary { background-color: var(--axiora-blue-dark) !important; border-color: var(--axiora-blue-dark) !important; }
+.btn-outline-primary { color: var(--axiora-blue-dark) !important; border-color: var(--axiora-blue-dark) !important; }
+.btn-outline-primary:hover { background-color: var(--axiora-blue-dark) !important; color: #fff !important; }
+
 ﻿body {
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -14,20 +37,20 @@ main {
     padding-block: 0.65rem;
 }
 
-.gestix-sidebar .nav-link {
+.axiora-sidebar .nav-link {
     border-radius: .5rem;
     color: #334155;
     font-size: .94rem;
     padding: .48rem .68rem;
 }
 
-.gestix-sidebar .nav-link:hover {
-    background: #eef4ff;
-    color: #0d6efd;
+.axiora-sidebar .nav-link:hover {
+    background: #EAF6FF;
+    color: #0A2E63;
 }
 
-.gestix-sidebar .nav-link.active {
-    background: #0d6efd;
+.axiora-sidebar .nav-link.active {
+    background: #0A2E63;
     color: #fff;
     font-weight: 600;
 }
@@ -57,7 +80,7 @@ main {
 }
 
 .sidebar-subgroup {
-    border-left: 2px solid #dbeafe;
+    border-left: 2px solid #1EA7FD;
     display: flex;
     flex-direction: column;
     gap: .12rem;

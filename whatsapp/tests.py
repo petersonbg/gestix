@@ -50,10 +50,10 @@ class WhatsAppServicesTests(TestCase):
         modelo = type('Modelo', (), {'mensagem': 'Olá {cliente_nome}, {empresa_nome} em {data}.'})()
         mensagem = renderizar_modelo(modelo, {
             'cliente_nome': 'Ana',
-            'empresa_nome': 'GESTIX',
+            'empresa_nome': 'AXIORA ERP',
             'data': '26/06/2026',
         })
-        self.assertEqual(mensagem, 'Olá Ana, GESTIX em 26/06/2026.')
+        self.assertEqual(mensagem, 'Olá Ana, AXIORA ERP em 26/06/2026.')
 
     def test_modelo_bloqueia_variavel_nao_permitida(self):
         modelo = ModeloMensagemWhatsApp(nome='Teste', tipo='AVULSA', mensagem='Olá {cliente_nome} {senha}')

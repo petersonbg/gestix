@@ -1,8 +1,9 @@
-﻿<div class="d-flex align-items-start gap-3 company-identity">
+{% load static %}
+<div class="d-flex align-items-start gap-3 company-identity">
     {% if logo_empresa_url %}
         <img src="{{ logo_empresa_url }}" alt="Logo de {{ empresa.nome_fantasia|default:empresa.razao_social }}" class="company-header-logo">
     {% else %}
-        <span class="brand-mark">GX</span>
+        <img src="{% static 'branding/axiora_icon.png' %}" alt="AXIORA ERP" class="company-header-logo">
     {% endif %}
     <div class="company-details">
         {% if empresa %}
@@ -11,7 +12,8 @@
             {% if endereco_empresa_formatado %}<div><strong>Endereço:</strong> {{ endereco_empresa_formatado }}</div>{% endif %}
             {% if contato_empresa_formatado %}<div><strong>Contato:</strong> {{ contato_empresa_formatado }}</div>{% endif %}
         {% else %}
-            <div class="company-name">GESTIX</div>
+            <div class="company-name">AXIORA ERP</div>
+            <div>O Eixo da Gestão Inteligente</div>
         {% endif %}
     </div>
 </div>

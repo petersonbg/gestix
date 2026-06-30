@@ -4,8 +4,8 @@ setlocal
 set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%" || exit /b 1
 
-if not exist "launcher\dist\GESTIX.exe" (
-    echo GESTIX.exe nao encontrado. Gerando launcher primeiro...
+if not exist "launcher\dist\AxioraERP.exe" (
+    echo AxioraERP.exe nao encontrado. Gerando launcher primeiro...
     call "launcher\build_launcher.bat"
     if errorlevel 1 exit /b 1
 )
@@ -23,7 +23,7 @@ if "%ISCC_EXE%"=="" (
     exit /b 1
 )
 
-echo Gerando instalador GESTIX_Instalador.exe...
+echo Gerando instalador Axiora_ERP_Instalador.exe...
 "%ISCC_EXE%" "installer\gestix_installer.iss"
 if errorlevel 1 (
     echo Falha ao gerar o instalador.
@@ -31,7 +31,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Instalador gerado em installer\Output\GESTIX_Instalador.exe
+echo Instalador gerado em installer\Output\Axiora_ERP_Instalador.exe
 pause
 
 endlocal

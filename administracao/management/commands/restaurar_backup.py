@@ -4,7 +4,7 @@ from administracao.backup_services import restaurar_backup
 
 
 class Command(BaseCommand):
-    help = 'Restaura um backup PostgreSQL do GESTIX em formato .dump ou .backup.'
+    help = 'Restaura um backup PostgreSQL do AXIORA ERP em formato .dump ou .backup.'
 
     def add_arguments(self, parser):
         parser.add_argument('caminho_do_arquivo')

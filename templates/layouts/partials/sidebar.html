@@ -1,7 +1,7 @@
 {% load administracao_tags %}
 
 {% with namespace=request.resolver_match.namespace url_name=request.resolver_match.url_name %}
-<aside class="gestix-sidebar">
+<aside class="axiora-sidebar">
     <nav class="nav nav-pills flex-column gap-2">
         <a class="nav-link d-flex align-items-center gap-2 {% if url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
             <span class="sidebar-icon">⌂</span><span>Dashboard</span>

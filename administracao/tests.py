@@ -1,4 +1,4 @@
-﻿from io import BytesIO
+from io import BytesIO
 from pathlib import Path
 import tempfile
 from unittest.mock import patch
@@ -148,14 +148,14 @@ class AdministracaoAcessoTests(TestCase):
 
     def dados_empresa(self, **alteracoes):
         dados = {
-            'razao_social': 'GESTIX Tecnologia Ltda', 'nome_fantasia': 'GESTIX',
+            'razao_social': 'AXIORA ERP Tecnologia Ltda', 'nome_fantasia': 'AXIORA ERP',
             'cnpj': '12.345.678/0001-99', 'inscricao_estadual': 'ISENTO',
             'inscricao_municipal': '12345', 'cep': '29000-000',
             'logradouro': 'Rua Principal', 'numero': '100', 'complemento': 'Sala 1',
             'bairro': 'Centro', 'cidade': 'Vitória', 'estado': 'es',
             'telefone': '(27) 3333-3333', 'celular': '(27) 99999-9999',
-            'whatsapp': '(27) 99999-9999', 'email': 'contato@gestix.local',
-            'site': 'https://gestix.local', 'cor_primaria': '#112233',
+            'whatsapp': '(27) 99999-9999', 'email': 'contato@axiora.local',
+            'site': 'https://axiora.local', 'cor_primaria': '#112233',
             'cor_secundaria': '#445566', 'responsavel': 'Responsável',
             'observacoes': 'Cadastro principal.',
         }
@@ -249,12 +249,12 @@ class AdministracaoAcessoTests(TestCase):
         response = self.client.post(reverse('administracao:dados_empresa_editar'), self.dados_empresa())
         self.assertRedirects(response, reverse('administracao:dados_empresa'))
         empresa = Empresa.get_solo()
-        self.assertEqual(empresa.nome_fantasia, 'GESTIX')
+        self.assertEqual(empresa.nome_fantasia, 'AXIORA ERP')
         self.assertEqual(empresa.logradouro, 'Rua Principal')
         self.assertEqual(empresa.estado, 'ES')
 
         response = self.client.get(reverse('administracao:dados_empresa'))
-        self.assertContains(response, 'GESTIX')
+        self.assertContains(response, 'AXIORA ERP')
         self.assertContains(response, 'Rua Principal')
 
     def test_gerente_visualiza_mas_nao_acessa_edicao(self):
@@ -364,8 +364,8 @@ class BackupRestauracaoTests(TestCase):
     def test_listagem_do_historico(self):
         BackupRegistro.objects.create(
             tipo=BackupRegistro.Tipo.BACKUP,
-            nome_arquivo='gestix_backup_20260616_120000.dump',
-            arquivo='gestix_backup_20260616_120000.dump',
+            nome_arquivo='axiora_backup_20260616_120000.dump',
+            arquivo='axiora_backup_20260616_120000.dump',
             tamanho_arquivo=2048,
             usuario=self.admin,
             status=BackupRegistro.Status.SUCESSO,
@@ -376,13 +376,13 @@ class BackupRestauracaoTests(TestCase):
         response = self.client.get(reverse('administracao:backup'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'gestix_backup_20260616_120000.dump')
+        self.assertContains(response, 'axiora_backup_20260616_120000.dump')
         self.assertContains(response, 'SUCESSO')
         self.assertContains(response, 'Baixar Backup')
 
     def test_criacao_de_registro_de_backup(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            caminho = Path(tmpdir) / 'gestix_backup_20260616_120000.dump'
+            caminho = Path(tmpdir) / 'axiora_backup_20260616_120000.dump'
             caminho.write_bytes(b'PGDMP')
 
             registro = registrar_backup(
@@ -393,7 +393,7 @@ class BackupRestauracaoTests(TestCase):
                 mensagem='Criado no teste.',
             )
 
-        self.assertEqual(registro.nome_arquivo, 'gestix_backup_20260616_120000.dump')
+        self.assertEqual(registro.nome_arquivo, 'axiora_backup_20260616_120000.dump')
         self.assertEqual(registro.tamanho_arquivo, 5)
         self.assertEqual(registro.usuario, self.admin)
 
@@ -420,7 +420,7 @@ class BackupRestauracaoTests(TestCase):
 
     def test_gerar_backup_pela_tela_registra_sucesso(self):
         self.client.force_login(self.admin)
-        caminho = Path('backups') / 'gestix_backup_20260616_120000.dump'
+        caminho = Path('backups') / 'axiora_backup_20260616_120000.dump'
 
         with patch('administracao.views.gerar_backup', return_value=caminho) as gerar:
             response = self.client.post(reverse('administracao:backup'), {'acao': 'gerar'})
@@ -432,7 +432,7 @@ class BackupRestauracaoTests(TestCase):
     def test_download_protegido_por_admin(self):
         backup_dir = Path(tempfile.gettempdir()) / 'gestix_test_backups'
         backup_dir.mkdir(parents=True, exist_ok=True)
-        arquivo = backup_dir / 'gestix_backup_download.dump'
+        arquivo = backup_dir / 'axiora_backup_download.dump'
         arquivo.write_bytes(b'PGDMP')
         registro = BackupRegistro.objects.create(
             tipo=BackupRegistro.Tipo.BACKUP,
